@@ -8,7 +8,7 @@
 #include "ShaderBase.h"
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.inl>
-
+#include "ColorUtil.h"
 class TextureImageDemo : public ShaderBase {
     glm::mat4 mInitMatrix;
     GLuint textureId;
@@ -35,6 +35,14 @@ public:
     ~TextureImageDemo();
 
     float  _DistanceMark =0.25;
+    float _OutlineMark  = 0.2;
+    float _ShadowDistanceMark  = 2;
+    int _ShadowAngleMark=0;
+
+    float _ShadowAlpha = 0.1;
+
+    int _StokeLineColor;
+    int _ShadowColor;
 };
 
 

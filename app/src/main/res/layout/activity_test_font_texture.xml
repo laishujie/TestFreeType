@@ -3,26 +3,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".TestTextureActivity">
+    android:layout_height="match_parent">
 
     <android.opengl.GLSurfaceView
         android:id="@+id/gl_surface"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="441:205"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintDimensionRatio="441:205" />
+        app:layout_constraintTop_toTopOf="@id/alpha_seekBar" />
 
+
+    <TextView
+        android:id="@+id/tv_stoke"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:drawableLeft="@mipmap/ic_line"
+        android:text="描边"
+        android:textColor="#333333"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.example.testfreetype.widget.ColorPickerView
+        android:id="@+id/color_seekBar"
+        android:layout_width="0dp"
+        android:layout_height="25dp"
+        app:indicatorColor="#fff"
+        app:indicatorEnable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="5dp"
+        app:layout_constraintTop_toBottomOf="@id/color_text"
+        app:orientation="horizontal" />
+
+    <TextView
+        android:id="@+id/color_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:text="颜色: "
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_stoke" />
 
     <TextView
         android:id="@+id/x_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="x:50"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:text="阈值：50"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/color_seekBar" />
 
     <SeekBar
         android:id="@+id/x_seekBar"
@@ -37,8 +74,8 @@
         android:id="@+id/y_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="y:0"
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="宽度：60"
+        app:layout_constraintStart_toStartOf="@id/x_text"
         app:layout_constraintTop_toBottomOf="@id/x_seekBar" />
 
     <SeekBar
@@ -46,22 +83,99 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="100"
+        android:progress="60"
         app:layout_constraintTop_toBottomOf="@id/y_text" />
+
+
+    <TextView
+        android:id="@+id/tv_shaodw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:drawableLeft="@mipmap/ic_line"
+        android:text="阴影"
+        android:textColor="#333333"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/y_seekBar" />
+
+
+
+    <TextView
+        android:id="@+id/shadow_color_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:text="颜色: "
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_shaodw" />
+
+    <com.example.testfreetype.widget.ColorPickerView
+        android:id="@+id/shadow_color_seekBar"
+        android:layout_width="0dp"
+        android:layout_height="25dp"
+        app:indicatorColor="#fff"
+        app:indicatorEnable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="5dp"
+        app:layout_constraintTop_toBottomOf="@id/shadow_color_text"
+        app:orientation="horizontal" />
+
 
     <TextView
         android:id="@+id/z_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:max="360"
-        android:text="z:0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/y_seekBar" />
+        android:text="距离：6"
+        app:layout_constraintStart_toStartOf="@id/x_text"
+        app:layout_constraintTop_toBottomOf="@id/shadow_color_seekBar" />
 
     <SeekBar
         android:id="@+id/z_seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="100"
+        android:progress="6"
         app:layout_constraintTop_toBottomOf="@id/z_text" />
+
+
+    <TextView
+        android:id="@+id/angle_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:max="360"
+        android:text="角度：207"
+        app:layout_constraintStart_toStartOf="@id/x_text"
+        app:layout_constraintTop_toBottomOf="@id/z_seekBar" />
+
+    <SeekBar
+        android:id="@+id/angle_seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="360"
+        android:progress="207"
+        app:layout_constraintTop_toBottomOf="@id/angle_text" />
+
+    <TextView
+        android:id="@+id/alpha_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:max="360"
+        android:text="模糊度：0"
+        app:layout_constraintStart_toStartOf="@id/x_text"
+        app:layout_constraintTop_toBottomOf="@id/angle_seekBar" />
+
+    <SeekBar
+        android:id="@+id/alpha_seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        app:layout_constraintTop_toBottomOf="@id/alpha_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

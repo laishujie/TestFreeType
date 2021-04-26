@@ -2,6 +2,7 @@ package com.example.testfreetype
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,14 +18,11 @@ class MainActivity : AppCompatActivity() {
         File(filesDir, "sdf_test.png").path
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val binding = ActivityMainBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
-
         binding.btnCreateSdf.setOnClickListener {
             val sdfPath = StorageHelper.getDCIMPath(this) + File.separator + "${System.currentTimeMillis()}.png"
             val srcPath = File(filesDir, "test_lai_w.png").path

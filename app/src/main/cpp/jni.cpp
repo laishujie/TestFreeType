@@ -38,14 +38,25 @@ Java_com_example_testfreetype_TypeJni_testOpengGlSDF(JNIEnv *env, jclass clazz,j
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_com_example_testfreetype_TypeJni_testSdfShaderOnDraw(JNIEnv *env, jclass clazz,
-                                                          jlong na,  jstring sdf_path ,jfloat distanceMark) {
+                                                          jlong na,  jint stokeColor ,jint shadowColor ,jfloat distanceMark,jfloat outLineDistanceMark,jfloat shadowDistance
+                                                          ,jint shadowAngle
+                                                          ,jfloat shadowAlpha) {
 
     auto *text = reinterpret_cast<TextEngine *>(na);
 
+    text->textureImageDemo->_StokeLineColor = stokeColor;
+    text->textureImageDemo->_ShadowColor = shadowColor;
     text->textureImageDemo->_DistanceMark = distanceMark;
+    text->textureImageDemo->_OutlineMark = outLineDistanceMark;
+    text->textureImageDemo->_ShadowDistanceMark = shadowDistance;
+    text->textureImageDemo->_ShadowAngleMark = shadowAngle;
+    text->textureImageDemo->_ShadowAlpha = shadowAlpha;
+
+
     text->onDraw();
 
-    LOGE("1111","distanceMark %f",distanceMark)
+    LOGE("1111","distanceMark %f  outLineDistanceMark %f shadowDistance %f shadowAngle  %d"
+         ,distanceMark,outLineDistanceMark,shadowDistance,shadowAngle)
     return 0L;
 }
 

@@ -3,6 +3,7 @@
 //
 
 #include "TextureImageDemo.h"
+#include "logUtil.h"
 
 
 void TextureImageDemo::Init() {
@@ -31,35 +32,67 @@ void TextureImageDemo::Init() {
             "#define MAGENTA vec3(1.0, 0.0, 1.0)\n"
 
 
-            "vec4 _OutlineColor = vec4(AZUR,1. );"
-            " vec4 _ShadowColor = vec4(PURPLE,1. );"
+            "uniform vec4 _OutlineColor;"
+            "uniform vec4 _ShadowColor;"
             "vec4 _GlowColor = vec4(MAGENTA,1. );"
-            "float _OutlineDistanceMark =0.25;"
+            "uniform float _OutlineDistanceMark;"
             "float _SmoothDelta =0.25;"
             "float _GlowDistanceMark =0.25;"
-            "float _GlowSmoothDelta=0.1;"
-            "float _ShadowOffsetX=0.1;"
-            "float _ShadowOffsetY=0.1;"
             "vec4 _MainColor = vec4(1.0, 1.0, 1.0, 1.0);"
             "uniform float _DistanceMark;"
-            "float outlineAlphaDist =0.05;"
+            "uniform float _ShadowOffsetPixie;"
+            "uniform int _ShadowAngleMark;"
+
+            "uniform float _ShadowAlpha;"
+
             "mat2 scale(vec2 _scale){\n"
             "    return mat2(_scale.x,0.0,\n"
             "                0.0,_scale.y);\n"
             "}"
-            "void main(){"
-            "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
-            "vec4 col = texture(textureMap,uv); \n"
-            "float distance = col.r;"
-            "if(distance<_DistanceMark){"
-            "_OutlineColor.a = step(_OutlineDistanceMark, distance);"
 
-             "fragColor = _OutlineColor;"
+    "void main(){"
+        "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
+/*
+            "uv-=vec2(0.5); "
+            "uv *= scale(vec2(1.,0.9));"
+            "uv+=vec2(0.5);"*/
+
+        "vec4 col = texture(textureMap,uv); \n"
+
+        "float distance = col.r;"
+        //r分量到了多少需要进行描边绘制
+        "if(distance<_DistanceMark){"
+            //实体描边 _OutlineDistanceMark 分量多少算描边 如果_X 大于或等于_Y，返回 1;否则 0，
+            "vec4 stokeColor = _OutlineColor;"
+            "stokeColor.a = step(_OutlineDistanceMark, distance);"
+            "if(stokeColor.a!=0.){"
+            //属于描边范围直接绘制
+                "fragColor = stokeColor;"
             "}else{"
+            //属于外部范围，进行阴影绘制 这个浮点数是 pi / 180，角度转弧度
+            "float rad = radians(float(_ShadowAngleMark));"
+            //取得纹理大小
+            "ivec2 size = textureSize(textureMap, 0);\n"
+            //获取一个像素所占的值//单位坐标
+            "vec2 unit = 1.0 / vec2(float(size.x),float(size.y));\n"
+            // 根据半径可获取圆点偏移坐标点  //偏移量
+            "vec2 offset = vec2(_ShadowOffsetPixie * cos(rad) * unit.x, _ShadowOffsetPixie * sin(rad) * unit.y);"
+            //坐标点采集R分量
+            "float offsetDistance = texture(textureMap, uv + offset).r;"
+            "if(offsetDistance !=0.){"
+            //进行线性插值
+            "float a = smoothstep(0., _ShadowAlpha, offsetDistance);"
+            "vec4 shadowColor = vec4(_ShadowColor.rgb,a*_ShadowColor.a);"
+            "fragColor = shadowColor;"
+           // "for(int i=0;i<30;i++){"
+            //"}"
+          "}"
+         "}"
+    "}else{"
+            //文字颜色
             "fragColor = _MainColor;"
-            "}"
-
-         "}";
+          "}"
+ "}";
 
 
 
@@ -187,15 +220,42 @@ void TextureImageDemo::draw() {
     glUniform1i(textureIndex, 0);
 
 
+
     GLint distanceMarkIndex = glGetUniformLocation(glProgram->program, "_DistanceMark");
     glUniform1f(distanceMarkIndex, _DistanceMark);
+    GLint outLineMarkIndex = glGetUniformLocation(glProgram->program, "_OutlineDistanceMark");
+    glUniform1f(outLineMarkIndex, _OutlineMark);
+
+    GLint offsetMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowOffsetPixie");
+    glUniform1f(offsetMarkIndex, _ShadowDistanceMark);
+
+    GLint shadowAngleMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowAngleMark");
+    glUniform1i(shadowAngleMarkIndex, _ShadowAngleMark);
+
+
+    GLint testShadowOffsetPixie1 = glGetUniformLocation(glProgram->program, "_ShadowAlpha");
+    glUniform1f(testShadowOffsetPixie1, _ShadowAlpha);
+
+    GLint vertexColorLocation = glGetUniformLocation(glProgram->program, "_OutlineColor");
+
+//    float r = ColorUtil::getColorR(_StokeLineColor);
+//    float g = ColorUtil::getColorG(_StokeLineColor);
+//    float b = ColorUtil::getColorB(_StokeLineColor);
+//    LOGCATE("r %f g %f b %f",r,g,b)
+    glUniform4f(vertexColorLocation, ColorUtil::getColorR(_StokeLineColor), ColorUtil::getColorG(_StokeLineColor), ColorUtil::getColorB(_StokeLineColor), 1.0f);
+
+    GLint shadowColorLocation = glGetUniformLocation(glProgram->program, "_ShadowColor");
+    glUniform4f(shadowColorLocation, ColorUtil::getColorR(_ShadowColor), ColorUtil::getColorG(_ShadowColor), ColorUtil::getColorB(_ShadowColor), 1.0f);
+
+
+
 
 
     //GLint transformLoc = glGetUniformLocation(glProgram->program, "uMatrix");
-   // glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(mInitMatrix));
+    //glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(mInitMatrix));
 
     glvao->BindVAO();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 
     glBindVertexArray(lineVAO);
