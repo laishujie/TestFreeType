@@ -9,6 +9,10 @@ import android.os.storage.StorageManager;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 
 import static android.content.Context.STORAGE_SERVICE;
@@ -61,7 +65,7 @@ public class StorageHelper {
     public static File getExternalFilesDir(Context context) {
         File file = null;
         if (VERSION.SDK_INT >= 8) {
-            file = context.getExternalFilesDir((String)null);
+            file = context.getExternalFilesDir((String) null);
         }
 
         if (file == null) {
@@ -77,33 +81,33 @@ public class StorageHelper {
     }
 
     @SuppressLint({"NewApi"})
-    public static  StorageHelper.StorageVolumeRef[] getVolumeList(Context context) {
+    public static StorageHelper.StorageVolumeRef[] getVolumeList(Context context) {
         try {
-            StorageManager storageManager = (StorageManager)context.getSystemService(STORAGE_SERVICE);
+            StorageManager storageManager = (StorageManager) context.getSystemService(STORAGE_SERVICE);
             Class<?>[] paramClasses = new Class[0];
             Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumeList", paramClasses);
             getVolumePathsMethod.setAccessible(true);
             Object[] emptyParams = new Object[0];
             Object storageVolumeArray = getVolumePathsMethod.invoke(storageManager, emptyParams);
-            int length = ((Object[])((Object[])storageVolumeArray)).length;
-             StorageHelper.StorageVolumeRef[] storageVolumeRefArray = new  StorageHelper.StorageVolumeRef[length];
+            int length = ((Object[]) ((Object[]) storageVolumeArray)).length;
+            StorageHelper.StorageVolumeRef[] storageVolumeRefArray = new StorageHelper.StorageVolumeRef[length];
             Class<?> clazz = Class.forName("android.os.storage.StorageVolume");
 
-            for(int i = 0; i < length; ++i) {
-                Object storageVolumeObj = ((Object[])((Object[])storageVolumeArray))[i];
+            for (int i = 0; i < length; ++i) {
+                Object storageVolumeObj = ((Object[]) ((Object[]) storageVolumeArray))[i];
                 Method method = clazz.getDeclaredMethod("getPath");
                 if (!method.isAccessible()) {
                     method.setAccessible(true);
                 }
 
-                String path = (String)method.invoke(storageVolumeObj);
+                String path = (String) method.invoke(storageVolumeObj);
                 method = clazz.getDeclaredMethod("isRemovable");
                 if (!method.isAccessible()) {
                     method.setAccessible(true);
                 }
 
-                boolean removable = (Boolean)method.invoke(storageVolumeObj);
-                storageVolumeRefArray[i] = new  StorageHelper.StorageVolumeRef(path, removable);
+                boolean removable = (Boolean) method.invoke(storageVolumeObj);
+                storageVolumeRefArray[i] = new StorageHelper.StorageVolumeRef(path, removable);
             }
 
             return storageVolumeRefArray;
@@ -113,7 +117,7 @@ public class StorageHelper {
             Log.e(TAG, TAG + " getStorageVolumeArray() failed.", var15);
         }
 
-        return new  StorageHelper.StorageVolumeRef[0];
+        return new StorageHelper.StorageVolumeRef[0];
     }
 
     public static String getInternalSdcardPath(Context context) {
@@ -130,13 +134,13 @@ public class StorageHelper {
 
                 return apiPath;
             } else {
-                 StorageHelper.StorageVolumeRef[] volumes = getVolumeList(context);
+                StorageHelper.StorageVolumeRef[] volumes = getVolumeList(context);
                 if (volumes != null && volumes.length > 0) {
-                     StorageHelper.StorageVolumeRef[] var3 = volumes;
+                    StorageHelper.StorageVolumeRef[] var3 = volumes;
                     int var4 = volumes.length;
 
-                    for(int var5 = 0; var5 < var4; ++var5) {
-                         StorageHelper.StorageVolumeRef svRef = var3[var5];
+                    for (int var5 = 0; var5 < var4; ++var5) {
+                        StorageHelper.StorageVolumeRef svRef = var3[var5];
                         if (!svRef.removable) {
                             sInternalSdcardPath = svRef.path;
                             Log.w(TAG, TAG + " getInternalSdcardPath() : " + sInternalSdcardPath);
@@ -265,8 +269,8 @@ public class StorageHelper {
         public boolean equals(Object o) {
             if (o == null) {
                 return false;
-            } else if (o instanceof  StorageHelper.StorageVolumeRef) {
-                 StorageHelper.StorageVolumeRef that = ( StorageHelper.StorageVolumeRef)o;
+            } else if (o instanceof StorageHelper.StorageVolumeRef) {
+                StorageHelper.StorageVolumeRef that = (StorageHelper.StorageVolumeRef) o;
                 return this.path.equals(that.path);
             } else {
                 return false;
@@ -277,4 +281,41 @@ public class StorageHelper {
             return "StorageVolumeRef[path=" + this.path + ",removable=" + this.removable + "]";
         }
     }
+
+
+    public static void copyAssetToPath(Context context, String assetFile, String outFile) {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            if (new File(outFile).exists()) return;
+            is = context.getAssets().open(assetFile);
+            os = new FileOutputStream(outFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+            is.close();
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
 }

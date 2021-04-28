@@ -9,6 +9,7 @@ include_directories(
         jni.cpp
         shader
         glm
+        font
 )
 
 set(BASE_SRCS
@@ -53,12 +54,14 @@ set(BASE_SRCS
         src/winfonts/winfnt.c
         )
 
+
 SET(CMAKE_C_FLAGS  "-DFT2_BUILD_LIBRARY")
 
 
-
 file(GLOB src-files
-        ${CMAKE_SOURCE_DIR}/shader/*.cpp)
+        ${CMAKE_SOURCE_DIR}/shader/*.cpp
+        font/*.c
+        )
 
 add_library(myTest SHARED jni.cpp TextEngine.cpp ${src-files})
 

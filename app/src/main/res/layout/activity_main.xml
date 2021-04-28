@@ -10,7 +10,7 @@
         android:id="@+id/btn_create_Sdf"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/createsdfimagefile"
+        android:text="sdf纹理描边"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,6 +20,17 @@
     <Button
         android:id="@+id/btn_textFont"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
+
+
+    <Button
+        android:id="@+id/btn_inset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="字体纹理管理"
+        app:layout_constraintEnd_toEndOf="@+id/btn_create_Sdf"
+        app:layout_constraintStart_toStartOf="@+id/btn_create_Sdf"
+        app:layout_constraintTop_toBottomOf="@+id/btn_create_Sdf" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
