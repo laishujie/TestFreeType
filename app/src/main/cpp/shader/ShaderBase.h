@@ -11,29 +11,35 @@
 #define MATH_PI 3.1415926535897932384626433832802
 
 class ShaderBase {
+
 public:
     ShaderBase() {};
-     ~ShaderBase() {
+
+    ~ShaderBase() {
         if (glvao != nullptr) {
             delete glvao;
-            glvao= nullptr;
+            glvao = nullptr;
         }
         if (glProgram != nullptr) {
             delete glProgram;
-            glProgram= nullptr;
+            glProgram = nullptr;
         }
-       //LOGE("11111","onDestroy ShaderBase")
+        //LOGE("11111","onDestroy ShaderBase")
     }
 
     virtual void Init() = 0;
+
     virtual void draw() = 0;
+
     virtual void OnSurfaceChanged(int width, int height) = 0;
+
     virtual void onDestroy() = 0;
 
 protected:
     GLProgram *glProgram = nullptr;
     GLVAO *glvao = nullptr;
     int surfaceWidth, surfaceHeight;
+
 public:
     int getSurfaceWidth() const {
         return surfaceWidth;
@@ -43,10 +49,12 @@ public:
         return surfaceHeight;
     }
 
-    GLVAO* getGlVAO(){
+    GLVAO *getGlVAO() {
         return glvao;
     }
 };
+
+
 
 #endif //OPENGLDEMO_GLBASE_H
 

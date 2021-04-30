@@ -49,13 +49,16 @@ public:
 
     GLuint AddVertex2D(float *data, int vertexCount, GLuint layout);
 
-    void setIndex(unsigned int *indexData, int indexCount);
+    GLuint setIndex(unsigned int *indexData, int indexCount);
+    GLuint updateIndex(unsigned int *indexData, int indexCount);
 
-    int BindVAO();
+    int BindVAO() const;
 
     int indexCount;
 
     void updateVertex2D(GLuint updateFbo, float *data, int vertexCount, GLuint layout);
+    void subDataVertex2D(GLuint updateFbo, float *data, int vertexCount);
+    void subDataIndex2D(GLuint updateEbo, unsigned int *indexData, int indexCount);
 
     GLuint setVertex2D(GLuint& fbo, float *data, int vertexCount, GLuint layout);
 

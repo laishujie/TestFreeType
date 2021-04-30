@@ -82,6 +82,8 @@ void imgFree(struct Image *img) {
     free(img);
 }
 
+
+
 void TextEngine::initSdfShaderByBitmap(JNIEnv *env, jobject bitmap, int surfaceWidth,
                                        int surfaceHeight) {
     if (textureImageDemo != nullptr) {
@@ -255,58 +257,21 @@ void TextEngine::createSdfTexture2(JNIEnv *env, jstring image_file, jstring imag
 }
 
 void TextEngine::initFreeTypeShader(const char *path, int surfaceWidth, int surfaceHeight) {
-
     if (freeTypeShader != nullptr) {
-        LOGE("11111", "delete freeTypeShader")
-
         delete freeTypeShader;
-
-        if (freeTextureId != 0) {
-            glDeleteTextures(1, &freeTextureId);
-            freeTextureId = 0;
-        }
-
         freeTypeShader = nullptr;
     }
-
 
     freeTypeShader = new FreeTypeShader();
     freeTypeShader->Init();
     freeTypeShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
 
-    //Image* img = imgLoad(path, 1);
-
-    glGenTextures(1, &freeTextureId);
-    freeActiveTextureIndex = GL_TEXTURE0;
-    if (fontManager == nullptr) {
-        fontManager = ftgl::font_manager_new(512, 512, 1);
-        LOGE("11111", "init font_manager_new")
-    }
-
-    ftgl::font_manager_get_from_filename(fontManager, path, 32);
-
-    glActiveTexture(freeActiveTextureIndex);
-    glBindTexture(GL_TEXTURE_2D, freeTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, fontManager->atlas->width, fontManager->atlas->height,
-                 0, GL_RED, GL_UNSIGNED_BYTE, fontManager->atlas->data);
-
-    // 设置纹理选项
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-    glBindTexture(GL_TEXTURE_2D, GL_NONE);
-
-
-    // imgFree(img);
+    glFontManagerInit();
 }
 
 void TextEngine::freeTypeDraw() const {
-    if (freeTypeShader == nullptr || freeTextureId == 0) return;
-// Disable the depth test since the text is being rendered in 2D
-    freeTypeShader->draw(freeTextureId);
+    if (freeTypeShader == nullptr || fontManager->atlas->id == 0) return;
+    freeTypeShader->draw(fontManager->atlas->id);
 }
 
 TextEngine::~TextEngine() {
@@ -316,25 +281,107 @@ TextEngine::~TextEngine() {
     font_manager_delete(fontManager);
 }
 
-void TextEngine::insetText(const char *path, const char *text) const {
+ftgl::texture_font_t *TextEngine::insetText(const char *path, const char *text) const {
     //返回字体表
     ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager, path, 32);
     pFont->rendermode = ftgl::RENDER_NORMAL;
     //获取对应得文本
-    ftgl::texture_font_load_glyphs(pFont, text);
-    glBindTexture(GL_TEXTURE_2D, freeTextureId);
+    int i = ftgl::texture_font_load_glyphs_isOk(pFont, text);
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fontManager->atlas->width, fontManager->atlas->height,
-                    GL_RED, GL_UNSIGNED_BYTE, fontManager->atlas->data);
+    if (i == 1) {
+        glBindTexture(GL_TEXTURE_2D, fontManager->atlas->id);
 
-//    for (int i = 0; i < strlen(text); i +=ftgl::utf8_surrogate_len(text + i)) {
-//        ftgl::texture_glyph_t *pGlyph = texture_font_get_glyph(pFont, text + i);
-//        if (pGlyph!= nullptr) {
-//
-//        }
-//    }
-
-    //freeTypeDraw();
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fontManager->atlas->width,
+                        fontManager->atlas->height,
+                        GL_RED, GL_UNSIGNED_BYTE, fontManager->atlas->data);
+    }/*else{
+        LOGCATE("无需更新");
+    }*/
+    return pFont;
 }
+
+char *myFormatStringByFun(char *format, ...) {
+    va_list list;
+    //1. 先获取格式化后字符串的长度
+    va_start(list, format);
+    int size = vsnprintf(nullptr, 0, format, list);
+    va_end(list);
+    if (size <= 0) {
+        return nullptr;
+    }
+    size++;
+
+    //2. 复位va_list，将格式化字符串写入到buf
+    va_start(list, format);
+    char *buf = (char *) malloc(size);
+    vsnprintf(buf, size, format, list);
+    va_end(list);
+    return buf;
+}
+
+const char *TextEngine::getTextInfo(const char *path, const char *text) const {
+    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager, path, 32);
+
+    ftgl::texture_glyph_t *pGlyph = ftgl::texture_font_find_glyph(pFont, text);
+    if (pGlyph == nullptr) {
+        return "字形纹理不存在";
+    }
+    float d = ftgl::texture_glyph_get_kerning(pGlyph, text);
+
+    LOGCATE("\nkerning = %f font->descender= %f\n "
+            "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
+            "glyph->offset_x =%d glyph->offset_y =%d \n"
+            "glyph->width =%d glyph->height =%d \n "
+            "glyph->s0 =%f glyph->t0 =%f \n "
+            "glyph->s1 =%f  glyph->t1 =%f",
+            d, pFont->descender,
+            pGlyph->advance_x, pGlyph->advance_y,
+            pGlyph->offset_x, pGlyph->offset_y,
+            pGlyph->width, pGlyph->height,
+            pGlyph->s0, pGlyph->t0,
+            pGlyph->s1, pGlyph->t1)
+
+    char *text2 = "\nkerning = %f font->descender= %f\n pGlyph->advance_x =%f pGlyph->advance_y =%f \n glyph->offset_x =%d glyph->offset_y =%d \nglyph->width =%d glyph->height =%d \n glyph->s0 =%f glyph->t0 =%f \n glyph->s1 =%f  glyph->t1 =%f";
+
+
+    return myFormatStringByFun(text2, d, pFont->descender,
+                               pGlyph->advance_x, pGlyph->advance_y,
+                               pGlyph->offset_x, pGlyph->offset_y,
+                               pGlyph->width, pGlyph->height,
+                               pGlyph->s0, pGlyph->t0,
+                               pGlyph->s1, pGlyph->t1);
+}
+
+void TextEngine::glInitTextShader(int surfaceWidth, int surfaceHeight) {
+    if (textShader != nullptr) {
+        delete textShader;
+        textShader = nullptr;
+    }
+
+    textShader = new TextShader();
+    textShader->Init();
+    textShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
+    glFontManagerInit();
+}
+
+void TextEngine::glFontManagerInit() const {
+    if (fontManager->atlas->id != 0) return;
+    glGenTextures(1, &fontManager->atlas->id);
+    glBindTexture(GL_TEXTURE_2D, fontManager->atlas->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, fontManager->atlas->width, fontManager->atlas->height,
+                 0, GL_RED, GL_UNSIGNED_BYTE, fontManager->atlas->data);
+    // 设置纹理选项
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+}
+
+void TextEngine::glRenderText(const char *path, const char *text) const {
+    ftgl::texture_font_t *pFont = insetText(path, text);
+    textShader->drawText(fontManager->atlas->id, pFont, text);
+}
+
 
 

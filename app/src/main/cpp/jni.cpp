@@ -214,3 +214,54 @@ Java_com_example_testfreetype_TextEngineJni_destroy(JNIEnv *env, jclass clazz,
     auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
     delete textEngine;
 }
+
+jstring chartoJstring(JNIEnv *env, const char *pat) {
+    jclass strClass = env->FindClass("java/lang/String");
+    jmethodID ctorID = env->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
+    jbyteArray bytes = env->NewByteArray(strlen(pat));
+    env->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte *) pat);
+    jstring encoding = env->NewStringUTF("utf-8");
+    return (jstring) env->NewObject(strClass, ctorID, bytes, encoding);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_testfreetype_TextEngineJni_printTextInfo(JNIEnv *env, jclass clazz,
+                                                          jlong native_handle, jstring ttf,
+                                                          jstring str) {
+
+    auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
+    const char *src = env->GetStringUTFChars(str, nullptr);
+    const char *ttfPath = env->GetStringUTFChars(ttf, nullptr);
+
+    const char *strings = textEngine->getTextInfo(ttfPath, src);
+
+    env->ReleaseStringUTFChars(str, src);
+    env->ReleaseStringUTFChars(ttf, ttfPath);
+    return chartoJstring(env, strings);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_glInitTextShader(JNIEnv *env, jclass clazz,
+                                                             jlong native_handle,
+                                                             jint surface_width,
+                                                             jint suface_height) {
+    auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
+
+    textEngine->glInitTextShader(surface_width, suface_height);
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jclass clazz,
+                                                         jlong native_handle, jstring ttf_path,
+                                                         jstring text) {
+    auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
+    const char *src = env->GetStringUTFChars(ttf_path, nullptr);
+    const char *insetText = env->GetStringUTFChars(text, nullptr);
+
+    textEngine->glRenderText(src, insetText);
+
+    env->ReleaseStringUTFChars(ttf_path, src);
+    env->ReleaseStringUTFChars(text, insetText);
+}

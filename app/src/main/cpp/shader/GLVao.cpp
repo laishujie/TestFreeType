@@ -49,13 +49,13 @@ GLuint GLVAO::AddVertex2D(float *data, int vertexCount, GLuint layout) {
 void GLVAO::updateVertex2D(GLuint updateFbo, float *data, int vertexCount, GLuint layout) {
     glBindBuffer(GL_ARRAY_BUFFER, updateFbo);
     glBufferData(GL_ARRAY_BUFFER, vertexCount * 2 * sizeof(float), data, GL_DYNAMIC_DRAW);
-   // LOGE("11111", "data %f vertexCount %d updateFbo %d", *data, vertexCount, updateFbo);
+    // LOGE("11111", "data %f vertexCount %d updateFbo %d", *data, vertexCount, updateFbo);
 }
 
-GLuint GLVAO::setVertex2D(GLuint& fbo, float *data, int vertexCount, GLuint layout) {
+GLuint GLVAO::setVertex2D(GLuint &fbo, float *data, int vertexCount, GLuint layout) {
     //LOGE("11111","FBO %d",fbo)
     if (fbo == 0) {
-        fbo =  AddVertex2D(data, vertexCount, layout);
+        fbo = AddVertex2D(data, vertexCount, layout);
     } else {
         updateVertex2D(fbo, data, vertexCount, layout);
     }
@@ -68,25 +68,32 @@ GLVAO::GLVAO() {
 }
 
 //绑定ebo
-void GLVAO::setIndex(unsigned int *indexData, int indexCount) {
+GLuint GLVAO::setIndex(unsigned int *indexData, int indexCount) {
     glBindVertexArray(vao);
 
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indexData,
-                 GL_STATIC_DRAW);
+                 GL_DYNAMIC_DRAW);
     GLVAO::indexCount = indexCount;
     glBindVertexArray(0);
+    return ebo;
 }
 
-int GLVAO::BindVAO() {
+GLuint GLVAO::updateIndex(unsigned int *indexData, int indexCount) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indexData,
+                 GL_DYNAMIC_DRAW);
+    return 0;
+}
+
+int GLVAO::BindVAO() const {
     glBindVertexArray(vao);
     return 0;
 }
 
 GLVAO::~GLVAO() {
-    for (int i = 0; i < vboList.size(); i++) {
-        GLuint vbo = vboList[i];
+    for (unsigned int vbo : vboList) {
         glDeleteBuffers(1, &vbo);
     }
     vboList.clear();
@@ -100,3 +107,19 @@ GLVAO::~GLVAO() {
         vao = 0;
     }
 }
+
+void GLVAO::subDataVertex2D(GLuint updateFbo, float *data, int vertexCount) {
+    glBindBuffer(GL_ARRAY_BUFFER, updateFbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexCount * 2 * sizeof(float), data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void GLVAO::subDataIndex2D(GLuint updateEbo, unsigned int *indexData, int indexCount) {
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,indexCount * sizeof(unsigned int), indexData);
+
+    glBindVertexArray(0);
+}
+

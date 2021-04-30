@@ -37,4 +37,10 @@ public class TextEngineJni {
     public static native void testOpengGlSDF(String imageFile, String outFile, float radius, float imageAspect);
 
     public static native void destroy(long nativeHandle);
+
+    public static native String printTextInfo(long nativeHandle,String ttfPath,String str);
+
+
+    public static native void glInitTextShader(long nativeHandle,int surfaceWidth,int sufaceHeight);
+    public static native void glRenderText(long nativeHandle,String ttfPath, String text);
 }

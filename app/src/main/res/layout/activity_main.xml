@@ -33,4 +33,16 @@
         app:layout_constraintStart_toStartOf="@+id/btn_create_Sdf"
         app:layout_constraintTop_toBottomOf="@+id/btn_create_Sdf" />
 
+
+    <Button
+        android:id="@+id/btn_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="文字渲染"
+        app:layout_constraintEnd_toEndOf="@+id/btn_create_Sdf"
+        app:layout_constraintStart_toStartOf="@+id/btn_create_Sdf"
+        app:layout_constraintTop_toBottomOf="@+id/btn_inset" />
+
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

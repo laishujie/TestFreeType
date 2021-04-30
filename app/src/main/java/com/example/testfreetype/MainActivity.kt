@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.btnEdit.setOnClickListener {
+            val intent = Intent(this, TextShaderActivity::class.java)
+            intent.putExtra("path", ttfPath)
+            startActivity(intent)
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(
                 arrayOf(
@@ -55,8 +61,4 @@ class MainActivity : AppCompatActivity() {
         StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
         StorageHelper.copyAssetToPath(this, "DroidSansFallback.ttf", ttfPath)
     }
-
-
-
-
 }

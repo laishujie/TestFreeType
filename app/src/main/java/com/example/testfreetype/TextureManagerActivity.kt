@@ -2,6 +2,7 @@ package com.example.testfreetype
 
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityTestTextureBinding
 import javax.microedition.khronos.egl.EGLConfig
@@ -40,6 +41,16 @@ class TextureManagerActivity : AppCompatActivity() {
         })
 
         binding.glSurface.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+
+        binding.btnTextInfo.setOnClickListener {
+            val text = binding.edText.text.toString()
+            if (text.isEmpty()) return@setOnClickListener
+            if(text.length>2){
+                Toast.makeText(this,"请输入一个字符",Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            binding.tvInfo.text = "\"$text\" 偏移信息: \n      "+TextEngineJni.printTextInfo(textEngine, ttfPath, text)
+        }
 
 
         binding.btnInset.setOnClickListener {

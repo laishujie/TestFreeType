@@ -46,7 +46,7 @@
         android:id="@+id/btn_inset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="更新字体纹理"
+        android:text="插入文字纹理"
         app:layout_constraintBottom_toBottomOf="@+id/ed_inset"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/ed_inset" />
@@ -65,6 +65,29 @@
         app:layout_constraintTop_toBottomOf="@id/tv_use_info" />
 
 
+    <EditText
+        android:id="@+id/ed_text"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_margin="5dp"
+        android:hint="输入一个文字"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/btn_inset"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ed_inset" />
+
+    <Button
+        android:id="@+id/btn_text_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="获取文字信息"
+        app:layout_constraintBottom_toBottomOf="@+id/ed_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ed_text" />
+
+
+
+
     <android.opengl.GLSurfaceView
         android:id="@+id/gl_surface"
         android:layout_width="match_parent"
@@ -72,7 +95,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="512:512"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ed_inset" />
+        app:layout_constraintTop_toBottomOf="@+id/ed_text" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -82,5 +105,18 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/gl_surface"
         app:layout_constraintStart_toStartOf="parent" />
+
+
+    <TextView
+        android:id="@+id/tv_info"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/gl_surface"
+        app:layout_constraintStart_toStartOf="@id/gl_surface"
+        app:layout_constraintEnd_toEndOf="@+id/gl_surface"
+        app:layout_constraintTop_toTopOf="@id/gl_surface"
+        android:background="@color/cardview_dark_background"
+        android:layout_width="match_parent"
+        android:text="偏移信息"
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

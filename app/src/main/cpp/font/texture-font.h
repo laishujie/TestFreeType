@@ -397,6 +397,10 @@ typedef struct texture_font_t
   texture_font_get_glyph( texture_font_t * self,
                           const char * codepoint );
 
+int
+texture_font_load_glyphs_isOk( texture_font_t * self,
+                        const char * codepoint );
+
 /**
  * Request an already loaded glyph from the font.
  *
