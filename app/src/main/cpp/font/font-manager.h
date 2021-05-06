@@ -50,20 +50,19 @@ typedef struct font_manager_t {
     /**
      * Texture atlas to hold font glyphs.
      */
-    texture_atlas_t * atlas;
+    texture_atlas_t *atlas;
 
     /**
      * Cached textures.
      */
-    vector_t * fonts;
+    vector_t *fonts;
 
     /**
      * Default glyphs to be loaded when loading a new font.
      */
-    char * cache;
+    char *cache;
 
 } font_manager_t;
-
 
 
 /**
@@ -76,10 +75,10 @@ typedef struct font_manager_t {
  * @return          a new font manager.
  *
  */
-  font_manager_t *
-  font_manager_new( size_t width,
-                    size_t height,
-                    size_t depth );
+font_manager_t *
+font_manager_new(size_t width,
+                 size_t height,
+                 size_t depth);
 
 
 /**
@@ -87,8 +86,8 @@ typedef struct font_manager_t {
  *
  *  @param self a font manager.
  */
-  void
-  font_manager_delete( font_manager_t *self );
+void
+font_manager_delete(font_manager_t *self);
 
 
 /**
@@ -100,9 +99,9 @@ typedef struct font_manager_t {
  *  @param font font to be deleted
  *
  */
-  void
-  font_manager_delete_font( font_manager_t * self,
-                            texture_font_t * font );
+void
+font_manager_delete_font(font_manager_t *self,
+                         texture_font_t *font);
 
 
 /**
@@ -114,10 +113,10 @@ typedef struct font_manager_t {
  *
  *  @return Requested font
  */
-  texture_font_t *
-  font_manager_get_from_filename( font_manager_t * self,
-                                  const char * filename,
-                                  const float size );
+texture_font_t *
+font_manager_get_from_filename(font_manager_t *self,
+                               const char *filename,
+                               const float size);
 
 
 /**
@@ -131,12 +130,12 @@ typedef struct font_manager_t {
  *
  *  @return Requested font
  */
-  texture_font_t *
-  font_manager_get_from_description( font_manager_t * self,
-                                     const char * family,
-                                     const float size,
-                                     const int bold,
-                                     const int italic );
+texture_font_t *
+font_manager_get_from_description(font_manager_t *self,
+                                  const char *family,
+                                  const float size,
+                                  const int bold,
+                                  const int italic);
 
 
 /**
@@ -163,12 +162,12 @@ typedef struct font_manager_t {
  *
  *  @return Requested font filename
  */
-  char *
-  font_manager_match_description( font_manager_t * self,
-                                  const char * family,
-                                  const float size,
-                                  const int bold,
-                                  const int italic );
+char *
+font_manager_match_description(font_manager_t *self,
+                               const char *family,
+                               const float size,
+                               const int bold,
+                               const int italic);
 
 /** @} */
 

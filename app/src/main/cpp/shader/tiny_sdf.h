@@ -8,7 +8,7 @@
 #include <math.h>
 #include <memory>
 
-class TinySDF {
+class tiny_sdf {
 public:
     // 1D squared distance transform
     void edt1d(std::vector<double>& f,

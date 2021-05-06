@@ -2,7 +2,7 @@
 // Created by Lai on 2020/12/3.
 //
 
-#include "CommGL.hpp"
+#include "comm_gl.hpp"
 #include <GLES3/gl3.h>
 #include <malloc.h>
 #include <logUtil.h>

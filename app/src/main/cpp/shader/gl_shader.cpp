@@ -4,7 +4,7 @@
 
 #include <malloc.h>
 #include <logUtil.h>
-#include "CommGL.hpp"
+#include "comm_gl.hpp"
 
 GLShader::GLShader(char *shaderStr, GLShaderType type) {
     if (type == GLShaderType::SHADER_VERTEX) {

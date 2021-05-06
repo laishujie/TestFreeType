@@ -122,7 +122,7 @@ void TextEngine::initSdfShaderByBitmap(JNIEnv *env, jobject bitmap, int surfaceW
     ih = info.height;
 
 
-    textureImageDemo = new TextureImageDemo();
+    textureImageDemo = new texture_image_demo();
     textureImageDemo->imgHeight = ih;
     textureImageDemo->imgWidth = iw;
     textureImageDemo->imaData = resultData;
@@ -147,7 +147,7 @@ void TextEngine::initSdfShaderByPath(char *textureImagePath, int surfaceWidth, i
     // 加载图片获取宽、高、颜色通道信息
     unsigned char *idata = ImageLoad::load(textureImagePath, &iw, &ih, &n, 4);
 
-    textureImageDemo = new TextureImageDemo();
+    textureImageDemo = new texture_image_demo();
     textureImageDemo->imgHeight = ih;
     textureImageDemo->imgWidth = iw;
     textureImageDemo->imaData = idata;
@@ -192,7 +192,7 @@ void TextEngine::createSdfTexture1(JNIEnv *env, jstring image_file, jstring imag
     }
     imgInverse(img);
 
-    TinySDF sdf;
+    tiny_sdf sdf;
     LOGCATE("Could not load image.1\n");
     img2 = imgCreate(img->width, img->height, 1, true);
     t0 = getPerfTime();
@@ -358,7 +358,7 @@ void TextEngine::glInitTextShader(int surfaceWidth, int surfaceHeight) {
         textShader = nullptr;
     }
 
-    textShader = new TextShader();
+    textShader = new text_shader();
     textShader->Init();
     textShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
     glFontManagerInit();

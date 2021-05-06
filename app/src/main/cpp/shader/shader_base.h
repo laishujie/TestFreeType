@@ -6,16 +6,16 @@
 #define OPENGLDEMO_GLBASE_H
 
 //#include "logUtil.h"
-#include "CommGL.hpp"
+#include "comm_gl.hpp"
 
 #define MATH_PI 3.1415926535897932384626433832802
 
-class ShaderBase {
+class shader_base {
 
 public:
-    ShaderBase() {};
+    shader_base() {};
 
-    ~ShaderBase() {
+    ~shader_base() {
         if (glvao != nullptr) {
             delete glvao;
             glvao = nullptr;
@@ -24,7 +24,7 @@ public:
             delete glProgram;
             glProgram = nullptr;
         }
-        //LOGE("11111","onDestroy ShaderBase")
+        //LOGE("11111","onDestroy shader_base")
     }
 
     virtual void Init() = 0;

@@ -2,11 +2,11 @@
 // Created by Lai on 2021/2/4.
 //
 
-#include "TextureImageDemo.h"
+#include "texture_image_demo.h"
 #include "logUtil.h"
 
 
-void TextureImageDemo::Init() {
+void texture_image_demo::Init() {
 
     char vShaderStr[] =
             "#version 300 es                          \n"
@@ -201,7 +201,7 @@ void TextureImageDemo::Init() {
     glEnableVertexAttribArray(0);
 }
 
-void TextureImageDemo::draw() {
+void texture_image_demo::draw() {
     glClearColor(0.8, 0.8, 0.8, 1);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -238,14 +238,14 @@ void TextureImageDemo::draw() {
 
     GLint vertexColorLocation = glGetUniformLocation(glProgram->program, "_OutlineColor");
 
-//    float r = ColorUtil::getColorR(_StokeLineColor);
-//    float g = ColorUtil::getColorG(_StokeLineColor);
-//    float b = ColorUtil::getColorB(_StokeLineColor);
+//    float r = color_util::getColorR(_StokeLineColor);
+//    float g = color_util::getColorG(_StokeLineColor);
+//    float b = color_util::getColorB(_StokeLineColor);
 //    LOGCATE("r %f g %f b %f",r,g,b)
-    glUniform4f(vertexColorLocation, ColorUtil::getColorR(_StokeLineColor), ColorUtil::getColorG(_StokeLineColor), ColorUtil::getColorB(_StokeLineColor), 1.0f);
+    glUniform4f(vertexColorLocation, color_util::getColorR(_StokeLineColor), color_util::getColorG(_StokeLineColor), color_util::getColorB(_StokeLineColor), 1.0f);
 
     GLint shadowColorLocation = glGetUniformLocation(glProgram->program, "_ShadowColor");
-    glUniform4f(shadowColorLocation, ColorUtil::getColorR(_ShadowColor), ColorUtil::getColorG(_ShadowColor), ColorUtil::getColorB(_ShadowColor), 1.0f);
+    glUniform4f(shadowColorLocation, color_util::getColorR(_ShadowColor), color_util::getColorG(_ShadowColor), color_util::getColorB(_ShadowColor), 1.0f);
 
 
 
@@ -262,7 +262,7 @@ void TextureImageDemo::draw() {
     glDrawArrays(GL_LINES, 0, 6);
 }
 
-void TextureImageDemo::OnSurfaceChanged(int width, int height) {
+void texture_image_demo::OnSurfaceChanged(int width, int height) {
     glProgram->OnSurfaceChanged(0, 0, width, height);
 
     surfaceWidth = width;
@@ -291,17 +291,17 @@ void TextureImageDemo::OnSurfaceChanged(int width, int height) {
 //    mInitMatrix = glm::ortho(left, right, bottom, top);
 }
 
-void TextureImageDemo::change(float x, float y, float z) {
+void texture_image_demo::change(float x, float y, float z) {
     _DistanceMark = x;
 
     draw();
 }
 
-TextureImageDemo::~TextureImageDemo() {
-    TextureImageDemo::onDestroy();
+texture_image_demo::~texture_image_demo() {
+    texture_image_demo::onDestroy();
 }
 
-void TextureImageDemo::onDestroy() {
+void texture_image_demo::onDestroy() {
     if (textureId > 0) {
         glDeleteTextures(1, &textureId);
         textureId = 0;

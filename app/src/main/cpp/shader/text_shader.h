@@ -2,13 +2,13 @@
 // Created by admin on 2021/4/29.
 //
 
-#ifndef TESTFREETYPE_TEXTSHADER_H
-#define TESTFREETYPE_TEXTSHADER_H
+#ifndef TESTFREETYPE_TEXT_SHADER_H
+#define TESTFREETYPE_TEXT_SHADER_H
 
 #include <texture-font.h>
-#include "ShaderBase.h"
+#include "shader_base.h"
 
-class TextShader : public ShaderBase {
+class text_shader : public shader_base {
 public:
     GLuint textVbo = 0;
     GLuint uvVbo = 0;
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif //TESTFREETYPE_TEXTSHADER_H
+#endif //TESTFREETYPE_TEXT_SHADER_H

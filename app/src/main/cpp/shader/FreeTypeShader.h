@@ -6,9 +6,9 @@
 #define TESTFREETYPE_FREETYPESHADER_H
 
 
-#include "ShaderBase.h"
+#include "shader_base.h"
 
-class FreeTypeShader : public ShaderBase  {
+class FreeTypeShader : public shader_base  {
 
 public:
 

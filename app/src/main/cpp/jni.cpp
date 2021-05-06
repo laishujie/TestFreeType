@@ -6,6 +6,7 @@
 #include "texture-atlas.h"
 #include "texture-font.h"
 #include "ImageLoad.h"
+#include "text_engine.h"
 
 #ifdef __cplusplus
 #ifndef NOT_USING_FT_GL_NAMESPACE
@@ -261,6 +262,64 @@ Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jclass cla
     const char *insetText = env->GetStringUTFChars(text, nullptr);
 
     textEngine->glRenderText(src, insetText);
+
+    env->ReleaseStringUTFChars(ttf_path, src);
+    env->ReleaseStringUTFChars(text, insetText);
+}extern "C"
+
+
+JNIEXPORT jlong JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineCreate(JNIEnv *env, jclass clazz) {
+    auto textEngine = new text_engine(env);
+    return reinterpret_cast<jlong>(textEngine);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceCreated(JNIEnv *env, jclass clazz,
+                                                                     jlong handler, jobject surface,
+                                                                     jint width, jint height) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+    editor->OnSurfaceCreated(surface, width, height);
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceDestroyed(JNIEnv *env, jclass clazz,
+                                                                       jlong handler) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+    editor->OnSurfaceDestroyed();
+    delete editor;
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineRelease(JNIEnv *env, jclass clazz,
+                                                              jlong handler) {
+//    if (handler <= 0) {
+//        return;
+//    }
+//    auto* editor = reinterpret_cast<text_engine*>(handler);
+//    delete editor;
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass clazz,
+                                                           jlong native_handle,
+                                                           jstring ttf_path, jstring text) {
+    auto *editor = reinterpret_cast<text_engine *>(native_handle);
+    const char *src = env->GetStringUTFChars(ttf_path, nullptr);
+    const char *insetText = env->GetStringUTFChars(text, nullptr);
+
+    char *ttf_File_copy = new char[strlen(src) + 1];
+    sprintf(ttf_File_copy, "%s%c", src, 0);
+
+    char *text_file_copy = new char[strlen(insetText) + 1];
+    sprintf(text_file_copy, "%s%c", insetText, 0);
+
+    editor->OnDraw(ttf_File_copy, text_file_copy);
 
     env->ReleaseStringUTFChars(ttf_path, src);
     env->ReleaseStringUTFChars(text, insetText);

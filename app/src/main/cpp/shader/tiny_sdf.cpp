@@ -2,9 +2,9 @@
 // Created by admin on 2021/4/22.
 //
 
-#include "TinySDF.h"
+#include "tiny_sdf.h"
 static const double INF = 1e20;
-void TinySDF::edt(std::vector<double> &data, uint32_t width, uint32_t height, std::vector<double> &f, std::vector<double> &d, std::vector<int16_t> &v, std::vector<double> &z) {
+void tiny_sdf::edt(std::vector<double> &data, uint32_t width, uint32_t height, std::vector<double> &f, std::vector<double> &d, std::vector<int16_t> &v, std::vector<double> &z) {
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0; y < height; y++) {
             f[y] = data[y * width + x];
@@ -25,7 +25,7 @@ void TinySDF::edt(std::vector<double> &data, uint32_t width, uint32_t height, st
     }
 }
 
-void TinySDF::edt1d(std::vector<double> &f, std::vector<double> &d, std::vector<int16_t> &v, std::vector<double> &z, uint32_t n) {
+void tiny_sdf::edt1d(std::vector<double> &f, std::vector<double> &d, std::vector<int16_t> &v, std::vector<double> &z, uint32_t n) {
     v[0] = 0;
     z[0] = -INF;
     z[1] = +INF;
@@ -49,7 +49,7 @@ void TinySDF::edt1d(std::vector<double> &f, std::vector<double> &d, std::vector<
     }
 }
 
-void TinySDF::transformRasterToSDF(unsigned char* data,const unsigned char *img,unsigned int width,unsigned int height,double radius, double cutoff){
+void tiny_sdf::transformRasterToSDF(unsigned char* data, const unsigned char *img, unsigned int width, unsigned int height, double radius, double cutoff){
     uint32_t size = width * height;
     uint32_t maxDimension = std::max(width, height);
 

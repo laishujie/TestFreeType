@@ -2,10 +2,10 @@
 // Created by admin on 2021/4/29.
 //
 
-#include "TextShader.h"
+#include "text_shader.h"
 #include "logUtil.h"
 
-void TextShader::Init() {
+void text_shader::Init() {
     char vShaderStr[] =
             "#version 300 es                          \n"
             "layout(location = 0) in vec2 vPosition;  \n"
@@ -47,16 +47,18 @@ void TextShader::Init() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    LOGCATE("glProgram %d", glProgram->program)
 }
 
 
-void TextShader::OnSurfaceChanged(int width, int height) {
+void text_shader::OnSurfaceChanged(int width, int height) {
     glViewport(0, 0, width, height);
     surfaceWidth = width;
     surfaceHeight = height;
 }
 
-void TextShader::onDestroy() {
+void text_shader::onDestroy() {
 
 }
 
@@ -78,7 +80,7 @@ PointF normalizePoint(float x, float y, int width, int height) {
     return {x / float(width), y / float(height)};
 }
 
-void TextShader::drawText(GLuint areaTextureId, ftgl::texture_font_t *font, const char *text) {
+void text_shader::drawText(GLuint areaTextureId, ftgl::texture_font_t *font, const char *text) {
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
@@ -163,8 +165,6 @@ void TextShader::drawText(GLuint areaTextureId, ftgl::texture_font_t *font, cons
             uvVertex.push_back(uv[5]);
             uvVertex.push_back(uv[6]);
             uvVertex.push_back(uv[7]);
-            //uvVertex.push_back(uv);
-
 
 
             startX += pGlyph->advance_x;
@@ -195,6 +195,6 @@ void TextShader::drawText(GLuint areaTextureId, ftgl::texture_font_t *font, cons
     glDrawElements(GL_TRIANGLES, indexVertex.size(), GL_UNSIGNED_INT, nullptr);
 }
 
-void TextShader::draw() {
+void text_shader::draw() {
 
 }

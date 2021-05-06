@@ -6,25 +6,25 @@
 #define TESTFREETYPE_TEXTENGINE_H
 //
 
-#include <TinySDF.h>
-#include "TextureImageDemo.h"
+#include <tiny_sdf.h>
+#include "texture_image_demo.h"
 #include <android/bitmap.h>
+#include <handler.h>
 #include "FreeTypeShader.h"
 #include "ImageLoad.h"
 #include "font-manager.h"
-#include "TextShader.h"
+#include "text_shader.h"
 
 class TextEngine {
 public:
-    TextureImageDemo *textureImageDemo;
+    texture_image_demo *textureImageDemo;
     FreeTypeShader *freeTypeShader;
     ftgl::font_manager_t *fontManager;
-    TextShader *textShader;
+    text_shader *textShader;
 
     TextEngine() : textureImageDemo(nullptr),
                    freeTypeShader(nullptr),
-                   fontManager(ftgl::font_manager_new(512, 512, 1))
-                   , textShader(nullptr) {
+                   fontManager(ftgl::font_manager_new(512, 512, 1)), textShader(nullptr){
 
     }
 
@@ -48,7 +48,7 @@ public:
 
     void initFreeTypeShader(const char *paht, int surfaceWidth, int surfaceHeight);
 
-    ftgl::texture_font_t * insetText(const char *path, const char *text) const;
+    ftgl::texture_font_t *insetText(const char *path, const char *text) const;
 
     const char *getTextInfo(const char *path, const char *text) const;
 
@@ -59,7 +59,6 @@ public:
     void glInitTextShader(int surfaceWidth, int surfaceHeight);
 
     void glRenderText(const char *path, const char *text) const;
-
 };
 
 

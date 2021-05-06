@@ -2,11 +2,11 @@
 // Created by admin on 2021/4/25.
 //
 
-#ifndef TESTFREETYPE_COLORUTIL_H
-#define TESTFREETYPE_COLORUTIL_H
+#ifndef TESTFREETYPE_COLOR_UTIL_H
+#define TESTFREETYPE_COLOR_UTIL_H
 
 
-class ColorUtil {
+class color_util {
 public:
     static float getColorR(int color);
     static float getColorG(int color);
@@ -14,4 +14,4 @@ public:
 };
 
 
-#endif //TESTFREETYPE_COLORUTIL_H
+#endif //TESTFREETYPE_COLOR_UTIL_H

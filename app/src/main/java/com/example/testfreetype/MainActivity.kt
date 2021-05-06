@@ -48,6 +48,11 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("path", ttfPath)
             startActivity(intent)
         }
+        binding.btnTextEdit.setOnClickListener {
+            val intent = Intent(this, TextEditActivity::class.java)
+            intent.putExtra("path", ttfPath)
+            startActivity(intent)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(

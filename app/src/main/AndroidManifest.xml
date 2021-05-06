@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TestFreeType">
-        <activity android:name=".TextShaderActivity"></activity>
+        <activity android:name=".TextShaderActivity"/>
         <activity android:name=".TextureManagerActivity" />
         <activity android:name=".SdfShaderActivity" />
         <activity android:name=".MainActivity">
@@ -23,6 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".TextEditActivity"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

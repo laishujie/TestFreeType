@@ -10,6 +10,7 @@ include_directories(
         shader
         glm
         font
+        message
 )
 
 set(BASE_SRCS
@@ -55,12 +56,17 @@ set(BASE_SRCS
         )
 
 
-SET(CMAKE_C_FLAGS  "-DFT2_BUILD_LIBRARY")
+SET(CMAKE_C_FLAGS "-DFT2_BUILD_LIBRARY")
 
 
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/shader/*.cpp
+        message/*.cc
+        message/*.h
         font/*.c
+        egl/*.cc
+        text_control.cpp
+        text_engine.cpp
         )
 
 add_library(myTest SHARED jni.cpp TextEngine.cpp ${src-files})
@@ -76,9 +82,9 @@ find_library( # Sets the name of the path variable.
 
         # Specifies the name of the NDK library that
         # you want CMake to locate.
-        log )
+        log)
 
-target_link_libraries(myTest  ${tf_lib_name} ${log-lib}
+target_link_libraries(myTest ${tf_lib_name} ${log-lib}
         EGL
         GLESv3
         -landroid
