@@ -53,7 +53,7 @@ public class TextEngineJni {
 
     public static native void textEngineRelease(long handler);
 
-    public static native void textEngineDraw(long handler,String ttfPath, String text);
+    public static native void textEngineDraw(long handler,String ttfPath, String text,String outPath);
 
 
 

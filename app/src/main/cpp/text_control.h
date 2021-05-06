@@ -15,6 +15,7 @@
 typedef struct {
     char *ttf_file;
     char *text;
+    char *outPath;
 } TextInfo;
 
 class text_control : public Handler {
@@ -78,7 +79,7 @@ public:
 
     void ProcessMessage();
 
-    void Draw(char *ttfPath, char *text);
+    void Draw(char *ttfPath, char *text,char *outPath);
 };
 
 

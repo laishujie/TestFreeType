@@ -21,7 +21,7 @@ public:
 
     void OnSurfaceDestroyed();
 
-    void OnDraw(char * ttfPath,char *text);
+    void OnDraw(char * ttfPath,char *text,char *outPath);
 
     ~text_engine();
 

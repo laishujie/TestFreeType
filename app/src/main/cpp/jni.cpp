@@ -308,10 +308,12 @@ Java_com_example_testfreetype_TextEngineJni_textEngineRelease(JNIEnv *env, jclas
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass clazz,
                                                            jlong native_handle,
-                                                           jstring ttf_path, jstring text) {
+                                                           jstring ttf_path, jstring text,
+                                                           jstring outPath) {
     auto *editor = reinterpret_cast<text_engine *>(native_handle);
     const char *src = env->GetStringUTFChars(ttf_path, nullptr);
     const char *insetText = env->GetStringUTFChars(text, nullptr);
+    const char *out_Path = env->GetStringUTFChars(outPath, nullptr);
 
     char *ttf_File_copy = new char[strlen(src) + 1];
     sprintf(ttf_File_copy, "%s%c", src, 0);
@@ -319,8 +321,12 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
     char *text_file_copy = new char[strlen(insetText) + 1];
     sprintf(text_file_copy, "%s%c", insetText, 0);
 
-    editor->OnDraw(ttf_File_copy, text_file_copy);
+    char *out_File_copy = new char[strlen(src) + 1];
+    sprintf(out_File_copy, "%s%c", out_Path, 0);
+
+    editor->OnDraw(ttf_File_copy, text_file_copy,out_File_copy);
 
     env->ReleaseStringUTFChars(ttf_path, src);
     env->ReleaseStringUTFChars(text, insetText);
+    env->ReleaseStringUTFChars(outPath, out_Path);
 }

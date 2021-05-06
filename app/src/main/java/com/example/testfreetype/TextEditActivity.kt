@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import com.example.testfreetype.databinding.ActivityTextEditBinding
+import com.example.testfreetype.util.StorageHelper
 import com.example.testfreetype.util.TextEditSurfaceManager
+import java.io.File
 
 class TextEditActivity : AppCompatActivity() {
 
@@ -28,7 +30,8 @@ class TextEditActivity : AppCompatActivity() {
         })*/
 
         inflate.btnOk.setOnClickListener {
-            textEdit.drawText(ttfPath, inflate.edText.text.toString())
+            val outPath = StorageHelper.getCameraPath(this)+File.separator+"${System.currentTimeMillis()}.png"
+            textEdit.drawText(ttfPath, inflate.edText.text.toString(),outPath)
         }
     }
 

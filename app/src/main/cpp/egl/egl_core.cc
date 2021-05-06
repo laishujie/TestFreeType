@@ -77,7 +77,12 @@ EGLSurface EGLCore::CreateWindowSurface(ANativeWindow *_window) {
         Release();
         return surface;
     }
-    ANativeWindow_setBuffersGeometry(_window, 0, 0, format);
+
+    int m_window_width = ANativeWindow_getWidth(_window);
+    int m_window_height = ANativeWindow_getHeight(_window);
+
+    ANativeWindow_setBuffersGeometry(_window, m_window_width, m_window_height, WINDOW_FORMAT_RGBA_8888);
+
     if (!(surface = eglCreateWindowSurface(display_, config_, _window, 0))) {
         LOGCATE("eglCreateWindowSurface() returned error %d", eglGetError());
     }
@@ -86,7 +91,7 @@ EGLSurface EGLCore::CreateWindowSurface(ANativeWindow *_window) {
 
 EGLSurface EGLCore::CreateOffscreenSurface(int width, int height) {
     EGLSurface surface;
-    EGLint PbufferAttributes[] = { EGL_WIDTH, width, EGL_HEIGHT, height, EGL_NONE, EGL_NONE };
+    EGLint PbufferAttributes[] = {EGL_WIDTH, width, EGL_HEIGHT, height, EGL_NONE, EGL_NONE};
     if (!(surface = eglCreatePbufferSurface(display_, config_, PbufferAttributes))) {
         LOGCATE("eglCreatePbufferSurface() returned error %d", eglGetError());
     }
@@ -126,8 +131,10 @@ bool EGLCore::Init(EGLContext sharedContext) {
     EGLint width;
     EGLint height;
 
-    const EGLint attribs[] = { EGL_BUFFER_SIZE, 32, EGL_ALPHA_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-                               EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE };
+    const EGLint attribs[] = {EGL_BUFFER_SIZE, 32, EGL_ALPHA_SIZE, 8, EGL_BLUE_SIZE, 8,
+                              EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_RENDERABLE_TYPE,
+                              EGL_OPENGL_ES2_BIT,
+                              EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE};
 
     if ((display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
         LOGCATE("eglGetDisplay() returned error %d", eglGetError());
@@ -144,15 +151,18 @@ bool EGLCore::Init(EGLContext sharedContext) {
         return false;
     }
 
-    EGLint eglContextAttributes[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
-    context_ = eglCreateContext(display_, config_, NULL == sharedContext ? EGL_NO_CONTEXT : sharedContext, eglContextAttributes);
+    EGLint eglContextAttributes[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+    context_ = eglCreateContext(display_, config_,
+                                NULL == sharedContext ? EGL_NO_CONTEXT : sharedContext,
+                                eglContextAttributes);
     if (context_ == NULL) {
         LOGCATE("eglCreateContext() returned error %d", eglGetError());
         Release();
         return false;
     }
 
-    pfneglPresentationTimeANDROID = (PFNEGLPRESENTATIONTIMEANDROIDPROC)eglGetProcAddress("eglPresentationTimeANDROID");
+    pfneglPresentationTimeANDROID = (PFNEGLPRESENTATIONTIMEANDROIDPROC) eglGetProcAddress(
+            "eglPresentationTimeANDROID");
     if (!pfneglPresentationTimeANDROID) {
         LOGCATE("eglPresentationTimeANDROID is not available!");
     }
