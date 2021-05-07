@@ -6,17 +6,9 @@
 #define TESTFREETYPE_TEXT_CONTROL_H
 
 
-#include <font-manager.h>
-#include <FreeTypeShader.h>
 #include "message/handler.h"
 #include "egl/egl_core.h"
-#include "text_shader.h"
-
-typedef struct {
-    char *ttf_file;
-    char *text;
-    char *outPath;
-} TextInfo;
+#include "shader_manager.h"
 
 class text_control : public Handler {
     BufferPool *buffer_pool_;
@@ -27,9 +19,7 @@ class text_control : public Handler {
     int surface_height_;
     MessageQueue *message_queue_;
     pthread_t message_queue_thread_;
-    ftgl::font_manager_t *fontManager_;
-    text_shader *textShader_;
-    FreeTypeShader *freeTypeShader;
+    shader_manager *shaderManager_;
     TextInfo *current_text_;
 public:
     int Init();
@@ -71,15 +61,13 @@ public:
 
     static void *MessageQueueThread(void *args);
 
-    ftgl::texture_font_t *inset_text(const char *path, const char *text) const;
-
     text_control();
 
     ~text_control();
 
     void ProcessMessage();
 
-    void Draw(char *ttfPath, char *text,char *outPath);
+    void Draw(char *ttfPath, char *text, char *outPath);
 };
 
 

@@ -7,12 +7,14 @@
 
 #include <texture-font.h>
 #include "shader_base.h"
+#include <ctype.h>
 
 class text_shader : public shader_base {
 public:
     GLuint textVbo = 0;
     GLuint uvVbo = 0;
     GLuint ebo = 0;
+    float lineSpace=0.f;
 
     void Init();
 
@@ -22,8 +24,8 @@ public:
 
     void onDestroy();
 
-    void drawText(GLuint areaTextureId, ftgl::texture_font_t *font,
-                  const  char *text);
+    void drawText(GLuint areaTextureId, int textWidth, int textHeight, ftgl::texture_font_t *font,
+                  const char *text);
 };
 
 

@@ -31,6 +31,7 @@ void text_shader::Init() {
             "vec4 sampled = vec4(1.0, 1.0, 1.0, texture(textureMap,uv).r);"
 
             "fragColor = vec4(vec3(1.0,0.0,0.0), sampled.a);"
+
             // "   fragColor = vec4 ( outPos, 1.0 ); \n"
             //   "   fragColor = textureMap;\n"
             "}                                            \n";
@@ -43,12 +44,12 @@ void text_shader::Init() {
     uvVbo = glvao->AddVertex2D(nullptr, 4, 1);
 
     ebo = glvao->setIndex(nullptr, 6);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    /* glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+     glEnable(GL_BLEND);
+     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
-    LOGCATE("glProgram %d", glProgram->program)
+    //LOGCATE("glProgram %d", glProgram->program)
 }
 
 
@@ -80,104 +81,112 @@ PointF normalizePoint(float x, float y, int width, int height) {
     return {x / float(width), y / float(height)};
 }
 
-void text_shader::drawText(GLuint areaTextureId, ftgl::texture_font_t *font, const char *text) {
+void text_shader::drawText(GLuint areaTextureId, int textWidth, int textHeight,
+                           ftgl::texture_font_t *font, const char *text) {
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
-    float startX = 0;
-    float startY = 0 + font->size;
+    float initX = float(textWidth) / 4.f;
+    float startX = initX;
+    float startY = 128 + 20;
+    lineSpace = startY;
     for (size_t i = 0; i < strlen(text); ++i) {
-        //获取字形
-        ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(font, text + i);
+        if (isspace(text[i])) {
+            startX = initX;
+            lineSpace += font->size;
+        } else {
+            startY = lineSpace;
+            //获取字形
+            ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(font, text + i);
 
-        if (pGlyph != nullptr && pGlyph->width != 0) {
-            LOGCATE("i %d font->descender= %f\n "
-                    "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
-                    "glyph->offset_x =%d glyph->offset_y =%d \n"
-                    "glyph->width =%d glyph->height =%d \n "
-                    "glyph->s0 =%f glyph->t0 =%f \n "
-                    "glyph->s1 =%f  glyph->t1 =%f",
-                    i, font->descender,
-                    pGlyph->advance_x, pGlyph->advance_y,
-                    pGlyph->offset_x, pGlyph->offset_y,
-                    pGlyph->width, pGlyph->height,
-                    pGlyph->s0, pGlyph->t0,
-                    pGlyph->s1, pGlyph->t1)
-            //y - (ch.Size.y - ch.Bearing.y)
-            float x0 = (startX + float(pGlyph->offset_x));
-            float y0 = (startY - (float(pGlyph->offset_y)));
+            if (pGlyph != nullptr && pGlyph->width != 0) {
+                LOGCATE("i %d font->descender= %f\n "
+                        "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
+                        "glyph->offset_x =%d glyph->offset_y =%d \n"
+                        "glyph->width =%d glyph->height =%d \n "
+                        "glyph->s0 =%f glyph->t0 =%f \n "
+                        "glyph->s1 =%f  glyph->t1 =%f",
+                        i, font->descender,
+                        pGlyph->advance_x, pGlyph->advance_y,
+                        pGlyph->offset_x, pGlyph->offset_y,
+                        pGlyph->width, pGlyph->height,
+                        pGlyph->s0, pGlyph->t0,
+                        pGlyph->s1, pGlyph->t1)
+                //y - (ch.Size.y - ch.Bearing.y)
+                float x0 = (startX + float(pGlyph->offset_x));
+                float y0 = (startY + (float(pGlyph->offset_y)));
 
-            float x1 = (x0 + float(pGlyph->width));
-            float y1 = (y0 + float(pGlyph->height));
+                float x1 = (x0 + float(pGlyph->width));
+                float y1 = (y0 - float(pGlyph->height));
 
-            const PointF &leftTop = vertexWithPoint(x0, y0, font->atlas->width,
-                                                    font->atlas->height);
-            const PointF &rightBottom = vertexWithPoint(x1, y1, font->atlas->width,
-                                                        font->atlas->height);
+                const PointF &leftTop = vertexWithPoint(x0, y0, textWidth,
+                                                        textHeight);
+                const PointF &rightBottom = vertexWithPoint(x1, y1, textWidth,
+                                                            textHeight);
 
-            float s0 = pGlyph->s0;
-            float t0 = pGlyph->t0;
-            float s1 = pGlyph->s1;
-            float t1 = pGlyph->t1;
+                float s0 = pGlyph->s0;
+                float t0 = pGlyph->t0;
+                float s1 = pGlyph->s1;
+                float t1 = pGlyph->t1;
 
-            LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
-                    leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
+                LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
+                        leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
 
-            float rectangleVertices[] = {
-                    leftTop.x, leftTop.y,// 左上角
-                    rightBottom.x, leftTop.y,//右上角
-                    rightBottom.x, rightBottom.y,//右下角
-                    leftTop.x, rightBottom.y};//左下角
+                float rectangleVertices[] = {
+                        leftTop.x, leftTop.y,// 左上角
+                        rightBottom.x, leftTop.y,//右上角
+                        rightBottom.x, rightBottom.y,//右下角
+                        leftTop.x, rightBottom.y};//左下角
 
-            int index = vertex.size() * 0.5;
-            int indices[] = {index, index + 1, index + 2,
-                             index, index + 2, index + 3};
-            //glvao->subDataIndex2D(ebo, index, 6);
-            indexVertex.push_back(indices[0]);
-            indexVertex.push_back(indices[1]);
-            indexVertex.push_back(indices[2]);
-            indexVertex.push_back(indices[3]);
-            indexVertex.push_back(indices[4]);
-            indexVertex.push_back(indices[5]);
+                int index = vertex.size() * 0.5;
+                int indices[] = {index, index + 1, index + 2,
+                                 index, index + 2, index + 3};
+                //glvao->subDataIndex2D(ebo, index, 6);
+                indexVertex.push_back(indices[0]);
+                indexVertex.push_back(indices[1]);
+                indexVertex.push_back(indices[2]);
+                indexVertex.push_back(indices[3]);
+                indexVertex.push_back(indices[4]);
+                indexVertex.push_back(indices[5]);
 
-            vertex.push_back(rectangleVertices[0]);
-            vertex.push_back(rectangleVertices[1]);
-            vertex.push_back(rectangleVertices[2]);
-            vertex.push_back(rectangleVertices[3]);
-            vertex.push_back(rectangleVertices[4]);
-            vertex.push_back(rectangleVertices[5]);
-            vertex.push_back(rectangleVertices[6]);
-            vertex.push_back(rectangleVertices[7]);
-            // vertex.push_back(rectangleVertices);
-
-
-            GLfloat uv[] = {
-                    s0, t0,
-                    s1, t0,
-                    s1, t1,
-                    s0, t1,
-            };
-            uvVertex.push_back(uv[0]);
-            uvVertex.push_back(uv[1]);
-            uvVertex.push_back(uv[2]);
-            uvVertex.push_back(uv[3]);
-            uvVertex.push_back(uv[4]);
-            uvVertex.push_back(uv[5]);
-            uvVertex.push_back(uv[6]);
-            uvVertex.push_back(uv[7]);
+                vertex.push_back(rectangleVertices[0]);
+                vertex.push_back(rectangleVertices[1]);
+                vertex.push_back(rectangleVertices[2]);
+                vertex.push_back(rectangleVertices[3]);
+                vertex.push_back(rectangleVertices[4]);
+                vertex.push_back(rectangleVertices[5]);
+                vertex.push_back(rectangleVertices[6]);
+                vertex.push_back(rectangleVertices[7]);
+                // vertex.push_back(rectangleVertices);
 
 
-            startX += pGlyph->advance_x;
+                GLfloat uv[] = {
+                        s0, t1,
+                        s1, t1,
+                        s1, t0,
+                        s0, t0,
+                };
+                uvVertex.push_back(uv[0]);
+                uvVertex.push_back(uv[1]);
+                uvVertex.push_back(uv[2]);
+                uvVertex.push_back(uv[3]);
+                uvVertex.push_back(uv[4]);
+                uvVertex.push_back(uv[5]);
+                uvVertex.push_back(uv[6]);
+                uvVertex.push_back(uv[7]);
+
+
+                startX += pGlyph->advance_x;
+            }
         }
     }
+    lineSpace = 0;
 
 
     glvao->updateVertex2D(textVbo, &vertex[0], vertex.size() / 2, 0);
     glvao->updateVertex2D(uvVbo, &uvVertex[0], uvVertex.size() / 2, 1);
     glvao->updateIndex(&indexVertex[0], indexVertex.size());
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 
     glProgram->useProgram();
 

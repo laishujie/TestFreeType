@@ -2,8 +2,8 @@
 // Created by admin on 2021/5/6.
 //
 
-#include <text_shader.h>
 #include <ImageLoad.h>
+#include <shader_manager.h>
 #include "text_control.h"
 
 
@@ -22,9 +22,8 @@ text_control::text_control() : Handler(),
                                core_(nullptr), render_surface_(nullptr),
                                surface_height_(0),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
-                               fontManager_(nullptr), textShader_(nullptr), current_text_(nullptr),
-                               freeTypeShader(
-                                       nullptr) {
+                               shaderManager_(nullptr),
+                               current_text_(nullptr) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -33,10 +32,7 @@ text_control::text_control() : Handler(),
     message->what = kEGLCreate;
     PostMessage(message);
 
-    //默认插入字符表
-    fontManager_ = ftgl::font_manager_new(512, 512, 1);
-    textShader_ = new text_shader();
-    freeTypeShader = new FreeTypeShader();
+    shaderManager_ = new shader_manager();
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -108,7 +104,7 @@ void text_control::HandleMessage(Message *msg) {
 
     int what = msg->GetWhat();
     void *obj = msg->GetObj();
-    LOGCATE("HandleMessage----------%d ",what)
+    LOGCATE("HandleMessage----------%d ", what)
 
     switch (what) {
         case kEGLCreate:
@@ -126,7 +122,7 @@ void text_control::HandleMessage(Message *msg) {
             break;
         case kDRAW: {
             auto *textInfo = reinterpret_cast<TextInfo *>(obj);
-            ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text);
+
 
             /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
                                     fontManager_->atlas->height, 1,
@@ -134,9 +130,9 @@ void text_control::HandleMessage(Message *msg) {
                 LOGE("11111", "ERROR: could not write image");
             }*/
 
-            //LOGE("11111", "save: %s",textInfo->outPath);
+            shaderManager_->drawTextInfo(textInfo);
 
-            textShader_->drawText(fontManager_->atlas->id, pFont, textInfo->text);
+            //textShader_->drawText(fontManager_->atlas->id, pFont, textInfo->text);
             //freeTypeShader->draw(fontManager_->atlas->id);
 
             if (!core_->SwapBuffers(render_surface_)) {
@@ -162,14 +158,8 @@ void text_control::OnGLWindowCreate() {
         }
     }
 
-    if (textShader_ == nullptr) {
-        textShader_ = new text_shader();
-    }
-    textShader_->Init();
-    textShader_->OnSurfaceChanged(surface_width_, surface_height_);
+    shaderManager_->initShader(surface_width_, surface_height_);
 
-    freeTypeShader->Init();
-    freeTypeShader->OnSurfaceChanged(surface_width_, surface_height_);
     LOGCATI("leave %s", __func__);
 }
 
@@ -237,76 +227,35 @@ void text_control::ProcessMessage() {
 void text_control::OnGlFontDestroy() {
     LOGCATI("enter %s", __func__)
 
-    if (fontManager_ != nullptr) {
-        glDeleteTextures(1, &fontManager_->atlas->id);
-        fontManager_->atlas->id = 0;
-        font_manager_delete(fontManager_);
-    }
-    if (textShader_ != nullptr) {
-        delete textShader_;
-        textShader_ = nullptr;
-    }
-    if (freeTypeShader != nullptr) {
-        delete freeTypeShader;
-        freeTypeShader = nullptr;
+    if (shaderManager_ != nullptr) {
+        delete shaderManager_;
+        shaderManager_ = nullptr;
     }
 
     LOGCATI("leave %s", __func__)
 }
 
-ftgl::texture_font_t *text_control::inset_text(const char *path, const char *text) const {
-
-    if (fontManager_->atlas->id == 0) {
-        glGenTextures(1, &fontManager_->atlas->id);
-        glBindTexture(GL_TEXTURE_2D, fontManager_->atlas->id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, fontManager_->atlas->width,
-                     fontManager_->atlas->height,
-                     0, GL_RED, GL_UNSIGNED_BYTE, fontManager_->atlas->data);
-        // 设置纹理选项
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, GL_NONE);
-    }
-
-    LOGCATI("enter %s", __func__)
-    //返回字体表
-    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path, 32);
-    pFont->rendermode = ftgl::RENDER_NORMAL;
-    //获取对应得文本
-
-    int i = ftgl::texture_font_load_glyphs_isOk(pFont, text);
-
-    if (i == 1) {
-        glBindTexture(GL_TEXTURE_2D, fontManager_->atlas->id);
-
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fontManager_->atlas->width,
-                        fontManager_->atlas->height,
-                        GL_RED, GL_UNSIGNED_BYTE, fontManager_->atlas->data);
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, fontManager_->atlas->width, fontManager_->atlas->height,
-//                     0, GL_RED, GL_UNSIGNED_BYTE, fontManager_->atlas->data);
-
-        LOGCATI("更新字符表 %s ", text)
-    } else {
-        LOGCATI("无需更新字符表")
-    }
-    LOGCATI("leave %s", __func__)
-    return pFont;
-}
 
 void text_control::Draw(char *ttfPath, char *text, char *outPath) {
-
     if (current_text_ == nullptr) {
         current_text_ = new TextInfo();
-    } else if (current_text_->text != nullptr) {
-        delete current_text_->text;
-        delete current_text_->ttf_file;
-        delete current_text_->outPath;
-        current_text_->text = nullptr;
-        current_text_->ttf_file = nullptr;
-        current_text_->outPath = nullptr;
+    } else  {
+        if (current_text_->text != nullptr){
+            delete current_text_->text;
+            current_text_->text = nullptr;
+        }
+        if (current_text_->ttf_file != nullptr){
+            delete current_text_->ttf_file;
+            current_text_->ttf_file = nullptr;
+        }
+        if (current_text_->outPath != nullptr){
+            delete current_text_->outPath;
+            current_text_->outPath = nullptr;
+        }
+
     }
+    current_text_->textWidth = 100;
+    current_text_->textHeight = 100;
 
     current_text_->text = text;
     current_text_->ttf_file = ttfPath;

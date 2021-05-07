@@ -68,7 +68,6 @@ text_engine::~text_engine() {
 //    if ((vm_)->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
 //        env->DeleteGlobalRef(video_editor_object_);
 //    }
-
 }
 
 void text_engine::OnDraw(char *ttfPath, char *text,char *outPath) {
