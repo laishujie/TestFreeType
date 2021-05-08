@@ -8,10 +8,6 @@
 void shader_manager::drawTextInfo(TextInfo *textInfo) {
     LOGCATI("enter %s", __func__)
 
-    if (textLayer_ == nullptr) {
-        FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),outShader_->getSurfaceHeight(), GL_RGBA);
-        textLayer_ = new TextLayer(1, fboInfo);
-    }
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -19,17 +15,18 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
 
     //glViewport(0,0,200,200);
     glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear( GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
+    textInfo->textWidth = outShader_->getSurfaceWidth();
+    textInfo->textHeight = outShader_->getSurfaceHeight();
+    ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text,textInfo->fontSize);
+    textShader_->drawTextInfo(fontManager_->atlas->id,
+                              pFont, textInfo);
 
-    ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text);
-    textShader_->drawText(fontManager_->atlas->id,outShader_->getSurfaceWidth(),outShader_->getSurfaceHeight(), pFont, textInfo->text);
     fbo_util::UnBindFbo();
 
-    //glViewport(0,0,outShader_->getSurfaceWidth(),outShader_->getSurfaceHeight());
-
     outShader_->draw(textLayer_->textureId);
-   // LOGCATE("fboTexture %d fbo %d", textLayer_->textureId, textLayer_->frameBuffer)
+    // LOGCATE("fboTexture %d fbo %d", textLayer_->textureId, textLayer_->frameBuffer)
     LOGCATI("leave: %s", __func__)
 }
 
@@ -74,11 +71,17 @@ void shader_manager::initShader(int width, int height) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (textLayer_ == nullptr) {
+        FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
+                                              outShader_->getSurfaceHeight(), GL_RGBA);
+        textLayer_ = new TextLayer(1, fboInfo);
+    }
     LOGCATI("leave: %s", __func__)
 }
 
 
-ftgl::texture_font_t *shader_manager::inset_text(const char *path, const char *text) const {
+ftgl::texture_font_t *shader_manager::inset_text(const char *path, const char *text,int fontSize) const {
     LOGCATI("enter %s", __func__)
 
     if (fontManager_->atlas->id == 0) {
@@ -96,7 +99,7 @@ ftgl::texture_font_t *shader_manager::inset_text(const char *path, const char *t
     }
 
     //返回字体表
-    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path, 128);
+    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path, fontSize);
     pFont->rendermode = ftgl::RENDER_NORMAL;
     //获取对应得文本
 

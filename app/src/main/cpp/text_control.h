@@ -67,7 +67,15 @@ public:
 
     void ProcessMessage();
 
+
+    void
+    ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing,
+                   int lineSpacing, int fontSize);
+
+
     void Draw(char *ttfPath, char *text, char *outPath);
+
+    void PostDraw();
 };
 
 

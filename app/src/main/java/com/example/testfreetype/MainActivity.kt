@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityMainBinding
 import com.example.testfreetype.util.StorageHelper
 import java.io.File
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,7 +17,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val ttfPath by lazy {
-        StorageHelper.getDownloadPath(this) + File.separator + "DroidSansFallback.ttf"
+        StorageHelper.getInternalFilesDir(this).absolutePath + File.separator + "fonts/DroidSansFallback.ttf"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +64,23 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
-        StorageHelper.copyAssetToPath(this, "DroidSansFallback.ttf", ttfPath)
+        Thread(Runnable {
+            val fontDir = File(StorageHelper.getInternalFilesDir(this), "fonts")
+            fontDir.mkdir()
+
+            val fontList: MutableList<String> =
+                ArrayList()
+            fontList.add("DroidSansFallback.ttf")
+            fontList.add("KaBuQiNuo.otf")
+            fontList.add("MFYanSong-Regular.ttf")
+            fontList.add("YouLangRuanBi.ttf")
+            fontList.forEach {
+                val absolutePath = File(fontDir, it).absolutePath
+                StorageHelper.copyAssetToPath(this, "fonts/$it", absolutePath)
+            }
+            StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
+            //StorageHelper.copyAssetToPath(this, "DroidSansFallback.ttf", ttfPath)
+        }).start()
+
     }
 }

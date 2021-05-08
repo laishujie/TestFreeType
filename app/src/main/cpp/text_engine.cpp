@@ -59,7 +59,7 @@ text_engine::~text_engine() {
         delete player_;
         player_ = nullptr;
     }
-    if(window_!= nullptr){
+    if (window_ != nullptr) {
         ANativeWindow_release(window_);
         window_ = nullptr;
     }
@@ -70,6 +70,12 @@ text_engine::~text_engine() {
 //    }
 }
 
-void text_engine::OnDraw(char *ttfPath, char *text,char *outPath) {
-    player_->Draw(ttfPath, text,outPath);
+void text_engine::OnDraw(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing,
+                         jint lineSpacing, jint fontSize) {
+    player_->ConfigTextInfo(ttfPath, text, nullptr, isHorizontal, spacing, lineSpacing, fontSize);
+    player_->PostDraw();
+}
+
+void text_engine::OnConfigTextLayer(char *ttfPath, char *text) {
+    player_->ConfigTextInfo(ttfPath, text, nullptr, true, 0, 0, 0);
 }

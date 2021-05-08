@@ -657,6 +657,9 @@ int texture_font_load_glyphs_isOk(texture_font_t *self,
 
 
     int i, c;
+    if (codepoints == NULL) {
+        return isOk;
+    }
 
     /* Load each glyph */
     for (i = 0; i < strlen(codepoints); i += utf8_surrogate_len(codepoints + i)) {

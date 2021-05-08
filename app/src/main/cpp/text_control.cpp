@@ -239,20 +239,19 @@ void text_control::OnGlFontDestroy() {
 void text_control::Draw(char *ttfPath, char *text, char *outPath) {
     if (current_text_ == nullptr) {
         current_text_ = new TextInfo();
-    } else  {
-        if (current_text_->text != nullptr){
+    } else {
+        if (current_text_->text != nullptr) {
             delete current_text_->text;
             current_text_->text = nullptr;
         }
-        if (current_text_->ttf_file != nullptr){
+        if (current_text_->ttf_file != nullptr) {
             delete current_text_->ttf_file;
             current_text_->ttf_file = nullptr;
         }
-        if (current_text_->outPath != nullptr){
+        if (current_text_->outPath != nullptr) {
             delete current_text_->outPath;
             current_text_->outPath = nullptr;
         }
-
     }
     current_text_->textWidth = 100;
     current_text_->textHeight = 100;
@@ -260,6 +259,51 @@ void text_control::Draw(char *ttfPath, char *text, char *outPath) {
     current_text_->text = text;
     current_text_->ttf_file = ttfPath;
     current_text_->outPath = outPath;
+    auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kDRAW;
+    message->obj = current_text_;
+    PostMessage(message);
+}
+
+void text_control::ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal,
+                                  int spacing,
+                                  int lineSpacing, int fontSize) {
+    if (current_text_ == nullptr) {
+        current_text_ = new TextInfo();
+    }
+    if (ttfPath != nullptr) {
+        if (current_text_->ttf_file != nullptr) {
+            delete current_text_->ttf_file;
+            current_text_->ttf_file = nullptr;
+        }
+        current_text_->ttf_file = ttfPath;
+    }
+    if (text != nullptr) {
+        if (current_text_->text != nullptr) {
+            delete current_text_->text;
+            current_text_->text = nullptr;
+        }
+        current_text_->text = text;
+    }
+
+    if (outPath != nullptr) {
+        if (current_text_->outPath != nullptr) {
+            delete current_text_->outPath;
+            current_text_->outPath = nullptr;
+        }
+        current_text_->outPath = outPath;
+    }
+
+    current_text_->textWidth = 100;
+    current_text_->textHeight = 100;
+    current_text_->isHorizontal = isHorizontal;
+    current_text_->spacing = spacing;
+    current_text_->lineSpacing = lineSpacing;
+    current_text_->fontSize = fontSize;
+}
+
+void text_control::PostDraw() {
+    if (current_text_ == nullptr) return;
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;
     message->obj = current_text_;

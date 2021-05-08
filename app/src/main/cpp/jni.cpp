@@ -311,22 +311,81 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
                                                            jstring ttf_path, jstring text,
                                                            jstring outPath) {
     auto *editor = reinterpret_cast<text_engine *>(native_handle);
-    const char *src = env->GetStringUTFChars(ttf_path, nullptr);
-    const char *insetText = env->GetStringUTFChars(text, nullptr);
-    const char *out_Path = env->GetStringUTFChars(outPath, nullptr);
 
-    char *ttf_File_copy = new char[strlen(src) + 1];
-    sprintf(ttf_File_copy, "%s%c", src, 0);
+    char *ttf_File_copy = nullptr;
+    char *text_file_copy = nullptr;
+    char *out_File_copy = nullptr;
 
-    char *text_file_copy = new char[strlen(insetText) + 1];
-    sprintf(text_file_copy, "%s%c", insetText, 0);
+    if (ttf_path != nullptr) {
+        const char *src = env->GetStringUTFChars(ttf_path, nullptr);
+        ttf_File_copy = new char[strlen(src) + 1];
+        sprintf(ttf_File_copy, "%s%c", src, 0);
 
-    char *out_File_copy = new char[strlen(src) + 1];
-    sprintf(out_File_copy, "%s%c", out_Path, 0);
+        env->ReleaseStringUTFChars(ttf_path, src);
+    }
 
-    editor->OnDraw(ttf_File_copy, text_file_copy,out_File_copy);
+    if (text != nullptr) {
+        const char *insetText = env->GetStringUTFChars(text, nullptr);
+        text_file_copy = new char[strlen(insetText) + 1];
+        sprintf(text_file_copy, "%s%c", insetText, 0);
+        env->ReleaseStringUTFChars(text, insetText);
+    }
 
-    env->ReleaseStringUTFChars(ttf_path, src);
-    env->ReleaseStringUTFChars(text, insetText);
-    env->ReleaseStringUTFChars(outPath, out_Path);
+    if (outPath != nullptr) {
+        const char *out_Path = env->GetStringUTFChars(outPath, nullptr);
+        out_File_copy = new char[strlen(out_Path) + 1];
+        sprintf(out_File_copy, "%s%c", out_Path, 0);
+        env->ReleaseStringUTFChars(outPath, out_Path);
+    }
+
+    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jclass clazz,
+                                                                jlong handler, jobject layer) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+
+    jclass clip_clazz = env->GetObjectClass(layer);
+
+    jfieldID text_file_id = env->GetFieldID(clip_clazz, "char", "Ljava/lang/String;");
+    jfieldID ttf_file_id = env->GetFieldID(clip_clazz, "ttfPath", "Ljava/lang/String;");
+
+    auto j_text = static_cast<jstring>(env->GetObjectField(layer, text_file_id));
+    auto j_ttf = static_cast<jstring>(env->GetObjectField(layer, ttf_file_id));
+
+    char *text_copy = nullptr;
+    char *ttf_copy = nullptr;
+
+
+    if (j_text != nullptr) {
+        const char *src = env->GetStringUTFChars(j_text, nullptr);
+        text_copy = new char[strlen(src) + 1];
+        sprintf(text_copy, "%s%c", src, 0);
+        env->ReleaseStringUTFChars(j_text, src);
+    }
+
+    if (j_ttf != nullptr) {
+        const char *src = env->GetStringUTFChars(j_ttf, nullptr);
+        ttf_copy = new char[strlen(src) + 1];
+        sprintf(ttf_copy, "%s%c", src, 0);
+        env->ReleaseStringUTFChars(j_ttf, src);
+    }
+
+    jfieldID horizontal_file_id = env->GetFieldID(clip_clazz, "horizontal", "Z");
+    jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing",  "I");
+    jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing",  "I");
+    jfieldID size_file_id = env->GetFieldID(clip_clazz, "size",  "I");
+
+    jboolean isHorizontal = env->GetBooleanField(layer, horizontal_file_id);
+    jint spacing = env->GetIntField(layer, spacing_file_id);
+    jint lineSpacing = env->GetIntField(layer, lineSpacing_file_id);
+    jint fontSize = env->GetIntField(layer, size_file_id);
+
+    editor->OnDraw(ttf_copy, text_copy, nullptr, isHorizontal, spacing, lineSpacing, fontSize);
 }

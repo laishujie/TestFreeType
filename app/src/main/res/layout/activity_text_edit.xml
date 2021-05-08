@@ -13,11 +13,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:text="你好"
+        android:text="马甲"
         android:layout_width="wrap_content"
         android:textSize="128px"
         android:textColor="@color/white"
-        android:layout_marginTop="128px"
+        android:layout_marginTop="100px"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_height="wrap_content"/>
 

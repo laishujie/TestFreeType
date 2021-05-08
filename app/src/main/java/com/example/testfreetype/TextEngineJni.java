@@ -1,5 +1,7 @@
 package com.example.testfreetype;
 
+import com.example.testfreetype.bean.TextLayer;
+
 public class TextEngineJni {
 
 
@@ -54,7 +56,5 @@ public class TextEngineJni {
     public static native void textEngineRelease(long handler);
 
     public static native void textEngineDraw(long handler,String ttfPath, String text,String outPath);
-
-
-
+    public static native void textEngineDrawLayer(long handler, TextLayer layer);
 }

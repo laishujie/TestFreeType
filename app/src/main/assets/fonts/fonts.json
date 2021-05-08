@@ -1,0 +1,18 @@
+[
+  {
+    "path": "fonts/DroidSansFallback.ttf",
+    "name": "系统"
+  },
+  {
+    "path": "fonts/MFYanSong-Regular.ttf",
+    "name": "颜宋"
+  },
+  {
+    "path": "fonts/KaBuQiNuo.otf",
+    "name": "卡布奇诺"
+  },
+  {
+    "path": "fonts/YouLangRuanBi.ttf",
+    "name": "软笔"
+  }
+]

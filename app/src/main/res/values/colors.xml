@@ -11,6 +11,8 @@
     <color name="colorBD">#e6e6e6</color>
     <color name="color10">#101010</color>
     <color name="color27">#272727</color>
+    <color name="font_red">#FF4240</color>
 
+    <color name="theme_red">#FF4240</color>
 
 </resources>

@@ -1,11 +1,9 @@
 package com.example.testfreetype
 
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.testfreetype.bean.TextConfigManager
 import com.example.testfreetype.databinding.ActivityTextEditBinding
-import com.example.testfreetype.util.KeyboardUtils
-import com.example.testfreetype.util.SizeUtils
 import com.example.testfreetype.util.SoftInputUtil
 import com.example.testfreetype.util.TextEditSurfaceManager
 import com.example.testfreetype.widget.TextStyleBottomSheetFragment
@@ -13,7 +11,7 @@ import com.example.testfreetype.widget.TextStyleBottomSheetFragment
 
 class TextEditActivity : AppCompatActivity() {
 
-    private val textEdit = TextEditSurfaceManager()
+    private val editSurfaceManager = TextEditSurfaceManager()
     private val softInputUtil = SoftInputUtil()
 
     val ttfPath by lazy {
@@ -29,13 +27,15 @@ class TextEditActivity : AppCompatActivity() {
         fragment!!
     }
 
+    var addLayerId = 0;
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val inflate = ActivityTextEditBinding.inflate(layoutInflater)
         setContentView(inflate.root)
 
-        inflate.surfaceView.surfaceTextureListener = textEdit
+        inflate.surfaceView.surfaceTextureListener = editSurfaceManager
 
 
         inflate.btnText.setOnClickListener {
@@ -45,13 +45,52 @@ class TextEditActivity : AppCompatActivity() {
             )
         }
 
+        addLayerId = TextConfigManager.addLayer(ttfPath, "")
+
         textStyleBottomSheetFragment.styleCallBack =
             object : TextStyleBottomSheetFragment.OnStyleChange {
-                override fun change(style: TextStyleBottomSheetFragment.Style) {
-                    textEdit.drawText(ttfPath, style.char, "")
+                override fun changeText(text: String) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        char = text
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeHorizontal(horizontal: Boolean) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.horizontal = horizontal
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeWordSpacing(spacing: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.spacing = spacing
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeLineWordSpacing(spacing: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.lineSpacing = spacing
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeFont(fontPath: String) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.ttfPath = fontPath
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeFontSize(pixie: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.size = if(pixie==0)1 else pixie
+                        editSurfaceManager.drawLayer(this)
+                    }
                 }
             }
-
 
         /*softInputUtil.attachSoftInput(
             inflate.btnText

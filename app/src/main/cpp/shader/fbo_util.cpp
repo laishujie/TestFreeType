@@ -25,10 +25,12 @@ FboInfo fbo_util::CreateFbo(int width, int height, GLint format) {
     //解绑兄弟
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    UnBindFbo();
+
     return info;
 }
 
-void fbo_util::BindFbo(GLuint& frameBuffer) {
+void fbo_util::BindFbo(GLuint &frameBuffer) {
     if (frameBuffer != 0) {
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     }

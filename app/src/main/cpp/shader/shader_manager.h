@@ -10,31 +10,7 @@
 #include "text_shader.h"
 #include "out_shader.h"
 #include "fbo_util.h"
-
-typedef struct {
-    char *ttf_file;
-    char *text;
-    char *outPath;
-    int textWidth;
-    int textHeight;
-
-} TextInfo;
-
-class TextLayer {
-    int id;
-public:
-    TextLayer() : id(0), frameBuffer(0), textureId(0) {}
-
-    TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
-                                         textureId(fboInfo.frameBuffer) {}
-    GLuint textureId;
-    GLuint frameBuffer;
-    ~TextLayer(){
-        glDeleteFramebuffers(1, &frameBuffer);
-        glDeleteTextures(1, &textureId);
-    }
-};
-
+#include "text_bean.h"
 class shader_manager {
 
 private:
@@ -52,7 +28,7 @@ public:
 
     ~shader_manager();
 
-    ftgl::texture_font_t *inset_text(const char *path, const char *text) const;
+    ftgl::texture_font_t *inset_text(const char *path, const char *text,int fontSize) const;
 };
 
 

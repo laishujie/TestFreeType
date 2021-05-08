@@ -7,11 +7,8 @@
 
 
 #include <GLES3/gl3.h>
+#include "text_bean.h"
 
-typedef struct {
-    GLuint frameBuffer;
-    GLuint textureId;
-} FboInfo;
 
 class fbo_util {
 

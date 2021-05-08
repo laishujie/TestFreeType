@@ -21,7 +21,10 @@ public:
 
     void OnSurfaceDestroyed();
 
-    void OnDraw(char * ttfPath,char *text,char *outPath);
+    void OnDraw(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing, jint i,
+                jint i1);
+
+    void OnConfigTextLayer(char * ttfPath,char *text);
 
     ~text_engine();
 

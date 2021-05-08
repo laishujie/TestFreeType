@@ -11,7 +11,6 @@ include_directories(
         glm
         font
         message
-
 )
 
 set(BASE_SRCS
