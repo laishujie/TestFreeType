@@ -19,6 +19,9 @@
 #include "platform.h"
 #include "utf8-utils.h"
 
+#define SDF_IMPLEMENTATION
+#include "sdf_2.h"
+
 #define HRES  64
 #define HRESf 64.f
 #define DPI   72
@@ -565,10 +568,10 @@ texture_font_load_glyph(texture_font_t *self,
         int bottom;
     } padding = {0, 0, 1, 1};
 
-    if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
+   /* if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
         padding.top = 1;
         padding.left = 1;
-    }
+    }*/
 
     if (self->padding != 0) {
         padding.top += self->padding;
@@ -608,9 +611,19 @@ texture_font_load_glyph(texture_font_t *self,
     }
 
     if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
-        unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
+        /*sdf sdf;
+
+        sdf.sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height,
+                                  img->width);*/
+       // unsigned char *sdf = (unsigned char *) malloc( tgt_w * tgt_h * sizeof(unsigned char) );
+        unsigned char *out = (unsigned char *) malloc(tgt_w * tgt_h * sizeof(unsigned char));
+    //	sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height, img->width);
+        float radius = 10.0f;
+
+        sdfBuildDistanceField(out,tgt_w,radius,buffer,tgt_w,tgt_h,tgt_w);
+        //unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
         free(buffer);
-        buffer = sdf;
+        buffer = out;
     }
 
     //上传到指定的纹理

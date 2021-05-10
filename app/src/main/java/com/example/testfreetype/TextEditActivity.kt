@@ -90,6 +90,27 @@ class TextEditActivity : AppCompatActivity() {
                         editSurfaceManager.drawLayer(this)
                     }
                 }
+
+                override fun changeFontColor(color: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.fontColor = color
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeDistance(distanceMark: Float) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.distanceMark = distanceMark
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.outLineDistanceMark = outLineDistanceMark
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
             }
 
         /*softInputUtil.attachSoftInput(

@@ -57,6 +57,9 @@ unsigned char *
 make_distance_mapb( unsigned char *img,
                     unsigned int width, unsigned int height );
 
+
+void sdfBuildDistanceFieldNoAlloc2(unsigned char *out, int outstride, float radius, const unsigned char *img, int width, int height, int stride, unsigned char *temp);
+
 /** @} */
 
 #ifdef __cplusplus

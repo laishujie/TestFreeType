@@ -22,7 +22,8 @@ public:
     void OnSurfaceDestroyed();
 
     void OnDraw(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing, jint i,
-                jint i1);
+                jint i1,
+                jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark);
 
     void OnConfigTextLayer(char * ttfPath,char *text);
 

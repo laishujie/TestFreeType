@@ -60,7 +60,8 @@ SET(CMAKE_C_FLAGS "-DFT2_BUILD_LIBRARY")
 
 
 file(GLOB src-files
-        ${CMAKE_SOURCE_DIR}/shader/*.cpp
+        shader/*.cpp
+        shader/*.c
         message/*.cc
         message/*.h
         font/*.c

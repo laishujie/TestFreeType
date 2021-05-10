@@ -4,17 +4,18 @@
 
 #include "text_shader.h"
 #include "logUtil.h"
+#include "color_util.h"
 
 void text_shader::Init() {
     char vShaderStr[] =
             "#version 300 es                          \n"
-            "layout(location = 0) in vec2 vPosition;  \n"
-            "layout(location = 1) in vec2 uvPos;\n"
+            "layout(location = 0) in vec4 vPosition;  \n"
+            "layout(location = 1) in vec3 uvPos;\n"
             "uniform mat4 uMatrix;\n"
-            "out vec2 outUvPos;\n"
+            "out vec3 outUvPos;\n"
             "void main()                              \n"
             "{                                        \n"
-            "   gl_Position =  vec4(vPosition,1.0,1.0);              \n"
+            "   gl_Position =  vPosition;              \n"
             "   outUvPos = uvPos;              \n"
             "}                                        \n";
 
@@ -23,18 +24,68 @@ void text_shader::Init() {
             "precision mediump float;                     \n"
             "out vec4 fragColor;                          \n"
             "uniform sampler2D textureMap;\n"
-            "in vec2 outUvPos;\n"
-            "void main()                                  \n"
-            "{                                            \n"
+            "in vec3 outUvPos;\n"
+
+            "#define AZUR  vec3(0.0, 0.5, 1.0)\n"
+            "#define PURPLE vec3(1.0, 0.0, 0.5)\n"
+            "#define MAGENTA vec3(1.0, 0.0, 1.0)\n"
+
+
+            "uniform vec4 _OutlineColor;"
+            "uniform vec4 _FontColorLocation;"
+            "uniform vec4 _ShadowColor;"
+            "vec4 _GlowColor = vec4(MAGENTA,1. );"
+            "uniform float _OutlineDistanceMark;"
+            "vec4 _MainColor = vec4(AZUR, 1.0);"
+            "uniform float _DistanceMark;"
+            "uniform float _ShadowOffsetPixie;"
+            "uniform int _ShadowAngleMark;"
+            "const float outline_center = 0.5;"
+
+            "uniform float _ShadowAlpha;"
+            "const float glyph_center   = 0.2;"
+            "mat2 scale(vec2 _scale){\n"
+            "    return mat2(_scale.x,0.0,\n"
+            "                0.0,_scale.y);\n"
+            "}"
+
+            "void main(){"
             "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
-            //"vec4 textureMap = texture(textureMap,uv); \n"
-            "vec4 sampled = vec4(1.0, 1.0, 1.0, texture(textureMap,uv).r);"
+            "vec4 col = texture(textureMap,uv); \n"
+            "float distance = col.r;"
+            //r分量到了多少需要进行描边绘制
+            "if(distance<_DistanceMark){"
+            //实体描边 _OutlineDistanceMark 分量多少算描边 如果_X 大于或等于_Y，返回 1;否则 0，
+            "vec4 stokeColor = _OutlineColor;"
+            "stokeColor.a = step(_OutlineDistanceMark, distance);"
+                 "if(stokeColor.a!=0.){"
+                 //属于描边范围直接绘制
+                 "fragColor = stokeColor;"
+              "}"
+            "}else{"
+            //文字颜色
+            "fragColor = _FontColorLocation;"
+            "}"
 
-            "fragColor = vec4(vec3(1.0,0.0,0.0), sampled.a);"
 
-            // "   fragColor = vec4 ( outPos, 1.0 ); \n"
-            //   "   fragColor = textureMap;\n"
-            "}                                            \n";
+          /*  "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
+            "vec4 col = texture(textureMap,uv); \n"
+
+            "float dist  = col.r;\n"
+            " float width = fwidth(dist);\n"
+            "  float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
+
+            "vec3 outline_color = vec3(1.0,0.0,1.0);"
+            "vec3 glyph_color = vec3(0.0,1.0,1.0);"
+
+            "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
+            "vec3 rgb = mix(outline_color, glyph_color, mu);"
+            "fragColor = vec4(rgb, max(alpha,mu));"
+*/
+            "}";
+
+
+
 
 
     glProgram = new GLProgram(vShaderStr, fboShaderStr);
@@ -210,6 +261,7 @@ void text_shader::draw() {
 
 void
 text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, TextInfo *&textInfo) {
+
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
@@ -238,17 +290,19 @@ text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, Text
                 if (isHorizontal)
                     startY = lineSpace;
                 else {
-                    startX = lineSpace;
+                    float canterX = font->size / 2.f-pGlyph->width/2.f;
+                    //文字居中
+                    startX = lineSpace+canterX;
                 }
 
-                LOGCATE("kerning %f i %d font->descender= %f\n "
+                LOGCATE("kerning %f i %d font->descender= %f font->size %f\n "
                         "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
                         "glyph->offset_x =%d glyph->offset_y =%d \n"
                         "glyph->width =%d glyph->height =%d \n "
                         "glyph->s0 =%f glyph->t0 =%f \n "
                         "glyph->s1 =%f  glyph->t1 =%f",
                         kerning,
-                        i, font->descender,
+                        i, font->descender, font->size,
                         pGlyph->advance_x, pGlyph->advance_y,
                         pGlyph->offset_x, pGlyph->offset_y,
                         pGlyph->width, pGlyph->height,
@@ -320,7 +374,7 @@ text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, Text
                 if (isHorizontal) {
                     startX += pGlyph->advance_x + float(textInfo->spacing);
                 } else {
-                    startY += pGlyph->advance_x+ float(textInfo->lineSpacing);;
+                    startY += font->size + float(textInfo->lineSpacing);
                 }
 
             }
@@ -342,6 +396,37 @@ text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, Text
     glBindTexture(GL_TEXTURE_2D, areaTextureId);
     //glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
     glUniform1i(textureIndex, 0);
+
+
+    GLint distanceMarkIndex = glGetUniformLocation(glProgram->program, "_DistanceMark");
+    glUniform1f(distanceMarkIndex, textInfo->distanceMark);
+    GLint outLineMarkIndex = glGetUniformLocation(glProgram->program, "_OutlineDistanceMark");
+    glUniform1f(outLineMarkIndex, textInfo->outlineDistanceMark);
+
+    GLint offsetMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowOffsetPixie");
+    glUniform1f(offsetMarkIndex, _ShadowDistanceMark);
+
+    GLint shadowAngleMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowAngleMark");
+    glUniform1i(shadowAngleMarkIndex, _ShadowAngleMark);
+
+
+    GLint testShadowOffsetPixie1 = glGetUniformLocation(glProgram->program, "_ShadowAlpha");
+    glUniform1f(testShadowOffsetPixie1, _ShadowAlpha);
+
+    GLint vertexColorLocation = glGetUniformLocation(glProgram->program, "_OutlineColor");
+
+//    float r = color_util::getColorR(_StokeLineColor);
+//    float g = color_util::getColorG(_StokeLineColor);
+//    float b = color_util::getColorB(_StokeLineColor);
+//    LOGCATE("r %f g %f b %f",r,g,b)
+    glUniform4f(vertexColorLocation, color_util::getColorR(_StokeLineColor), color_util::getColorG(_StokeLineColor), color_util::getColorB(_StokeLineColor), 1.0f);
+
+    GLint shadowColorLocation = glGetUniformLocation(glProgram->program, "_ShadowColor");
+    glUniform4f(shadowColorLocation, color_util::getColorR(_ShadowColor), color_util::getColorG(_ShadowColor), color_util::getColorB(_ShadowColor), 1.0f);
+
+
+    GLint fontColorLocation = glGetUniformLocation(glProgram->program, "_FontColorLocation");
+    glUniform4f(fontColorLocation, color_util::getColorR(textInfo->fontColor), color_util::getColorG(textInfo->fontColor), color_util::getColorB(textInfo->fontColor), 1.0f);
 
 
     glvao->BindVAO();

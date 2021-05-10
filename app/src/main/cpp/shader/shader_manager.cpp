@@ -6,10 +6,23 @@
 #include "logUtil.h"
 
 void shader_manager::drawTextInfo(TextInfo *textInfo) {
-    LOGCATI("enter %s", __func__)
+    LOGCATI("enter shader_manager %s", __func__)
+    if (textLayer_ == nullptr ){
+        return;
+    }
+    LOGCATI("leave: shader_manager 1")
 
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    LOGCATI("info ttf %s textInfo->text %s textInfo->fontSize %d", textInfo->ttf_file,
+            textInfo->text, textInfo->fontSize)
+
+    if (strlen(textInfo->text) == 0){
+        fbo_util::UnBindFbo();
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        return;
+    }
+    /*glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT);*/
 
     fbo_util::BindFbo(textLayer_->frameBuffer);
 
@@ -19,26 +32,31 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
 
     textInfo->textWidth = outShader_->getSurfaceWidth();
     textInfo->textHeight = outShader_->getSurfaceHeight();
-    ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text,textInfo->fontSize);
+
+    ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text,
+                                             textInfo->fontSize);
+
     textShader_->drawTextInfo(fontManager_->atlas->id,
                               pFont, textInfo);
+    //freeTypeShader->draw(fontManager_->atlas->id);
 
     fbo_util::UnBindFbo();
 
     outShader_->draw(textLayer_->textureId);
     // LOGCATE("fboTexture %d fbo %d", textLayer_->textureId, textLayer_->frameBuffer)
-    LOGCATI("leave: %s", __func__)
+    LOGCATI("leave: shader_manager %s", __func__)
 }
 
 shader_manager::shader_manager() : textShader_(nullptr), outShader_(nullptr), textLayer_(nullptr),
                                    fontManager_(
-                                           nullptr) {
+                                           nullptr), freeTypeShader(nullptr) {
     textShader_ = new text_shader();
     outShader_ = new out_shader();
+    freeTypeShader = new FreeTypeShader();
 }
 
 shader_manager::~shader_manager() {
-    LOGCATI("enter %s", __func__)
+    LOGCATI("enter  %s", __func__)
     if (textShader_ != nullptr) {
         delete textShader_;
         textShader_ = nullptr;
@@ -56,6 +74,10 @@ shader_manager::~shader_manager() {
         delete textLayer_;
         textLayer_ = nullptr;
     }
+    if (freeTypeShader != nullptr) {
+        delete freeTypeShader;
+        freeTypeShader = nullptr;
+    }
     LOGCATI("leave: %s", __func__)
 }
 
@@ -65,7 +87,7 @@ void shader_manager::initShader(int width, int height) {
     outShader_->Init();
     outShader_->OnSurfaceChanged(width, height);
     textShader_->Init();
-
+    freeTypeShader->Init();
     fontManager_ = ftgl::font_manager_new(width, height, 1);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -81,7 +103,8 @@ void shader_manager::initShader(int width, int height) {
 }
 
 
-ftgl::texture_font_t *shader_manager::inset_text(const char *path, const char *text,int fontSize) const {
+ftgl::texture_font_t *
+shader_manager::inset_text(const char *path, const char *text, int fontSize) const {
     LOGCATI("enter %s", __func__)
 
     if (fontManager_->atlas->id == 0) {
@@ -96,11 +119,14 @@ ftgl::texture_font_t *shader_manager::inset_text(const char *path, const char *t
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, GL_NONE);
+        LOGCATI("create %d ", fontManager_->atlas->id)
     }
 
     //返回字体表
-    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path, fontSize);
-    pFont->rendermode = ftgl::RENDER_NORMAL;
+    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path,
+                                                                       float(fontSize));
+    pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
+    pFont->padding=10;
     //获取对应得文本
 
     int i = ftgl::texture_font_load_glyphs_isOk(pFont, text);

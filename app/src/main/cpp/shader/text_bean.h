@@ -19,9 +19,12 @@ public:
     int spacing;
     int lineSpacing;
     int fontSize;
-
+    int fontColor;
+    float distanceMark;
+    float outlineDistanceMark;
     TextInfo() : ttf_file(nullptr), text(nullptr), outPath(nullptr),
-                 textWidth(0), textHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),fontSize(72) {
+                 textWidth(0), textHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
+                 fontSize(72), fontColor(0), distanceMark(0.5f),outlineDistanceMark(0.5) {
     }
 
     ~TextInfo() {
@@ -38,6 +41,7 @@ public:
             outPath = nullptr;
         }
     }
+
 
 };
 

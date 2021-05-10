@@ -71,11 +71,13 @@ text_engine::~text_engine() {
 }
 
 void text_engine::OnDraw(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing,
-                         jint lineSpacing, jint fontSize) {
-    player_->ConfigTextInfo(ttfPath, text, nullptr, isHorizontal, spacing, lineSpacing, fontSize);
+                         jint i, jint i1,
+                         jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark) {
+    player_->ConfigTextInfo(ttfPath, text, nullptr, isHorizontal, spacing, i, i1, fontColor,
+                            distanceMark, outLineDistanceMark);
     player_->PostDraw();
 }
 
 void text_engine::OnConfigTextLayer(char *ttfPath, char *text) {
-    player_->ConfigTextInfo(ttfPath, text, nullptr, true, 0, 0, 0);
+    player_->ConfigTextInfo(ttfPath, text, nullptr, true, 0, 0, 0, 0, 0, 0);
 }

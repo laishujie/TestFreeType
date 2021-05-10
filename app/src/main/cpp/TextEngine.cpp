@@ -5,8 +5,8 @@
 #include "TextEngine.h"
 
 #include <logUtil.h>
-#include <sdf.h>
 #include <utf8-utils.h>
+#include <sdf.h>
 
 struct Image {
     unsigned char *data;

@@ -338,7 +338,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
         env->ReleaseStringUTFChars(outPath, out_Path);
     }
 
-    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0);
+    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0);
 
 }
 
@@ -381,11 +381,20 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
     jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing",  "I");
     jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing",  "I");
     jfieldID size_file_id = env->GetFieldID(clip_clazz, "size",  "I");
+    jfieldID color_file_id = env->GetFieldID(clip_clazz, "fontColor",  "I");
+    jfieldID distanceMark_file_id = env->GetFieldID(clip_clazz, "distanceMark",  "F");
+    jfieldID outLineDistanceMark_file_id = env->GetFieldID(clip_clazz, "outLineDistanceMark",  "F");
+
+
 
     jboolean isHorizontal = env->GetBooleanField(layer, horizontal_file_id);
     jint spacing = env->GetIntField(layer, spacing_file_id);
     jint lineSpacing = env->GetIntField(layer, lineSpacing_file_id);
     jint fontSize = env->GetIntField(layer, size_file_id);
+    jint fontColor = env->GetIntField(layer, color_file_id);
+    jfloat distanceMark = env->GetFloatField(layer, distanceMark_file_id);
+    jfloat outLineDistanceMark = env->GetFloatField(layer, outLineDistanceMark_file_id);
 
-    editor->OnDraw(ttf_copy, text_copy, nullptr, isHorizontal, spacing, lineSpacing, fontSize);
+    editor->OnDraw(ttf_copy, text_copy, nullptr, isHorizontal, spacing, lineSpacing, fontSize,
+                   fontColor, distanceMark, outLineDistanceMark);
 }

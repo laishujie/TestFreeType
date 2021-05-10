@@ -1,5 +1,6 @@
 package com.example.testfreetype.bean
 
+import android.graphics.Color
 import android.util.SparseArray
 import com.google.gson.annotations.SerializedName
 
@@ -7,11 +8,15 @@ data class TextLayer(
     var id: Int,
     var char: String?,
     var ttfPath: String?,
+    var fontColor: Int = Color.WHITE,
+    var distanceMark: Float = 0.5f,
+    var outLineDistanceMark: Float = 0.5f,
     var spacing: Int = 0,
     var lineSpacing: Int = 0,
     var size: Int = 72,
     var horizontal: Boolean = true
-)
+) {
+}
 
 data class FontItem(
     @field:SerializedName("path") var fontPath: String,

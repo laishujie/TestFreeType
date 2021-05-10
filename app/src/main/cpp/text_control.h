@@ -70,7 +70,7 @@ public:
 
     void
     ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing,
-                   int lineSpacing, int fontSize);
+                   int lineSpacing, int fontSize, int fontColor, float distanceMark, float outLineDistanceMark);
 
 
     void Draw(char *ttfPath, char *text, char *outPath);

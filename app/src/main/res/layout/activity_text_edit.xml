@@ -11,6 +11,7 @@
         android:layout_gravity="center_horizontal"
         app:layout_constraintDimensionRatio="4:4.4"
         app:layout_constraintTop_toTopOf="parent" />
+<!--
 
     <TextView
         android:text="马甲"
@@ -20,6 +21,7 @@
         android:layout_marginTop="100px"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_height="wrap_content"/>
+-->
 
     <View
         android:id="@+id/view_bg"

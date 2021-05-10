@@ -4,7 +4,6 @@ import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +20,6 @@ import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.util.AssetsUtil
 import com.example.testfreetype.util.SizeUtils
 import com.example.testfreetype.util.StorageHelper
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.io.File
@@ -57,6 +55,9 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         fun changeLineWordSpacing(spacing: Int)
         fun changeFont(fontPath: String)
         fun changeFontSize(pixie: Int)
+        fun changeFontColor(color: Int);
+        fun changeDistance(distanceMark: Float)
+        fun changeOutlineDistanceMark(outLineDistanceMark: Float)
     }
 
 
@@ -146,6 +147,64 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                     }
                 }
             })
+
+        view.findViewById<SeekBar>(R.id.distance_seekBar)
+            .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    seekBar?.apply {
+                        styleCallBack?.changeDistance(progress.toFloat() / max)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+            })
+
+        view.findViewById<SeekBar>(R.id.out_distance_seekBar)
+            .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    seekBar?.apply {
+                        styleCallBack?.changeOutlineDistanceMark(progress.toFloat() / max)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+            })
+
+
+        view.findViewById<ColorPickerView>(R.id.font_color_seekBar)
+            .setOnColorPickerChangeListener(object :
+                ColorPickerView.OnColorPickerChangeListener {
+                override fun onStartTrackingTouch(picker: ColorPickerView?) {
+                }
+
+                override fun onColorChanged(picker: ColorPickerView?, color: Int) {
+                    styleCallBack?.changeFontColor(color)
+                }
+
+                override fun onStopTrackingTouch(picker: ColorPickerView?) {
+
+                }
+
+            })
+
 
         val rvFontList = view.findViewById<RecyclerView>(R.id.rv_font_list)
         rvFontList.layoutManager = GridLayoutManager(this.context, 4)

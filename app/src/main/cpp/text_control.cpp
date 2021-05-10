@@ -23,7 +23,7 @@ text_control::text_control() : Handler(),
                                surface_height_(0),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
-                               current_text_(nullptr) {
+                               current_text_(nullptr){
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -31,7 +31,6 @@ text_control::text_control() : Handler(),
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kEGLCreate;
     PostMessage(message);
-
     shaderManager_ = new shader_manager();
 
     pthread_attr_t attr;
@@ -100,8 +99,6 @@ void text_control::OnSurfaceDestroy() {
 
 
 void text_control::HandleMessage(Message *msg) {
-    LOGCATE("HandleMessage-----------------")
-
     int what = msg->GetWhat();
     void *obj = msg->GetObj();
     LOGCATE("HandleMessage----------%d ", what)
@@ -121,7 +118,9 @@ void text_control::HandleMessage(Message *msg) {
             OnGLWindowDestroy();
             break;
         case kDRAW: {
-            auto *textInfo = reinterpret_cast<TextInfo *>(obj);
+            LOGCATI("enter kDRAW %s", __func__)
+
+           //auto *textInfo = reinterpret_cast<TextInfo *>(obj);
 
 
             /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
@@ -130,7 +129,7 @@ void text_control::HandleMessage(Message *msg) {
                 LOGE("11111", "ERROR: could not write image");
             }*/
 
-            shaderManager_->drawTextInfo(textInfo);
+            shaderManager_->drawTextInfo(current_text_);
 
             //textShader_->drawText(fontManager_->atlas->id, pFont, textInfo->text);
             //freeTypeShader->draw(fontManager_->atlas->id);
@@ -138,6 +137,7 @@ void text_control::HandleMessage(Message *msg) {
             if (!core_->SwapBuffers(render_surface_)) {
                 LOGCATE("eglSwapBuffers error: %d", eglGetError())
             }
+            LOGCATI(" leave %s", __func__)
         }
             break;
         default:
@@ -267,7 +267,10 @@ void text_control::Draw(char *ttfPath, char *text, char *outPath) {
 
 void text_control::ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal,
                                   int spacing,
-                                  int lineSpacing, int fontSize) {
+                                  int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                                  float outLineDistanceMark) {
+    LOGCATI("enter %s", __func__)
+
     if (current_text_ == nullptr) {
         current_text_ = new TextInfo();
     }
@@ -300,13 +303,18 @@ void text_control::ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool
     current_text_->spacing = spacing;
     current_text_->lineSpacing = lineSpacing;
     current_text_->fontSize = fontSize;
+    current_text_->fontColor = fontColor;
+    current_text_->distanceMark= distanceMark;
+    current_text_->outlineDistanceMark= outLineDistanceMark;
+
+    LOGCATI("leave %s", __func__)
 }
 
 void text_control::PostDraw() {
     if (current_text_ == nullptr) return;
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;
-    message->obj = current_text_;
+    //message->obj = current_text_;
     PostMessage(message);
 }
 

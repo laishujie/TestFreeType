@@ -11,11 +11,14 @@
 #include "out_shader.h"
 #include "fbo_util.h"
 #include "text_bean.h"
+#include "FreeTypeShader.h"
+
 class shader_manager {
 
 private:
     text_shader *textShader_;
     out_shader *outShader_;
+    FreeTypeShader *freeTypeShader;
     TextLayer *textLayer_;
     ftgl::font_manager_t *fontManager_;
 
