@@ -271,6 +271,7 @@ Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jclass cla
 JNIEXPORT jlong JNICALL
 Java_com_example_testfreetype_TextEngineJni_textEngineCreate(JNIEnv *env, jclass clazz) {
     auto textEngine = new text_engine(env);
+    textEngine->Init();
     return reinterpret_cast<jlong>(textEngine);
 }
 
@@ -338,7 +339,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
         env->ReleaseStringUTFChars(outPath, out_Path);
     }
 
-    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0);
+    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 }
 
@@ -358,7 +359,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
 
     auto j_text = static_cast<jstring>(env->GetObjectField(layer, text_file_id));
     auto j_ttf = static_cast<jstring>(env->GetObjectField(layer, ttf_file_id));
-
+/*
     char *text_copy = nullptr;
     char *ttf_copy = nullptr;
 
@@ -375,16 +376,20 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
         ttf_copy = new char[strlen(src) + 1];
         sprintf(ttf_copy, "%s%c", src, 0);
         env->ReleaseStringUTFChars(j_ttf, src);
-    }
+    }*/
 
     jfieldID horizontal_file_id = env->GetFieldID(clip_clazz, "horizontal", "Z");
-    jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing",  "I");
-    jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing",  "I");
-    jfieldID size_file_id = env->GetFieldID(clip_clazz, "size",  "I");
-    jfieldID color_file_id = env->GetFieldID(clip_clazz, "fontColor",  "I");
-    jfieldID distanceMark_file_id = env->GetFieldID(clip_clazz, "distanceMark",  "F");
-    jfieldID outLineDistanceMark_file_id = env->GetFieldID(clip_clazz, "outLineDistanceMark",  "F");
+    jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing", "I");
+    jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing", "I");
+    jfieldID size_file_id = env->GetFieldID(clip_clazz, "size", "I");
+    jfieldID color_file_id = env->GetFieldID(clip_clazz, "fontColor", "I");
+    jfieldID distanceMark_file_id = env->GetFieldID(clip_clazz, "distanceMark", "F");
+    jfieldID outLineDistanceMark_file_id = env->GetFieldID(clip_clazz, "outLineDistanceMark", "F");
+    jfieldID outLineColor_file_id = env->GetFieldID(clip_clazz, "outLineColor", "I");
 
+
+    jfieldID shadowDistance_file_id = env->GetFieldID(clip_clazz, "shadowDistance", "F");
+    jfieldID shadowAlpha_file_id = env->GetFieldID(clip_clazz, "shadowAlpha", "F");
 
 
     jboolean isHorizontal = env->GetBooleanField(layer, horizontal_file_id);
@@ -395,6 +400,21 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
     jfloat distanceMark = env->GetFloatField(layer, distanceMark_file_id);
     jfloat outLineDistanceMark = env->GetFloatField(layer, outLineDistanceMark_file_id);
 
-    editor->OnDraw(ttf_copy, text_copy, nullptr, isHorizontal, spacing, lineSpacing, fontSize,
-                   fontColor, distanceMark, outLineDistanceMark);
+    jint outlineColor = env->GetIntField(layer, outLineColor_file_id);
+
+    jfloat shadowDistance = env->GetFloatField(layer, shadowDistance_file_id);
+    jfloat shadowAlpha = env->GetFloatField(layer, shadowAlpha_file_id);
+
+
+    const char *text = env->GetStringUTFChars(j_text, nullptr);
+    const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
+
+    editor->OnDraw(ttf_path, text, nullptr, isHorizontal, spacing, lineSpacing, fontSize,
+                   fontColor, distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
+                   shadowAlpha);
+
+    env->ReleaseStringUTFChars(j_ttf, ttf_path);
+    env->ReleaseStringUTFChars(j_text, text);
+
+    env->DeleteLocalRef(clip_clazz);
 }

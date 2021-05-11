@@ -74,7 +74,7 @@ texture_atlas_set_region( texture_atlas_t * self,
                           const size_t width,
                           const size_t height,
                           const unsigned char * data,
-                          const size_t stride )
+                          const size_t stride)
 {
     size_t i;
     size_t depth;

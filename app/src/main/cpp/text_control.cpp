@@ -23,7 +23,7 @@ text_control::text_control() : Handler(),
                                surface_height_(0),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
-                               current_text_(nullptr){
+                               current_text_(nullptr) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -120,7 +120,7 @@ void text_control::HandleMessage(Message *msg) {
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
 
-           //auto *textInfo = reinterpret_cast<TextInfo *>(obj);
+            //auto *textInfo = reinterpret_cast<TextInfo *>(obj);
 
 
             /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
@@ -240,14 +240,14 @@ void text_control::Draw(char *ttfPath, char *text, char *outPath) {
     if (current_text_ == nullptr) {
         current_text_ = new TextInfo();
     } else {
-        if (current_text_->text != nullptr) {
-            delete current_text_->text;
-            current_text_->text = nullptr;
-        }
-        if (current_text_->ttf_file != nullptr) {
-            delete current_text_->ttf_file;
-            current_text_->ttf_file = nullptr;
-        }
+        /* if (current_text_->text != nullptr) {
+             delete current_text_->text;
+             current_text_->text = nullptr;
+         }*/
+        /* if (current_text_->ttf_file != nullptr) {
+             delete current_text_->ttf_file;
+             current_text_->ttf_file = nullptr;
+         }*/
         if (current_text_->outPath != nullptr) {
             delete current_text_->outPath;
             current_text_->outPath = nullptr;
@@ -256,7 +256,7 @@ void text_control::Draw(char *ttfPath, char *text, char *outPath) {
     current_text_->textWidth = 100;
     current_text_->textHeight = 100;
 
-    current_text_->text = text;
+    current_text_->text.assign(text);
     current_text_->ttf_file = ttfPath;
     current_text_->outPath = outPath;
     auto message = buffer_pool_->GetBuffer<Message>();
@@ -265,33 +265,34 @@ void text_control::Draw(char *ttfPath, char *text, char *outPath) {
     PostMessage(message);
 }
 
-void text_control::ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal,
-                                  int spacing,
+void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *outPath,
+                                  bool isHorizontal, int spacing,
                                   int lineSpacing, int fontSize, int fontColor, float distanceMark,
-                                  float outLineDistanceMark) {
+                                  float outLineDistanceMark, int outLineColor, float shadowDistance,
+                                  float shadowAlpha) {
     LOGCATI("enter %s", __func__)
 
     if (current_text_ == nullptr) {
         current_text_ = new TextInfo();
     }
     if (ttfPath != nullptr) {
-        if (current_text_->ttf_file != nullptr) {
-            delete current_text_->ttf_file;
+        /*if (current_text_->ttf_file != nullptr) {
+            delete []current_text_->ttf_file;
             current_text_->ttf_file = nullptr;
-        }
+        }*/
         current_text_->ttf_file = ttfPath;
     }
     if (text != nullptr) {
-        if (current_text_->text != nullptr) {
-            delete current_text_->text;
+        /*if (current_text_->text != nullptr) {
+            delete []current_text_->text;
             current_text_->text = nullptr;
-        }
+        }*/
         current_text_->text = text;
     }
 
     if (outPath != nullptr) {
         if (current_text_->outPath != nullptr) {
-            delete current_text_->outPath;
+            delete[]current_text_->outPath;
             current_text_->outPath = nullptr;
         }
         current_text_->outPath = outPath;
@@ -304,8 +305,11 @@ void text_control::ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool
     current_text_->lineSpacing = lineSpacing;
     current_text_->fontSize = fontSize;
     current_text_->fontColor = fontColor;
-    current_text_->distanceMark= distanceMark;
-    current_text_->outlineDistanceMark= outLineDistanceMark;
+    current_text_->distanceMark = distanceMark;
+    current_text_->outlineDistanceMark = outLineDistanceMark;
+    current_text_->outLineColor = outLineColor;
+    current_text_->shadowDistance = shadowDistance;
+    current_text_->shadowAlpha = shadowAlpha;
 
     LOGCATI("leave %s", __func__)
 }

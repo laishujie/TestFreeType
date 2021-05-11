@@ -9,10 +9,13 @@ data class TextLayer(
     var char: String?,
     var ttfPath: String?,
     var fontColor: Int = Color.WHITE,
+    var outLineColor: Int = Color.WHITE,
+    var shadowDistance: Float = 0f,
     var distanceMark: Float = 0.5f,
     var outLineDistanceMark: Float = 0.5f,
     var spacing: Int = 0,
     var lineSpacing: Int = 0,
+    var shadowAlpha: Float = 0f,
     var size: Int = 72,
     var horizontal: Boolean = true
 ) {

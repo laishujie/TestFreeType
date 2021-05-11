@@ -8,9 +8,9 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 #include "text_control.h"
+#include <deque>
 
 class text_engine {
-    int Init();
 
     void OnSurfaceChanged(int width, int height);
 
@@ -21,18 +21,28 @@ public:
 
     void OnSurfaceDestroyed();
 
-    void OnDraw(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing, jint i,
-                jint i1,
-                jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark);
+    void
+    OnDraw(const char *ttfPath, const char *text, char *outPath, bool isHorizontal, int spacing,
+           jint i,
+           jint i1, jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark,
+           jint outlineColor,
+           jfloat shadowDistance, jfloat d);
 
-    void OnConfigTextLayer(char * ttfPath,char *text);
 
     ~text_engine();
+
+    int Init();
 
 private:
     ANativeWindow* window_;
     JavaVM* vm_;
+    //文本控制器
     text_control* player_;
+    //文本队列互斥量
+    pthread_mutex_t queue_mutex_;
+    //信息队列
+    std::deque<TextInfo*> text_deque_;
+
 };
 
 

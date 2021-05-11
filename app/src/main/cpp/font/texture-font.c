@@ -14,12 +14,14 @@
 #include <assert.h>
 #include <math.h>
 #include <logUtil.h>
+#include <GLES3/gl3.h>
 #include "distance-field.h"
 #include "texture-font.h"
 #include "platform.h"
 #include "utf8-utils.h"
 
 #define SDF_IMPLEMENTATION
+
 #include "sdf_2.h"
 
 #define HRES  64
@@ -381,6 +383,7 @@ texture_font_find_glyph(texture_font_t *self,
     return NULL;
 }
 
+
 // ------------------------------------------------ texture_font_load_glyph ---
 int
 texture_font_load_glyph(texture_font_t *self,
@@ -568,10 +571,10 @@ texture_font_load_glyph(texture_font_t *self,
         int bottom;
     } padding = {0, 0, 1, 1};
 
-   /* if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
-        padding.top = 1;
-        padding.left = 1;
-    }*/
+    /* if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
+         padding.top = 1;
+         padding.left = 1;
+     }*/
 
     if (self->padding != 0) {
         padding.top += self->padding;
@@ -615,12 +618,12 @@ texture_font_load_glyph(texture_font_t *self,
 
         sdf.sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height,
                                   img->width);*/
-       // unsigned char *sdf = (unsigned char *) malloc( tgt_w * tgt_h * sizeof(unsigned char) );
+        // unsigned char *sdf = (unsigned char *) malloc( tgt_w * tgt_h * sizeof(unsigned char) );
         unsigned char *out = (unsigned char *) malloc(tgt_w * tgt_h * sizeof(unsigned char));
-    //	sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height, img->width);
+        //	sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height, img->width);
         float radius = 10.0f;
 
-        sdfBuildDistanceField(out,tgt_w,radius,buffer,tgt_w,tgt_h,tgt_w);
+        sdfBuildDistanceField(out, tgt_w, radius, buffer, tgt_w, tgt_h, tgt_w);
         //unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
         free(buffer);
         buffer = out;
@@ -628,6 +631,16 @@ texture_font_load_glyph(texture_font_t *self,
 
     //上传到指定的纹理
     texture_atlas_set_region(self->atlas, x, y, tgt_w, tgt_h, buffer, tgt_w * self->atlas->depth);
+
+    if (self->atlas->id != 0) {
+        glBindTexture(GL_TEXTURE_2D, self->atlas->id);
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, tgt_w,
+                        tgt_h,
+                        GL_RED, GL_UNSIGNED_BYTE, buffer);
+        LOGCATE("texture_atlas_set_region (line %d) : \n x %d  y  %d tag_w %d tag_h %d",
+                __LINE__, x, y, tgt_h, tgt_w)
+    }
 
     free(buffer);
 

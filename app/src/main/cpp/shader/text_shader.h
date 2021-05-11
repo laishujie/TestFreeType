@@ -16,15 +16,12 @@ public:
     GLuint uvVbo = 0;
     GLuint ebo = 0;
     float lineSpace = 0.f;
-    float  _DistanceMark =0.25;
-    float _OutlineMark  = 0.2;
-    float _ShadowDistanceMark  = 2;
-    int _ShadowAngleMark=0;
 
-    float _ShadowAlpha = 0.1;
+    float _ShadowDistanceMark  = 10;
+    int _ShadowAngleMark=30;
+    float _ShadowAlpha = 0.2;
+    int _ShadowColor=0xFFDD4F42;
 
-    int _StokeLineColor=0xFF26A477;
-    int _ShadowColor=0xFFFFFFFF;
     void Init();
 
     void draw();

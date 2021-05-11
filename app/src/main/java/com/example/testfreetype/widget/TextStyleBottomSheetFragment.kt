@@ -9,8 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.RadioGroup
 import android.widget.SeekBar
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +22,8 @@ import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.util.AssetsUtil
 import com.example.testfreetype.util.SizeUtils
 import com.example.testfreetype.util.StorageHelper
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.io.File
@@ -27,7 +31,8 @@ import java.io.File
 
 class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
-    var styleCallBack: OnStyleChange? = null;
+    var styleCallBack: OnStyleChange? = null
+
 
     private val mFontList: List<FontItem> by lazy {
         val fontList =
@@ -58,6 +63,9 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         fun changeFontColor(color: Int);
         fun changeDistance(distanceMark: Float)
         fun changeOutlineDistanceMark(outLineDistanceMark: Float)
+        fun changeOutlineColor(color: Int)
+        fun changeShadowDistance(shadowDistance:Float)
+        fun changeShadowAlpha(shadowAlpha:Float)
     }
 
 
@@ -73,10 +81,25 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.dialog_text, container)
     }
 
+    override fun onStart() {
+        super.onStart()
+       /* val view  =  getView();
+        view?.post {
+            val parent = view.parent as View
+            val params: CoordinatorLayout.LayoutParams =
+                parent.layoutParams as CoordinatorLayout.LayoutParams
+            val behavior = params.behavior
+            mBottomSheetBehavior = behavior as BottomSheetBehavior<View>?
+            mBottomSheetBehavior?.addBottomSheetCallback(mBottomSheetBehaviorCallback);
+
+
+        }*/
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val bottomSheetDialog = BottomSheetDialog(context!!, R.style.DialogFullScreen)
-        bottomSheetDialog.behavior.peekHeight = SizeUtils.dp2px(300f)
+        //bottomSheetDialog.behavior.isDraggable = false
+        bottomSheetDialog.behavior.peekHeight=500
         return bottomSheetDialog
     }
 
@@ -203,6 +226,63 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
                 }
 
+            })
+
+        view.findViewById<ColorPickerView>(R.id.stoke_color_seekBar)
+            .setOnColorPickerChangeListener(object :
+                ColorPickerView.OnColorPickerChangeListener {
+                override fun onStartTrackingTouch(picker: ColorPickerView?) {
+                }
+
+                override fun onColorChanged(picker: ColorPickerView?, color: Int) {
+                    styleCallBack?.changeOutlineColor(color)
+                }
+
+                override fun onStopTrackingTouch(picker: ColorPickerView?) {
+
+                }
+
+            })
+
+
+        view.findViewById<SeekBar>(R.id.z_seekBar)
+            .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    seekBar?.apply {
+                        styleCallBack?.changeShadowDistance(progress.toFloat())
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+            })
+
+        view.findViewById<SeekBar>(R.id.alpha_seekBar)
+            .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    seekBar?.apply {
+                        styleCallBack?.changeShadowAlpha(1f -progress.toFloat() / max)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
             })
 
 

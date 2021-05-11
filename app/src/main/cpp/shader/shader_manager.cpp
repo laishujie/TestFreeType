@@ -7,22 +7,24 @@
 
 void shader_manager::drawTextInfo(TextInfo *textInfo) {
     LOGCATI("enter shader_manager %s", __func__)
-    if (textLayer_ == nullptr ){
+    if (textLayer_ == nullptr) {
         return;
     }
-    LOGCATI("leave: shader_manager 1")
 
-    LOGCATI("info ttf %s textInfo->text %s textInfo->fontSize %d", textInfo->ttf_file,
-            textInfo->text, textInfo->fontSize)
+    const char *textChart = textInfo->text.c_str();
+    const char *ttf_file = textInfo->ttf_file.c_str();
 
-    if (strlen(textInfo->text) == 0){
+    LOGCATI("info ttf %s textInfo->text %s textInfo->fontSize %d", ttf_file,
+            textChart, textInfo->fontSize)
+
+    if (textInfo->text.empty()) {
         fbo_util::UnBindFbo();
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         return;
     }
-    /*glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);*/
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT );
 
     fbo_util::BindFbo(textLayer_->frameBuffer);
 
@@ -33,12 +35,11 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
     textInfo->textWidth = outShader_->getSurfaceWidth();
     textInfo->textHeight = outShader_->getSurfaceHeight();
 
-    ftgl::texture_font_t *pFont = inset_text(textInfo->ttf_file, textInfo->text,
+    ftgl::texture_font_t *pFont = inset_text(ttf_file, textChart,
                                              textInfo->fontSize);
 
     textShader_->drawTextInfo(fontManager_->atlas->id,
                               pFont, textInfo);
-    //freeTypeShader->draw(fontManager_->atlas->id);
 
     fbo_util::UnBindFbo();
 
@@ -93,6 +94,8 @@ void shader_manager::initShader(int width, int height) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   // glBlendEquation(GL_MAX);
+
 
     if (textLayer_ == nullptr) {
         FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
@@ -126,22 +129,17 @@ shader_manager::inset_text(const char *path, const char *text, int fontSize) con
     ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path,
                                                                        float(fontSize));
     pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
-    pFont->padding=10;
+    pFont->padding = 100;
     //获取对应得文本
 
-    int i = ftgl::texture_font_load_glyphs_isOk(pFont, text);
+    int i = ftgl::texture_font_load_glyphs(pFont, text);
 
-    if (i == 1) {
-        glBindTexture(GL_TEXTURE_2D, fontManager_->atlas->id);
-
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fontManager_->atlas->width,
-                        fontManager_->atlas->height,
-                        GL_RED, GL_UNSIGNED_BYTE, fontManager_->atlas->data);
-
-        LOGCATI("更新字符表 %s ", text)
+    if (i != 0) {
+        LOGCATI("纹理丢失的数量 %s %d ", text, i)
     } else {
-        LOGCATI("无需更新字符表")
+        LOGCATI("纹理成功 %s %d ", text, i)
     }
+
     LOGCATI("leave %s", __func__)
     return pFont;
 }

@@ -6,12 +6,13 @@
 #define TESTFREETYPE_TEXT_BEAN_H
 
 #include <GLES3/gl3.h>
+#include <string>
 
 class TextInfo {
 
 public:
-    char *ttf_file;
-    char *text;
+    std::string ttf_file;
+    std::string text;
     char *outPath;
     int textWidth;
     int textHeight;
@@ -22,22 +23,27 @@ public:
     int fontColor;
     float distanceMark;
     float outlineDistanceMark;
-    TextInfo() : ttf_file(nullptr), text(nullptr), outPath(nullptr),
+    int outLineColor;
+    float shadowDistance;
+    float shadowAlpha;
+
+    TextInfo() : ttf_file(), text(), outPath(nullptr),
                  textWidth(0), textHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
-                 fontSize(72), fontColor(0), distanceMark(0.5f),outlineDistanceMark(0.5) {
+                 fontSize(72), fontColor(0), distanceMark(0.5f), outlineDistanceMark(0.5),
+                 outLineColor(0), shadowDistance(0), shadowAlpha(0) {
     }
 
     ~TextInfo() {
-        if (ttf_file != nullptr) {
-            delete ttf_file;
-            ttf_file = nullptr;
-        }
-        if (text != nullptr) {
-            delete text;
-            text = nullptr;
-        }
+        /* if (ttf_file != nullptr) {
+             delete[] ttf_file;
+             ttf_file = nullptr;
+         }
+         if (text != nullptr) {
+             delete text;
+             text = nullptr;
+         }*/
         if (outPath != nullptr) {
-            delete outPath;
+            delete[] outPath;
             outPath = nullptr;
         }
     }

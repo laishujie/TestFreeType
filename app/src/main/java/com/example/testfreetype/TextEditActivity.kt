@@ -39,6 +39,11 @@ class TextEditActivity : AppCompatActivity() {
 
 
         inflate.btnText.setOnClickListener {
+
+            if (textStyleBottomSheetFragment.isAdded) {
+                supportFragmentManager.beginTransaction().remove(textStyleBottomSheetFragment)
+                    .commit()
+            }
             textStyleBottomSheetFragment.show(
                 supportFragmentManager,
                 "TextStyleBottomSheetFragment"
@@ -86,7 +91,7 @@ class TextEditActivity : AppCompatActivity() {
 
                 override fun changeFontSize(pixie: Int) {
                     TextConfigManager.getLayer(addLayerId)?.apply {
-                        this.size = if(pixie==0)1 else pixie
+                        this.size = if (pixie == 0) 1 else pixie
                         editSurfaceManager.drawLayer(this)
                     }
                 }
@@ -108,6 +113,27 @@ class TextEditActivity : AppCompatActivity() {
                 override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
                     TextConfigManager.getLayer(addLayerId)?.apply {
                         this.outLineDistanceMark = outLineDistanceMark
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeOutlineColor(color: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.outLineColor = color
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeShadowDistance(shadowDistance: Float) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.shadowDistance = shadowDistance
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeShadowAlpha(shadowAlpha: Float) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.shadowAlpha = shadowAlpha
                         editSurfaceManager.drawLayer(this)
                     }
                 }

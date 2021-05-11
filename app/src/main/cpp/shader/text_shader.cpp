@@ -9,13 +9,13 @@
 void text_shader::Init() {
     char vShaderStr[] =
             "#version 300 es                          \n"
-            "layout(location = 0) in vec4 vPosition;  \n"
+            "layout(location = 0) in vec2 vPosition;  \n"
             "layout(location = 1) in vec3 uvPos;\n"
             "uniform mat4 uMatrix;\n"
             "out vec3 outUvPos;\n"
             "void main()                              \n"
             "{                                        \n"
-            "   gl_Position =  vPosition;              \n"
+            "   gl_Position =  vec4(vPosition.x, vPosition.y, 0., 1.0);              \n"
             "   outUvPos = uvPos;              \n"
             "}                                        \n";
 
@@ -32,7 +32,7 @@ void text_shader::Init() {
 
 
             "uniform vec4 _OutlineColor;"
-            "uniform vec4 _FontColorLocation;"
+            "uniform vec4 _FontColor;"
             "uniform vec4 _ShadowColor;"
             "vec4 _GlowColor = vec4(MAGENTA,1. );"
             "uniform float _OutlineDistanceMark;"
@@ -40,48 +40,72 @@ void text_shader::Init() {
             "uniform float _DistanceMark;"
             "uniform float _ShadowOffsetPixie;"
             "uniform int _ShadowAngleMark;"
-            "const float outline_center = 0.5;"
+            "float outline_center = 0.5;"
+            "float glyph_center   = 0.2;"
 
             "uniform float _ShadowAlpha;"
-            "const float glyph_center   = 0.2;"
             "mat2 scale(vec2 _scale){\n"
             "    return mat2(_scale.x,0.0,\n"
             "                0.0,_scale.y);\n"
             "}"
 
             "void main(){"
+            /* "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
+             "vec4 col = texture(textureMap,uv); \n"
+             "float distance = col.r;"
+             //r分量到了多少需要进行描边绘制
+             "if(distance<_DistanceMark){"
+             //实体描边 _OutlineDistanceMark 分量多少算描边 如果_X 大于或等于_Y，返回 1;否则 0，
+             "vec4 stokeColor = _OutlineColor;"
+             "stokeColor.a = step(_OutlineDistanceMark, distance);"
+                  "if(stokeColor.a!=0.){"
+                  //属于描边范围直接绘制
+                  "fragColor = stokeColor;"
+               "}"
+             "}else{"
+             //文字颜色
+             "fragColor = _FontColor;"
+             "}"
+ */
+
             "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
-            "vec4 col = texture(textureMap,uv); \n"
-            "float distance = col.r;"
-            //r分量到了多少需要进行描边绘制
-            "if(distance<_DistanceMark){"
-            //实体描边 _OutlineDistanceMark 分量多少算描边 如果_X 大于或等于_Y，返回 1;否则 0，
-            "vec4 stokeColor = _OutlineColor;"
-            "stokeColor.a = step(_OutlineDistanceMark, distance);"
-                 "if(stokeColor.a!=0.){"
-                 //属于描边范围直接绘制
-                 "fragColor = stokeColor;"
-              "}"
-            "}else{"
-            //文字颜色
-            "fragColor = _FontColorLocation;"
-            "}"
-
-
-          /*  "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
             "vec4 col = texture(textureMap,uv); \n"
 
             "float dist  = col.r;\n"
-            " float width = fwidth(dist);\n"
-            "  float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
+            "float width = fwidth(dist);\n"
+            "outline_center = _DistanceMark;"
+            "glyph_center = _OutlineDistanceMark;"
+            "float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
 
-            "vec3 outline_color = vec3(1.0,0.0,1.0);"
-            "vec3 glyph_color = vec3(0.0,1.0,1.0);"
+            "vec3 outline_color = vec3(_OutlineColor.r,_OutlineColor.g,_OutlineColor.b);"
+            "vec3 glyph_color = vec3(_FontColor.r,_FontColor.g,_FontColor.b);"
 
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
-            "fragColor = vec4(rgb, max(alpha,mu));"
-*/
+            "float finalA = max(alpha,mu);"
+            "if(finalA==0.){"
+            //属于外部范围，进行阴影绘制 这个浮点数是 pi / 180，角度转弧度
+            "float rad = radians(float(_ShadowAngleMark));"
+            //取得纹理大小
+            "ivec2 size = textureSize(textureMap, 0);\n"
+            //获取一个像素所占的值//单位坐标
+            "vec2 unit = 1.0 / vec2(float(size.x),float(size.y));\n"
+            // 根据半径可获取圆点偏移坐标点  //偏移量
+            "vec2 offset = vec2(_ShadowOffsetPixie * cos(rad) * unit.x, _ShadowOffsetPixie * sin(rad) * unit.y);"
+            //坐标点采集R分量
+            "float offsetDistance = texture(textureMap, uv + offset).r;"
+            "if(offsetDistance !=0.){"
+            //进行线性插值
+            "float a = smoothstep(0., _ShadowAlpha, offsetDistance);"
+            "vec4 shadowColor = vec4(_ShadowColor.rgb,a*_ShadowColor.a);"
+            "fragColor = shadowColor;}"
+            "}else{"
+               "fragColor = vec4(rgb, finalA);"
+            "}"
+
+
+
+
             "}";
 
 
@@ -251,8 +275,8 @@ void text_shader::drawText(GLuint areaTextureId, int textWidth, int textHeight,
 
 
     glvao->BindVAO();
-    //glDrawArrays(GL_TRIANGLES, 0, vertex.size()*4);
-    glDrawElements(GL_TRIANGLES, indexVertex.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawArrays(GL_TRIANGLES, 0, vertex.size()*4);
+    //glDrawElements(GL_TRIANGLES, indexVertex.size(), GL_UNSIGNED_INT, nullptr);
 }
 
 void text_shader::draw() {
@@ -261,7 +285,6 @@ void text_shader::draw() {
 
 void
 text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, TextInfo *&textInfo) {
-
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
@@ -270,20 +293,21 @@ text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, Text
     float startX = initX;
     float startY = initY;
     bool isHorizontal = textInfo->isHorizontal;
+    const char *textChart = textInfo->text.c_str();
     lineSpace = isHorizontal ? startY : startX;
 
-    for (size_t i = 0; i < strlen(textInfo->text); ++i) {
+    for (size_t i = 0; i < strlen(textChart); ++i) {
         //获取字形
-        ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(font, textInfo->text + i);
+        ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(font, textChart + i);
 
         if (pGlyph != nullptr && pGlyph->width != 0) {
             float kerning = 0.0f;
 
             if (i > 0) {
-                kerning = texture_glyph_get_kerning(pGlyph, textInfo->text + i - 1);
+                kerning = texture_glyph_get_kerning(pGlyph, textChart+ i - 1);
             }
 
-            if (isspace(textInfo->text[i])) {
+            if (isspace(textChart[i])) {
                 isHorizontal ? startX = initX : startY = initY;
                 lineSpace += font->size;
             } else {
@@ -404,29 +428,25 @@ text_shader::drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, Text
     glUniform1f(outLineMarkIndex, textInfo->outlineDistanceMark);
 
     GLint offsetMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowOffsetPixie");
-    glUniform1f(offsetMarkIndex, _ShadowDistanceMark);
+    glUniform1f(offsetMarkIndex, textInfo->shadowDistance);
 
     GLint shadowAngleMarkIndex = glGetUniformLocation(glProgram->program, "_ShadowAngleMark");
     glUniform1i(shadowAngleMarkIndex, _ShadowAngleMark);
 
 
     GLint testShadowOffsetPixie1 = glGetUniformLocation(glProgram->program, "_ShadowAlpha");
-    glUniform1f(testShadowOffsetPixie1, _ShadowAlpha);
+    glUniform1f(testShadowOffsetPixie1, textInfo->shadowAlpha);
 
-    GLint vertexColorLocation = glGetUniformLocation(glProgram->program, "_OutlineColor");
-
-//    float r = color_util::getColorR(_StokeLineColor);
-//    float g = color_util::getColorG(_StokeLineColor);
-//    float b = color_util::getColorB(_StokeLineColor);
-//    LOGCATE("r %f g %f b %f",r,g,b)
-    glUniform4f(vertexColorLocation, color_util::getColorR(_StokeLineColor), color_util::getColorG(_StokeLineColor), color_util::getColorB(_StokeLineColor), 1.0f);
-
+    LOGCATE("textInfo->shadowAlpha %f",textInfo->shadowAlpha)
     GLint shadowColorLocation = glGetUniformLocation(glProgram->program, "_ShadowColor");
     glUniform4f(shadowColorLocation, color_util::getColorR(_ShadowColor), color_util::getColorG(_ShadowColor), color_util::getColorB(_ShadowColor), 1.0f);
 
 
-    GLint fontColorLocation = glGetUniformLocation(glProgram->program, "_FontColorLocation");
+    GLint fontColorLocation = glGetUniformLocation(glProgram->program, "_FontColor");
     glUniform4f(fontColorLocation, color_util::getColorR(textInfo->fontColor), color_util::getColorG(textInfo->fontColor), color_util::getColorB(textInfo->fontColor), 1.0f);
+
+    GLint vertexColorLocation = glGetUniformLocation(glProgram->program, "_OutlineColor");
+    glUniform4f(vertexColorLocation, color_util::getColorR(textInfo->outLineColor), color_util::getColorG(textInfo->outLineColor), color_util::getColorB(textInfo->outLineColor), 1.0f);
 
 
     glvao->BindVAO();

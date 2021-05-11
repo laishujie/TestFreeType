@@ -69,8 +69,10 @@ public:
 
 
     void
-    ConfigTextInfo(char *ttfPath, char *text, char *outPath, bool isHorizontal, int spacing,
-                   int lineSpacing, int fontSize, int fontColor, float distanceMark, float outLineDistanceMark);
+    ConfigTextInfo(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
+                   int spacing,
+                   int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                   float outLineDistanceMark, int outLineColor, float shadowDistance, float shadowAlpha);
 
 
     void Draw(char *ttfPath, char *text, char *outPath);
