@@ -2,7 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -14,7 +14,7 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:background="#101010"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/view_last"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -161,6 +161,7 @@
             android:text="阈值"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
@@ -175,6 +176,7 @@
             android:progress="50"
             android:progressDrawable="@drawable/seekbar_bg"
             android:thumb="@drawable/selector_thumb_bar"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/textView5"
             app:layout_constraintEnd_toEndOf="@+id/view_bg"
             app:layout_constraintStart_toEndOf="@+id/textView5"
@@ -327,9 +329,9 @@
             android:id="@+id/shadow_color_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="颜色"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
+            android:text="颜色"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -356,9 +358,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
+            android:text="距离"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
-            android:text="距离"
             app:layout_constraintStart_toStartOf="@id/shadow_color_text"
             app:layout_constraintTop_toBottomOf="@id/shadow_color_seekBar" />
 
@@ -369,23 +371,23 @@
             android:max="100"
             android:maxHeight="3dp"
             android:minHeight="3dp"
-            android:progress="6"
+            android:progress="0"
             android:progressDrawable="@drawable/seekbar_bg"
             android:thumb="@drawable/selector_thumb_bar"
             app:layout_constraintBottom_toBottomOf="@+id/z_text"
             app:layout_constraintEnd_toEndOf="@+id/view_bg"
             app:layout_constraintStart_toEndOf="@+id/z_text"
-            app:layout_constraintTop_toTopOf="@+id/z_text"/>
+            app:layout_constraintTop_toTopOf="@+id/z_text" />
 
 
         <TextView
             android:id="@+id/angle_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="角度"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
-            android:layout_marginTop="10dp"
             app:layout_constraintStart_toStartOf="@id/shadow_color_text"
             app:layout_constraintTop_toBottomOf="@id/z_seekBar" />
 
@@ -393,24 +395,23 @@
             android:id="@+id/angle_seekBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:max="360"
             android:maxHeight="3dp"
             android:minHeight="3dp"
-            android:max="360"
+            android:progress="0"
             android:progressDrawable="@drawable/seekbar_bg"
             android:thumb="@drawable/selector_thumb_bar"
-            android:progress="207"
             app:layout_constraintBottom_toBottomOf="@+id/angle_text"
             app:layout_constraintEnd_toEndOf="@+id/view_bg"
             app:layout_constraintStart_toEndOf="@+id/angle_text"
-            app:layout_constraintTop_toTopOf="@+id/angle_text"
-            />
+            app:layout_constraintTop_toTopOf="@+id/angle_text" />
 
         <TextView
             android:id="@+id/alpha_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="模糊"
             android:layout_marginTop="10dp"
+            android:text="模糊"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@id/angle_text"
@@ -428,8 +429,15 @@
             app:layout_constraintBottom_toBottomOf="@+id/alpha_text"
             app:layout_constraintEnd_toEndOf="@+id/view_bg"
             app:layout_constraintStart_toEndOf="@+id/alpha_text"
-            app:layout_constraintTop_toTopOf="@+id/alpha_text"/>
+            app:layout_constraintTop_toTopOf="@+id/alpha_text" />
 
+        <View
+            android:id="@+id/view_last"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/alpha_seekBar" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

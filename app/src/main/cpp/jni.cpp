@@ -339,7 +339,8 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
         env->ReleaseStringUTFChars(outPath, out_Path);
     }
 
-    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    editor->OnDraw(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0);
 
 }
 
@@ -391,6 +392,8 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
     jfieldID shadowDistance_file_id = env->GetFieldID(clip_clazz, "shadowDistance", "F");
     jfieldID shadowAlpha_file_id = env->GetFieldID(clip_clazz, "shadowAlpha", "F");
 
+    jfieldID shadowColor_file_id = env->GetFieldID(clip_clazz, "shadowColor", "I");
+    jfieldID shadowAngle_file_id = env->GetFieldID(clip_clazz, "shadowAngle", "I");
 
     jboolean isHorizontal = env->GetBooleanField(layer, horizontal_file_id);
     jint spacing = env->GetIntField(layer, spacing_file_id);
@@ -405,13 +408,15 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
     jfloat shadowDistance = env->GetFloatField(layer, shadowDistance_file_id);
     jfloat shadowAlpha = env->GetFloatField(layer, shadowAlpha_file_id);
 
+    jint shadowColor = env->GetIntField(layer, shadowColor_file_id);
+    jint shadowAngle = env->GetIntField(layer, shadowAngle_file_id);
 
     const char *text = env->GetStringUTFChars(j_text, nullptr);
     const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
 
     editor->OnDraw(ttf_path, text, nullptr, isHorizontal, spacing, lineSpacing, fontSize,
                    fontColor, distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
-                   shadowAlpha);
+                   shadowAlpha, shadowColor, shadowAngle);
 
     env->ReleaseStringUTFChars(j_ttf, ttf_path);
     env->ReleaseStringUTFChars(j_text, text);

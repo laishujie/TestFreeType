@@ -85,7 +85,7 @@ void text_engine::OnDraw(const char *ttfPath, const char *text, char *outPath, b
                          int spacing, jint i,
                          jint i1, jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark,
                          jint outlineColor,
-                         jfloat shadowDistance, jfloat shadowAlpha) {
+                         jfloat shadowDistance, jfloat shadowAlpha, jint shadowColor, jint shadowAngle) {
 
 
     /* pthread_mutex_lock(&queue_mutex_);
@@ -96,7 +96,7 @@ void text_engine::OnDraw(const char *ttfPath, const char *text, char *outPath, b
     pthread_mutex_lock(&queue_mutex_);
     player_->ConfigTextInfo(ttfPath, text, nullptr, isHorizontal, spacing, i, i1, fontColor,
                             distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
-                            shadowAlpha);
+                            shadowAlpha, shadowColor, shadowAngle);
     player_->PostDraw();
     pthread_mutex_unlock(&queue_mutex_);
 }

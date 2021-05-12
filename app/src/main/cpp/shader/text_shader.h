@@ -10,30 +10,30 @@
 #include <ctype.h>
 #include "text_bean.h"
 
-class text_shader : public shader_base {
-public:
+class text_shader {
+private:
+    int DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font);
+
+    int DrawShadowText(TextInfo *&textInfo, ftgl::texture_font_t *font);
+
     GLuint textVbo = 0;
     GLuint uvVbo = 0;
-    GLuint ebo = 0;
     float lineSpace = 0.f;
 
-    float _ShadowDistanceMark  = 10;
-    int _ShadowAngleMark=30;
-    float _ShadowAlpha = 0.2;
-    int _ShadowColor=0xFFDD4F42;
+    GLProgram *shadowProgram;
+    GLVAO *shadowVao;
+    GLProgram *glProgram;
+    GLVAO *glvao;
+public:
+    text_shader();
+
+    ~text_shader();
 
     void Init();
 
-    void draw();
+    void DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo);
 
-    void OnSurfaceChanged(int width, int height);
-
-    void onDestroy();
-
-    void drawText(GLuint areaTextureId, int textWidth, int textHeight, ftgl::texture_font_t *font,
-                  const char *text);
-
-    void drawTextInfo(GLuint areaTextureId, ftgl::texture_font_t *font, TextInfo *&textInfo);
+    int FillVertex(TextInfo *&textInfo, ftgl::texture_font_t *font);
 };
 
 

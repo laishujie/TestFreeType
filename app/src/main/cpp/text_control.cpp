@@ -40,7 +40,7 @@ text_control::text_control() : Handler(),
 }
 
 text_control::~text_control() {
-    LOGCATI("enter %s", __func__);
+    LOGCATI("enter %s", __func__)
 
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kEGLDestroy;
@@ -64,7 +64,7 @@ text_control::~text_control() {
         delete buffer_pool_;
         buffer_pool_ = nullptr;
     }
-    LOGCATI("leave: %s", __func__);
+    LOGCATI("leave: %s", __func__)
 }
 
 int text_control::Init() {
@@ -72,29 +72,29 @@ int text_control::Init() {
 }
 
 void text_control::OnSurfaceCreated(ANativeWindow *window, int width, int height) {
-    LOGCATI("enter: %s", __func__);
+    LOGCATI("enter: %s", __func__)
     window_ = window;
     surface_width_ = width;
     surface_height_ = height;
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kEGLWindowCreate;
     PostMessage(message);
-    LOGCATI("leave: %s", __func__);
+    LOGCATI("leave: %s", __func__)
 }
 
 void text_control::OnSurfaceChanged(int width, int height) {
-    LOGCATI("enter: %s width: %d height: %d", __func__, width, height);
+    LOGCATI("enter: %s width: %d height: %d", __func__, width, height)
     surface_width_ = width;
     surface_height_ = height;
-    LOGCATI("leave: %s", __func__);
+    LOGCATI("leave: %s", __func__)
 }
 
 void text_control::OnSurfaceDestroy() {
-    LOGCATI("enter: %s", __func__);
+    LOGCATI("enter: %s", __func__)
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kEGLWindowDestroy;
     PostMessage(message);
-    LOGCATI("leave: %s", __func__);
+    LOGCATI("leave: %s", __func__)
 }
 
 
@@ -146,55 +146,55 @@ void text_control::HandleMessage(Message *msg) {
 }
 
 void text_control::OnGLWindowCreate() {
-    LOGCATI("enter %s", __func__);
+    LOGCATI("enter %s", __func__)
 
     render_surface_ = core_->CreateWindowSurface(window_);
 
     if (nullptr != render_surface_ && EGL_NO_SURFACE != render_surface_) {
         auto result = core_->MakeCurrent(render_surface_);
         if (!result) {
-            LOGCATE("MakeCurrent error");
+            LOGCATE("MakeCurrent error")
             return;
         }
     }
 
     shaderManager_->initShader(surface_width_, surface_height_);
 
-    LOGCATI("leave %s", __func__);
+    LOGCATI("leave %s", __func__)
 }
 
 void text_control::OnGLCreate() {
-    LOGCATI("enter %s", __func__);
+    LOGCATI("enter %s", __func__)
     core_ = new EGLCore();
     auto result = core_->Init();
     if (!result) {
-        LOGCATE("create EGLContext failed");
+        LOGCATE("create EGLContext failed")
         return;
     }
-    LOGCATI("leave %s", __func__);
+    LOGCATI("leave %s", __func__)
 }
 
 void text_control::OnGLWindowDestroy() {
-    LOGCATE("enter %s", __func__);
+    LOGCATE("enter %s", __func__)
     if (nullptr != core_ && EGL_NO_SURFACE != render_surface_) {
         core_->ReleaseSurface(render_surface_);
         render_surface_ = EGL_NO_SURFACE;
     }
-    LOGCATE("leave %s", __func__);
+    LOGCATE("leave %s", __func__)
 }
 
 void text_control::OnGLDestroy() {
-    LOGCATI("enter %s", __func__);
+    LOGCATI("enter %s", __func__)
     if (nullptr != core_) {
         if (EGL_NO_SURFACE != render_surface_) {
-            LOGE("%s MakeCurrent: %p", __func__, render_surface_);
+            LOGE("%s MakeCurrent: %p", __func__, render_surface_)
             core_->MakeCurrent(render_surface_);
         }
         core_->Release();
         delete core_;
         core_ = nullptr;
     }
-    LOGCATI("leave %s", __func__);
+    LOGCATI("leave %s", __func__)
 
 }
 
@@ -205,14 +205,14 @@ void *text_control::MessageQueueThread(void *args) {
 }
 
 void text_control::ProcessMessage() {
-    LOGCATI("enter %s", __func__);
+    LOGCATI("enter %s", __func__)
     bool rendering = true;
     while (rendering) {
         Message *msg = nullptr;
         if (message_queue_->DequeueMessage(&msg, true) > 0) {
             if (nullptr != msg) {
                 if (MESSAGE_QUEUE_LOOP_QUIT_FLAG == msg->Execute()) {
-                    LOGCATE("MESSAGE_QUEUE_LOOP_QUIT_FLAG");
+                    LOGCATE("MESSAGE_QUEUE_LOOP_QUIT_FLAG")
                     rendering = false;
                 }
                 if (nullptr != buffer_pool_) {
@@ -221,7 +221,7 @@ void text_control::ProcessMessage() {
             }
         }
     }
-    LOGCATI("leave %s", __func__);
+    LOGCATI("leave %s", __func__)
 }
 
 void text_control::OnGlFontDestroy() {
@@ -235,41 +235,12 @@ void text_control::OnGlFontDestroy() {
     LOGCATI("leave %s", __func__)
 }
 
-
-void text_control::Draw(char *ttfPath, char *text, char *outPath) {
-    if (current_text_ == nullptr) {
-        current_text_ = new TextInfo();
-    } else {
-        /* if (current_text_->text != nullptr) {
-             delete current_text_->text;
-             current_text_->text = nullptr;
-         }*/
-        /* if (current_text_->ttf_file != nullptr) {
-             delete current_text_->ttf_file;
-             current_text_->ttf_file = nullptr;
-         }*/
-        if (current_text_->outPath != nullptr) {
-            delete current_text_->outPath;
-            current_text_->outPath = nullptr;
-        }
-    }
-    current_text_->textWidth = 100;
-    current_text_->textHeight = 100;
-
-    current_text_->text.assign(text);
-    current_text_->ttf_file = ttfPath;
-    current_text_->outPath = outPath;
-    auto message = buffer_pool_->GetBuffer<Message>();
-    message->what = kDRAW;
-    message->obj = current_text_;
-    PostMessage(message);
-}
-
 void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *outPath,
                                   bool isHorizontal, int spacing,
                                   int lineSpacing, int fontSize, int fontColor, float distanceMark,
                                   float outLineDistanceMark, int outLineColor, float shadowDistance,
-                                  float shadowAlpha) {
+                                  float shadowAlpha,
+                                  int shadowColor, int shadowAngle) {
     LOGCATI("enter %s", __func__)
 
     if (current_text_ == nullptr) {
@@ -310,6 +281,8 @@ void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *o
     current_text_->outLineColor = outLineColor;
     current_text_->shadowDistance = shadowDistance;
     current_text_->shadowAlpha = shadowAlpha;
+    current_text_->shadowColor = shadowColor;
+    current_text_->shadowAngle = shadowAngle;
 
     LOGCATI("leave %s", __func__)
 }

@@ -9,10 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.RadioGroup
 import android.widget.SeekBar
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,10 +18,7 @@ import com.example.testfreetype.R
 import com.example.testfreetype.adapter.TextFontAdapter
 import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.util.AssetsUtil
-import com.example.testfreetype.util.SizeUtils
 import com.example.testfreetype.util.StorageHelper
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.io.File
@@ -64,8 +59,10 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         fun changeDistance(distanceMark: Float)
         fun changeOutlineDistanceMark(outLineDistanceMark: Float)
         fun changeOutlineColor(color: Int)
-        fun changeShadowDistance(shadowDistance:Float)
-        fun changeShadowAlpha(shadowAlpha:Float)
+        fun changeShadowDistance(shadowDistance: Float)
+        fun changeShadowAlpha(shadowAlpha: Float)
+        fun changeShadowColor(shadowColor: Int)
+        fun changeShadowAngle(shadowAngle: Int)
     }
 
 
@@ -81,25 +78,11 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         return inflater.inflate(R.layout.dialog_text, container)
     }
 
-    override fun onStart() {
-        super.onStart()
-       /* val view  =  getView();
-        view?.post {
-            val parent = view.parent as View
-            val params: CoordinatorLayout.LayoutParams =
-                parent.layoutParams as CoordinatorLayout.LayoutParams
-            val behavior = params.behavior
-            mBottomSheetBehavior = behavior as BottomSheetBehavior<View>?
-            mBottomSheetBehavior?.addBottomSheetCallback(mBottomSheetBehaviorCallback);
-
-
-        }*/
-    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val bottomSheetDialog = BottomSheetDialog(context!!, R.style.DialogFullScreen)
         //bottomSheetDialog.behavior.isDraggable = false
-        bottomSheetDialog.behavior.peekHeight=500
+        bottomSheetDialog.behavior.peekHeight = 500
         return bottomSheetDialog
     }
 
@@ -171,7 +154,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
 
-        view.findViewById<SeekBar>(R.id.distance_seekBar)
+        /*view.findViewById<SeekBar>(R.id.distance_seekBar)
             .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
@@ -189,7 +172,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
 
                 }
-            })
+            })*/
 
         view.findViewById<SeekBar>(R.id.out_distance_seekBar)
             .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -199,7 +182,9 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                     fromUser: Boolean
                 ) {
                     seekBar?.apply {
-                        styleCallBack?.changeOutlineDistanceMark(progress.toFloat() / max)
+                        val outLine =
+                            0.5f - (progress.toFloat() / max) * 0.5f
+                        styleCallBack?.changeOutlineDistanceMark(outLine)
                     }
                 }
 
@@ -244,6 +229,22 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
             })
 
+        view.findViewById<ColorPickerView>(R.id.shadow_color_seekBar)
+            .setOnColorPickerChangeListener(object :
+                ColorPickerView.OnColorPickerChangeListener {
+                override fun onStartTrackingTouch(picker: ColorPickerView?) {
+                }
+
+                override fun onColorChanged(picker: ColorPickerView?, color: Int) {
+                    styleCallBack?.changeShadowColor(color)
+                }
+
+                override fun onStopTrackingTouch(picker: ColorPickerView?) {
+
+                }
+
+            })
+
 
         view.findViewById<SeekBar>(R.id.z_seekBar)
             .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -265,6 +266,26 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
 
+        view.findViewById<SeekBar>(R.id.angle_seekBar)
+            .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    seekBar?.apply {
+                        styleCallBack?.changeShadowAngle(progress)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+            })
+
         view.findViewById<SeekBar>(R.id.alpha_seekBar)
             .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
@@ -273,7 +294,10 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                     fromUser: Boolean
                 ) {
                     seekBar?.apply {
-                        styleCallBack?.changeShadowAlpha(1f -progress.toFloat() / max)
+                        val shadowAlpha =
+                            0.5f - (progress.toFloat() / max) * 0.5f
+
+                        styleCallBack?.changeShadowAlpha(shadowAlpha)
                     }
                 }
 

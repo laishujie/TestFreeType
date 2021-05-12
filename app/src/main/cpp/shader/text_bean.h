@@ -26,11 +26,15 @@ public:
     int outLineColor;
     float shadowDistance;
     float shadowAlpha;
+    int shadowColor;
+    int shadowAngle;
+    float x, y;
 
     TextInfo() : ttf_file(), text(), outPath(nullptr),
                  textWidth(0), textHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
                  fontSize(72), fontColor(0), distanceMark(0.5f), outlineDistanceMark(0.5),
-                 outLineColor(0), shadowDistance(0), shadowAlpha(0) {
+                 outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), x(0.), y(0.),
+                 shadowColor(0), shadowAngle(0) {
     }
 
     ~TextInfo() {
@@ -47,8 +51,6 @@ public:
             outPath = nullptr;
         }
     }
-
-
 };
 
 typedef struct {

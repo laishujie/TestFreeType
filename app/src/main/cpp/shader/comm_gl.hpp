@@ -7,6 +7,7 @@
 
 #include <GLES3/gl3.h>
 #include <vector>
+
 enum GLShaderType {
     SHADER_VERTEX = 1,
     SHADER_FRAGMENT = 2
@@ -50,21 +51,22 @@ public:
     GLuint AddVertex2D(float *data, int vertexCount, GLuint layout);
 
     GLuint setIndex(unsigned int *indexData, int indexCount);
-    GLuint updateIndex(unsigned int *indexData, int indexCount);
+
+    GLuint updateIndex(unsigned int *indexData, int indexCount) const;
 
     int BindVAO() const;
 
-    int indexCount;
-
     void updateVertex2D(GLuint updateFbo, float *data, int vertexCount, GLuint layout);
-    void subDataVertex2D(GLuint updateFbo, float *data, int vertexCount);
-    void subDataIndex2D(GLuint updateEbo, unsigned int *indexData, int indexCount);
 
-    GLuint setVertex2D(GLuint& fbo, float *data, int vertexCount, GLuint layout);
+    void subDataVertex2D(GLuint updateFbo, float *data, int vertexCount);
+
+    void subDataIndex2D(unsigned int *indexData, int indexCount);
+
+    GLuint setVertex2D(GLuint &fbo, float *data, int vertexCount, GLuint layout);
 
 private:
     GLuint vao = 0;
-    GLuint ebo;
+    GLuint ebo = 0;
     std::vector<GLuint> vboList;
 };
 

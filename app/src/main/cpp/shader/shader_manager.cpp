@@ -38,12 +38,15 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
     ftgl::texture_font_t *pFont = inset_text(ttf_file, textChart,
                                              textInfo->fontSize);
 
-    textShader_->drawTextInfo(fontManager_->atlas->id,
-                              pFont, textInfo);
+    textShader_->DrawTextInfo(pFont, textInfo);
 
     fbo_util::UnBindFbo();
 
     outShader_->draw(textLayer_->textureId);
+
+
+   /*  inset_text(ttf_file, textChart,textInfo->fontSize);
+    freeTypeShader->draw(fontManager_->atlas->id);*/
     // LOGCATE("fboTexture %d fbo %d", textLayer_->textureId, textLayer_->frameBuffer)
     LOGCATI("leave: shader_manager %s", __func__)
 }
@@ -129,7 +132,7 @@ shader_manager::inset_text(const char *path, const char *text, int fontSize) con
     ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path,
                                                                        float(fontSize));
     pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
-    pFont->padding = 100;
+    pFont->padding = 10;
     //获取对应得文本
 
     int i = ftgl::texture_font_load_glyphs(pFont, text);

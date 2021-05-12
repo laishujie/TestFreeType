@@ -22,7 +22,7 @@ class text_control : public Handler {
     shader_manager *shaderManager_;
     TextInfo *current_text_;
 public:
-    int Init();
+    static int Init();
 
     /**
      * 在OpenGL线程发送消息,创建显示的surface
@@ -67,15 +67,12 @@ public:
 
     void ProcessMessage();
 
-
-    void
-    ConfigTextInfo(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
-                   int spacing,
-                   int lineSpacing, int fontSize, int fontColor, float distanceMark,
-                   float outLineDistanceMark, int outLineColor, float shadowDistance, float shadowAlpha);
-
-
-    void Draw(char *ttfPath, char *text, char *outPath);
+    void ConfigTextInfo(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
+                        int spacing,
+                        int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                        float outLineDistanceMark, int outLineColor, float shadowDistance,
+                        float shadowAlpha,
+                        int shadowColor, int shadowAngle);
 
     void PostDraw();
 };

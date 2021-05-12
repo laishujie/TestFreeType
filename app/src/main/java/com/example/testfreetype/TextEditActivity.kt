@@ -137,6 +137,20 @@ class TextEditActivity : AppCompatActivity() {
                         editSurfaceManager.drawLayer(this)
                     }
                 }
+
+                override fun changeShadowColor(shadowColor: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.shadowColor = shadowColor
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
+
+                override fun changeShadowAngle(shadowAngle: Int) {
+                    TextConfigManager.getLayer(addLayerId)?.apply {
+                        this.shadowAngle = shadowAngle
+                        editSurfaceManager.drawLayer(this)
+                    }
+                }
             }
 
         /*softInputUtil.attachSoftInput(

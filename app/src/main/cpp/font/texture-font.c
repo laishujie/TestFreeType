@@ -618,10 +618,10 @@ texture_font_load_glyph(texture_font_t *self,
 
         sdf.sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height,
                                   img->width);*/
-        // unsigned char *sdf = (unsigned char *) malloc( tgt_w * tgt_h * sizeof(unsigned char) );
+        //unsigned char *sdf = (unsigned char *) malloc( tgt_w * tgt_h * sizeof(unsigned char) );
         unsigned char *out = (unsigned char *) malloc(tgt_w * tgt_h * sizeof(unsigned char));
         //	sdfBuildDistanceField(img2->data, img2->width, radius, img->data, img->width, img->height, img->width);
-        float radius = 10.0f;
+        float radius = 20.0f;
 
         sdfBuildDistanceField(out, tgt_w, radius, buffer, tgt_w, tgt_h, tgt_w);
         //unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);

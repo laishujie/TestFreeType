@@ -360,7 +360,7 @@ void TextEngine::glInitTextShader(int surfaceWidth, int surfaceHeight) {
 
     textShader = new text_shader();
     textShader->Init();
-    textShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
+    //textShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
     glFontManagerInit();
 }
 
@@ -380,7 +380,7 @@ void TextEngine::glFontManagerInit() const {
 
 void TextEngine::glRenderText(const char *path, const char *text) const {
     ftgl::texture_font_t *pFont = insetText(path, text);
-    textShader->drawText(fontManager->atlas->id, fontManager->atlas->width,fontManager->atlas->height,pFont, text);
+   // textShader->drawText(fontManager->atlas->id, fontManager->atlas->width,fontManager->atlas->height,pFont, text);
 }
 
 

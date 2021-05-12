@@ -26,7 +26,7 @@ public:
            jint i,
            jint i1, jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark,
            jint outlineColor,
-           jfloat shadowDistance, jfloat d);
+           jfloat shadowDistance, jfloat shadowAlpha, jint shadowColor, jint shadowAngle);
 
 
     ~text_engine();

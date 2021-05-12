@@ -75,12 +75,11 @@ GLuint GLVAO::setIndex(unsigned int *indexData, int indexCount) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indexData,
                  GL_DYNAMIC_DRAW);
-    GLVAO::indexCount = indexCount;
     glBindVertexArray(0);
     return ebo;
 }
 
-GLuint GLVAO::updateIndex(unsigned int *indexData, int indexCount) {
+GLuint GLVAO::updateIndex(unsigned int *indexData, int indexCount) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indexData,
                  GL_DYNAMIC_DRAW);
@@ -111,10 +110,11 @@ GLVAO::~GLVAO() {
 void GLVAO::subDataVertex2D(GLuint updateFbo, float *data, int vertexCount) {
     glBindBuffer(GL_ARRAY_BUFFER, updateFbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertexCount * 2 * sizeof(float), data);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //glBufferSubData(GL_ARRAY_BUFFER, 0,vertexCount * 2 * sizeof(float), data);
 }
 
-void GLVAO::subDataIndex2D(GLuint updateEbo, unsigned int *indexData, int indexCount) {
+void GLVAO::subDataIndex2D(unsigned int *indexData, int indexCount) {
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
