@@ -344,6 +344,8 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
 
 }
 
+
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jclass clazz,
@@ -422,4 +424,21 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawLayer(JNIEnv *env, jcl
     env->ReleaseStringUTFChars(j_text, text);
 
     env->DeleteLocalRef(clip_clazz);
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_testLayer(JNIEnv *env, jclass clazz,jlong handler,jstring json,
+                                                      jstring font_folder) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+
+    const char *json_file = env->GetStringUTFChars(json, nullptr);
+    const char *font_folder_ = env->GetStringUTFChars(font_folder, nullptr);
+
+
+    editor->AddTextLayer(json_file,font_folder_);
+
+    env->ReleaseStringUTFChars(json, json_file);
+    env->ReleaseStringUTFChars(font_folder, font_folder_);
 }

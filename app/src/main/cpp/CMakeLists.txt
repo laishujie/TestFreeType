@@ -11,6 +11,7 @@ include_directories(
         glm
         font
         message
+        json
 )
 
 set(BASE_SRCS
@@ -66,6 +67,8 @@ file(GLOB src-files
         message/*.h
         font/*.c
         egl/*.cc
+        json/*.c
+        json/*.h
         text_control.cpp
         text_engine.cpp
         )

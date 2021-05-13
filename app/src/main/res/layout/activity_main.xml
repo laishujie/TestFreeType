@@ -17,10 +17,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <Button
-        android:id="@+id/btn_textFont"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
 
     <Button
@@ -52,7 +48,6 @@
         app:layout_constraintEnd_toEndOf="@+id/btn_create_Sdf"
         app:layout_constraintStart_toStartOf="@+id/btn_create_Sdf"
         app:layout_constraintTop_toBottomOf="@+id/btn_edit" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

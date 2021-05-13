@@ -8,23 +8,28 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 #include "text_control.h"
-#include <deque>
+#include <map>
+#include "cJSON.h"
 
 class text_engine {
 
     void OnSurfaceChanged(int width, int height);
 
 public:
-    text_engine(JNIEnv* env);
+    text_engine(JNIEnv *env);
 
-    void OnSurfaceCreated(jobject surface,int width, int height);
+    void OnSurfaceCreated(jobject surface, int width, int height);
 
     void OnSurfaceDestroyed();
 
+    int AddTextLayer(const char *layerJson, const char *fontFolder);
+
+    static int ReadFile(const std::string &path, char **buffer);
+
     void
     OnDraw(const char *ttfPath, const char *text, char *outPath, bool isHorizontal, int spacing,
-           jint i,
-           jint i1, jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark,
+           jint lineSpacing,
+           jint fontSize, jint fontColor, jfloat distanceMark, jfloat outLineDistanceMark,
            jint outlineColor,
            jfloat shadowDistance, jfloat shadowAlpha, jint shadowColor, jint shadowAngle);
 
@@ -34,15 +39,17 @@ public:
     int Init();
 
 private:
-    ANativeWindow* window_;
-    JavaVM* vm_;
+    ANativeWindow *window_;
+    JavaVM *vm_;
     //文本控制器
-    text_control* player_;
+    text_control *player_;
     //文本队列互斥量
     pthread_mutex_t queue_mutex_;
+    pthread_mutex_t text_mutex_;
     //信息队列
-    std::deque<TextInfo*> text_deque_;
-
+    std::map<int, TextLayer *> text_layers_;
+    //json提取器
+    int selfIncreasingId;
 };
 
 

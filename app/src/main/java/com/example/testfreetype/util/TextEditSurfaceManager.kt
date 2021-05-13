@@ -44,6 +44,7 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
     fun drawText(ttfPath: String?, text: String?, outPath: String?) {
         TextEngineJni.textEngineDraw(mId, ttfPath, text, outPath)
     }
+
     fun drawLayer(textLayer: TextLayer) {
         TextEngineJni.textEngineDrawLayer(mId, textLayer)
     }
@@ -57,6 +58,10 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
             Log.e("11111", "layer $currLayerId ttf $ttf text $char")
             TextEngineJni.textEngineDraw(mId, ttf, char, null)
         }
+    }
+
+    fun testJson(json: String, fontFolder: String) {
+        TextEngineJni.testLayer(mId, json, fontFolder)
     }
 
     fun clear() {

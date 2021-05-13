@@ -7,6 +7,7 @@
 
 #include <GLES3/gl3.h>
 #include <string>
+#include <deque>
 
 class TextInfo {
 
@@ -29,12 +30,12 @@ public:
     int shadowColor;
     int shadowAngle;
     float x, y;
-
+    bool isFromTemplate;
     TextInfo() : ttf_file(), text(), outPath(nullptr),
                  textWidth(0), textHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
-                 fontSize(72), fontColor(0), distanceMark(0.5f), outlineDistanceMark(0.5),
+                 fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), x(0.), y(0.),
-                 shadowColor(0), shadowAngle(0) {
+                 shadowColor(0), shadowAngle(0),isFromTemplate(false){
     }
 
     ~TextInfo() {
@@ -59,19 +60,25 @@ typedef struct {
 } FboInfo;
 
 class TextLayer {
-    int id;
 public:
-    TextLayer() : id(0), frameBuffer(0), textureId(0) {}
+    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque() {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
-                                         textureId(fboInfo.frameBuffer) {}
+                                         textureId(fboInfo.frameBuffer), text_deque() {}
 
+    //容器信息
+    std::deque<TextInfo *> text_deque;
     GLuint textureId;
     GLuint frameBuffer;
-
+    int id;
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);
         glDeleteTextures(1, &textureId);
+
+        for (auto clip : text_deque) {
+            delete clip;
+        }
+        text_deque.clear();
     }
 };
 

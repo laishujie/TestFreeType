@@ -23,15 +23,17 @@ private:
     ftgl::font_manager_t *fontManager_;
 
 public:
-    void drawTextInfo(TextInfo *textInfo);
+    int DrawTextLayer(TextLayer *textLayer);
 
-    void initShader(int width, int height);
+    void DrawTextInfo(TextInfo *textInfo);
+
+    void InitShader(int width, int height);
 
     shader_manager();
 
     ~shader_manager();
 
-    ftgl::texture_font_t *inset_text(const char *path, const char *text,int fontSize) const;
+    ftgl::texture_font_t *InsetText(const char *path, const char *text, int fontSize) const;
 };
 
 

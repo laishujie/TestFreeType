@@ -142,7 +142,7 @@ int text_shader::FillVertex(TextInfo *&textInfo,
     std::vector<unsigned int> indexVertex;
     float initX = textInfo->x;
     float startX = initX;
-    float initY = font->size + textInfo->y;
+    float initY = textInfo->y;
     float startY = initY;
     lineSpace = startY;
     bool isHorizontal = textInfo->isHorizontal;
@@ -154,13 +154,7 @@ int text_shader::FillVertex(TextInfo *&textInfo,
         ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(font, textChart + i);
 
         if (pGlyph != nullptr && pGlyph->width != 0) {
-            float kerning = 0.0f;
-
-            if (i > 0) {
-                kerning = texture_glyph_get_kerning(pGlyph, textChart + i - 1);
-            }
-
-            if (isspace(textChart[i])) {
+            if (isspace(textChart[i]) && !textInfo->isFromTemplate) {
                 isHorizontal ? startX = initX : startY = initY;
                 lineSpace += font->size;
             } else {
@@ -170,6 +164,11 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                     float canterX = font->size / 2.f - pGlyph->width / 2.f;
                     //文字居中
                     startX = lineSpace + canterX;
+                }
+                float kerning = 0.0f;
+
+                if (i > 0) {
+                    kerning = texture_glyph_get_kerning(pGlyph, textChart + i - 1);
                 }
 
                 LOGCATE("kerning %f i %d font->descender= %f font->size %f\n "
@@ -186,14 +185,18 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                         pGlyph->s0, pGlyph->t0,
                         pGlyph->s1, pGlyph->t1)
 
-                float x0 = (startX + float(pGlyph->offset_x));
-                float y0 = (startY + (float(-pGlyph->offset_y)));
+
+                startX += kerning;
+
+                float x0 = startX + float(pGlyph->offset_x);
+                float y0 = startY + float(-pGlyph->offset_y)+float(pGlyph->offset_y);
 
                 float x1 = (x0 + float(pGlyph->width));
                 float y1 = (y0 + float(pGlyph->height));
 
                 const PointF &leftTop = vertexWithPoint(x0, y0, textInfo->textWidth,
                                                         textInfo->textHeight);
+
                 const PointF &rightBottom = vertexWithPoint(x1, y1, textInfo->textWidth,
                                                             textInfo->textHeight);
 

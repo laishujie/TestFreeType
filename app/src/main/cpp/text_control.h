@@ -73,6 +73,7 @@ public:
                         float outLineDistanceMark, int outLineColor, float shadowDistance,
                         float shadowAlpha,
                         int shadowColor, int shadowAngle);
+    void DrawLayer(TextLayer* textLayer);
 
     void PostDraw();
 };

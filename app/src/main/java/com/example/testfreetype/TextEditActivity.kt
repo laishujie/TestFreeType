@@ -7,6 +7,7 @@ import com.example.testfreetype.databinding.ActivityTextEditBinding
 import com.example.testfreetype.util.SoftInputUtil
 import com.example.testfreetype.util.TextEditSurfaceManager
 import com.example.testfreetype.widget.TextStyleBottomSheetFragment
+import java.io.File
 
 
 class TextEditActivity : AppCompatActivity() {
@@ -16,6 +17,13 @@ class TextEditActivity : AppCompatActivity() {
 
     val ttfPath by lazy {
         intent.getStringExtra("path").toString()
+    }
+
+    val fontPath by lazy {
+        intent.getStringExtra("fontPath").toString()
+    }
+    val jsonPath by lazy {
+        intent.getStringExtra("jsonPath").toString()
     }
 
     private val textStyleBottomSheetFragment by lazy {
@@ -50,6 +58,10 @@ class TextEditActivity : AppCompatActivity() {
             )
         }
 
+        inflate.btnTestJson.setOnClickListener {
+            if(File(jsonPath).exists())
+            editSurfaceManager.testJson(jsonPath,fontPath)
+        }
         addLayerId = TextConfigManager.addLayer(ttfPath, "")
 
         textStyleBottomSheetFragment.styleCallBack =

@@ -13,7 +13,11 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private val sdfPath by lazy {
-        StorageHelper.getDownloadPath(this) + File.separator + "sdf_test.png"
+        StorageHelper.getInternalFilesDir(this).absolutePath + File.separator + "sdf_test.png"
+    }
+
+    private val testConfigJsonPath by lazy {
+        StorageHelper.getInternalFilesDir(this).absolutePath+ File.separator + "data88797.json"
     }
 
     private val ttfPath by lazy {
@@ -35,9 +39,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.btnTextFont.setOnClickListener {
 
-        }
         binding.btnInset.setOnClickListener {
             val intent = Intent(this, TextureManagerActivity::class.java)
             intent.putExtra("path", ttfPath)
@@ -52,6 +54,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnTextEdit.setOnClickListener {
             val intent = Intent(this, TextEditActivity::class.java)
             intent.putExtra("path", ttfPath)
+            intent.putExtra("jsonPath", testConfigJsonPath)
+            val fontDir = File(StorageHelper.getInternalFilesDir(this), "fonts")
+
+            intent.putExtra("fontPath", fontDir.absolutePath)
             startActivity(intent)
         }
 
@@ -74,11 +80,13 @@ class MainActivity : AppCompatActivity() {
             fontList.add("KaBuQiNuo.otf")
             fontList.add("MFYanSong-Regular.ttf")
             fontList.add("YouLangRuanBi.ttf")
+            fontList.add("HelveticaInseratLT.ttf")
             fontList.forEach {
                 val absolutePath = File(fontDir, it).absolutePath
                 StorageHelper.copyAssetToPath(this, "fonts/$it", absolutePath)
             }
             StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
+            StorageHelper.copyAssetToPath(this, "data88797.json", testConfigJsonPath)
             //StorageHelper.copyAssetToPath(this, "DroidSansFallback.ttf", ttfPath)
         }).start()
 

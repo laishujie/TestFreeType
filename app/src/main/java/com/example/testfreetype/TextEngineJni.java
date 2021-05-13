@@ -57,4 +57,6 @@ public class TextEngineJni {
 
     public static native void textEngineDraw(long handler,String ttfPath, String text,String outPath);
     public static native void textEngineDrawLayer(long handler, TextLayer layer);
+
+    public static native void testLayer(long handler,String json,String fontFolder);
 }

@@ -5,7 +5,7 @@
 #include "shader_manager.h"
 #include "logUtil.h"
 
-void shader_manager::drawTextInfo(TextInfo *textInfo) {
+void shader_manager::DrawTextInfo(TextInfo *textInfo) {
     LOGCATI("enter shader_manager %s", __func__)
     if (textLayer_ == nullptr) {
         return;
@@ -24,7 +24,7 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
         return;
     }
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT );
+    glClear(GL_COLOR_BUFFER_BIT);
 
     fbo_util::BindFbo(textLayer_->frameBuffer);
 
@@ -35,8 +35,8 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
     textInfo->textWidth = outShader_->getSurfaceWidth();
     textInfo->textHeight = outShader_->getSurfaceHeight();
 
-    ftgl::texture_font_t *pFont = inset_text(ttf_file, textChart,
-                                             textInfo->fontSize);
+    ftgl::texture_font_t *pFont = InsetText(ttf_file, textChart,
+                                            textInfo->fontSize);
 
     textShader_->DrawTextInfo(pFont, textInfo);
 
@@ -45,8 +45,8 @@ void shader_manager::drawTextInfo(TextInfo *textInfo) {
     outShader_->draw(textLayer_->textureId);
 
 
-   /*  inset_text(ttf_file, textChart,textInfo->fontSize);
-    freeTypeShader->draw(fontManager_->atlas->id);*/
+    /*  InsetText(ttf_file, textChart,textInfo->fontSize);
+     freeTypeShader->draw(fontManager_->atlas->id);*/
     // LOGCATE("fboTexture %d fbo %d", textLayer_->textureId, textLayer_->frameBuffer)
     LOGCATI("leave: shader_manager %s", __func__)
 }
@@ -85,7 +85,7 @@ shader_manager::~shader_manager() {
     LOGCATI("leave: %s", __func__)
 }
 
-void shader_manager::initShader(int width, int height) {
+void shader_manager::InitShader(int width, int height) {
     LOGCATI("enter %s", __func__)
 
     outShader_->Init();
@@ -97,7 +97,7 @@ void shader_manager::initShader(int width, int height) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   // glBlendEquation(GL_MAX);
+    // glBlendEquation(GL_MAX);
 
 
     if (textLayer_ == nullptr) {
@@ -110,7 +110,7 @@ void shader_manager::initShader(int width, int height) {
 
 
 ftgl::texture_font_t *
-shader_manager::inset_text(const char *path, const char *text, int fontSize) const {
+shader_manager::InsetText(const char *path, const char *text, int fontSize) const {
     LOGCATI("enter %s", __func__)
 
     if (fontManager_->atlas->id == 0) {
@@ -138,6 +138,7 @@ shader_manager::inset_text(const char *path, const char *text, int fontSize) con
     int i = ftgl::texture_font_load_glyphs(pFont, text);
 
     if (i != 0) {
+        //TODO 这里暂时不处理
         LOGCATI("纹理丢失的数量 %s %d ", text, i)
     } else {
         LOGCATI("纹理成功 %s %d ", text, i)
@@ -145,5 +146,53 @@ shader_manager::inset_text(const char *path, const char *text, int fontSize) con
 
     LOGCATI("leave %s", __func__)
     return pFont;
+}
+
+
+int shader_manager::DrawTextLayer(TextLayer *textLayer) {
+    if (textLayer == nullptr) return -1;
+
+    if (textLayer->textureId == 0) {
+        FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
+                                              outShader_->getSurfaceHeight(), GL_RGBA);
+        textLayer->textureId = fboInfo.textureId;
+        textLayer->frameBuffer = fboInfo.frameBuffer;
+    }
+
+    fbo_util::BindFbo(textLayer->frameBuffer);
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    for (auto textInfo:textLayer->text_deque) {
+        const char *textChart = textInfo->text.c_str();
+        const char *ttf_file = textInfo->ttf_file.c_str();
+
+        LOGCATI("info ttf %s textInfo->text %s textInfo->fontSize %d", ttf_file,
+                textChart, textInfo->fontSize)
+
+        if (textInfo->text.empty()) {
+            fbo_util::UnBindFbo();
+            glClearColor(0.0, 0.0, 0.0, 1.0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            return 0;
+        }
+
+        //glViewport(0,0,200,200);
+        /*glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);*/
+
+        textInfo->textWidth = outShader_->getSurfaceWidth();
+        textInfo->textHeight = outShader_->getSurfaceHeight();
+
+        ftgl::texture_font_t *pFont = InsetText(ttf_file, textChart,
+                                                textInfo->fontSize);
+
+        textShader_->DrawTextInfo(pFont, textInfo);
+    }
+    fbo_util::UnBindFbo();
+
+    outShader_->draw(textLayer->textureId);
+    return 0;
 }
 
