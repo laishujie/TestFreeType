@@ -49,11 +49,11 @@ void text_shader::Init() {
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
             "float finalA = max(alpha,mu);"
-            /*"if(finalA==0.){"
-            " fragColor = vec4(0.,0.,1., 1.);"
-            "}else{"
-            "fragColor = vec4(rgb, finalA);"
-            "}"*/
+            /* "if(finalA==0.){"
+             " fragColor = vec4(0.,0.,1., 1.);"
+             "}else{"
+             "fragColor = vec4(rgb, finalA);"
+             "}"*/
             "fragColor = vec4(rgb, finalA);"
             "}";
     char ShadowShaderStr[] = "#version 300 es                              \n"
@@ -140,9 +140,9 @@ int text_shader::FillVertex(TextInfo *&textInfo,
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
-    float initX = textInfo->x;
+    float initX = textInfo->offset_x;
     float startX = initX;
-    float initY = textInfo->y;
+    float initY = textInfo->offset_y;
     float startY = initY;
     lineSpace = startY;
     bool isHorizontal = textInfo->isHorizontal;
@@ -171,42 +171,68 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                     kerning = texture_glyph_get_kerning(pGlyph, textChart + i - 1);
                 }
 
-                LOGCATE("kerning %f i %d font->descender= %f font->size %f\n "
+                LOGCATE("text %c kerning %f i %d textInfo.x %f textInfo.y %ffont->descender= %f font->height %f\n "
                         "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
                         "glyph->offset_x =%d glyph->offset_y =%d \n"
-                        "glyph->width =%d glyph->height =%d \n "
+                        "glyph->width =%d glyph->height =%d ascender %F\n "
                         "glyph->s0 =%f glyph->t0 =%f \n "
-                        "glyph->s1 =%f  glyph->t1 =%f",
+                        "glyph->s1 =%f  glyph->t1 =%f", textChart[i],
                         kerning,
-                        i, font->descender, font->size,
+                        i, textInfo->offset_x, textInfo->offset_y, font->descender, font->height,
                         pGlyph->advance_x, pGlyph->advance_y,
                         pGlyph->offset_x, pGlyph->offset_y,
-                        pGlyph->width, pGlyph->height,
+                        pGlyph->width, pGlyph->height, font->ascender,
                         pGlyph->s0, pGlyph->t0,
                         pGlyph->s1, pGlyph->t1)
 
-
                 startX += kerning;
 
-                float x0 = startX + float(pGlyph->offset_x);
-                float y0 = startY + float(-pGlyph->offset_y)+float(pGlyph->offset_y);
+                float centerX =
+                        float(textInfo->surfaceWidth) * 0.5f - float(textInfo->textWidth) * 0.5f;
+                float centerY =
+                        float(textInfo->surfaceHeight) * 0.5f - float(textInfo->textHeight) * 0.5f;
 
-                float x1 = (x0 + float(pGlyph->width));
-                float y1 = (y0 + float(pGlyph->height));
 
-                const PointF &leftTop = vertexWithPoint(x0, y0, textInfo->textWidth,
-                                                        textInfo->textHeight);
+                /*//取得图片和图片所处空间的比例
+                float scaleBitmap = ((float) textInfo->textWidth) / (float) textInfo->textHeight;
+                float scaleView =
+                        ((float) textInfo->surfaceWidth) / (float) textInfo->surfaceHeight;
+                // 空间的大小 / bitmap 的大小 = bitmap 缩放的倍数
+                float scaleWidth = ((float) textInfo->surfaceWidth) / (float) textInfo->textWidth;
+                float scaleHeight =
+                        ((float) textInfo->surfaceHeight) / (float) textInfo->textHeight;
+                float scale = 1.f;
+                //按照比例选择缩放参照
+                if (scaleBitmap < scaleView) {
+                    //比例小于视框时，全部按照图片高度和视框高度的比例进行缩放
+                    scale = scaleHeight;
+                } else {
+                    //比例大于视框时，全部按照图片宽度和视框宽度的比例进行缩放
+                    scale = scaleWidth;
+                }
+*/
+                float x0 =
+                        startX + float(pGlyph->offset_x) - float(font->padding) + centerX ;
+                //往下多少
+                float y0 =startY + font->ascender - float(pGlyph->offset_y) - float(font->padding) +centerY;
+                float x1 = x0 + float(pGlyph->width);
+                float y1 = y0 + float(pGlyph->height);
 
-                const PointF &rightBottom = vertexWithPoint(x1, y1, textInfo->textWidth,
-                                                            textInfo->textHeight);
+
+                const PointF &leftTop = vertexWithPoint(x0, y0, textInfo->surfaceWidth,
+                                                        textInfo->surfaceHeight);
+
+                const PointF &rightBottom = vertexWithPoint(x1, y1, textInfo->surfaceWidth,
+                                                            textInfo->surfaceHeight);
+
 
                 float s0 = pGlyph->s0;
                 float t0 = pGlyph->t0;
                 float s1 = pGlyph->s1;
                 float t1 = pGlyph->t1;
 
-                /* LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
-                         leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)*/
+                LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
+                        leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
 
                 float rectangleVertices[] = {
                         leftTop.x, leftTop.y,// 左上角
@@ -241,6 +267,12 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                         s1, t1,
                         s0, t1,
                 };
+                /* GLfloat uv[] = {
+                         s0, t1,
+                         s1, t1,
+                         s1, t0,
+                         s0, t0,
+                 };*/
                 uvVertex.push_back(uv[0]);
                 uvVertex.push_back(uv[1]);
                 uvVertex.push_back(uv[2]);
@@ -277,10 +309,16 @@ int text_shader::DrawShadowText(TextInfo *&textInfo,
     float x = textInfo->shadowDistance * cos(angle);
     float y = textInfo->shadowDistance * sin(angle);
 
-    textInfo->x = x;
-    textInfo->y = y;
+    float temp_x = textInfo->offset_x;
+    float temp_y = textInfo->offset_y;
+
+    textInfo->offset_x = x;
+    textInfo->offset_y = y;
 
     int indexSize = FillVertex(textInfo, font);
+
+    textInfo->offset_x = temp_x;
+    textInfo->offset_y = temp_y;
 
     if (indexSize == 0)return 0;
     shadowProgram->useProgram();
@@ -304,8 +342,6 @@ int text_shader::DrawShadowText(TextInfo *&textInfo,
 
     glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, nullptr);
 
-    textInfo->x = 0.;
-    textInfo->y = 0.;
     return 0;
 }
 

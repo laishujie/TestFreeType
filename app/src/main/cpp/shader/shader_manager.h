@@ -33,7 +33,7 @@ public:
 
     ~shader_manager();
 
-    ftgl::texture_font_t *InsetText(const char *path, const char *text, int fontSize) const;
+    ftgl::texture_font_t *InsetText(TextInfo *&textInfo) const;
 };
 
 

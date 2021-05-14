@@ -662,6 +662,7 @@ texture_font_load_glyph(texture_font_t *self,
     slot = face->glyph;
     glyph->advance_x = convert_F26Dot6_to_float(slot->advance.x);
     glyph->advance_y = convert_F26Dot6_to_float(slot->advance.y);
+    self->max_width = face->max_advance_width;
 
     vector_push_back(self->glyphs, &glyph);
 

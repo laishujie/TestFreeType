@@ -242,7 +242,7 @@ typedef struct texture_font_t
     float size;
 
     /**
-     * Whether to use autohint when rendering font
+     *  Whether to use autohint when renderingfont
      */
     int hinting;
 
@@ -326,6 +326,8 @@ typedef struct texture_font_t
     * Usefull when adding effects with shaders.
     */
     int padding;
+
+    int max_width;
 
 } texture_font_t;
 

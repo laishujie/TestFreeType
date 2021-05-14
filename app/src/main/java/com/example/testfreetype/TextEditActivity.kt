@@ -1,10 +1,12 @@
 package com.example.testfreetype
 
+import android.graphics.Typeface
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.bean.TextConfigManager
 import com.example.testfreetype.databinding.ActivityTextEditBinding
 import com.example.testfreetype.util.SoftInputUtil
+import com.example.testfreetype.util.StorageHelper
 import com.example.testfreetype.util.TextEditSurfaceManager
 import com.example.testfreetype.widget.TextStyleBottomSheetFragment
 import java.io.File
@@ -44,7 +46,14 @@ class TextEditActivity : AppCompatActivity() {
         setContentView(inflate.root)
 
         inflate.surfaceView.surfaceTextureListener = editSurfaceManager
-
+        val typeface = Typeface.createFromFile(
+            File(
+                StorageHelper.getInternalFilesDir(this),
+                "fonts/DroidSansFallback.ttf"
+            )
+        )
+        inflate.tvTest.setTypeface(typeface)
+        inflate.tvTest.text = "Test"
 
         inflate.btnText.setOnClickListener {
 

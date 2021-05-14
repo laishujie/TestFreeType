@@ -74,8 +74,9 @@ text_engine::~text_engine() {
     }
 
     pthread_mutex_lock(&queue_mutex_);
-    for (auto & textInfo : text_layers_) {
+    for (auto &textInfo : text_layers_) {
         delete textInfo.second;
+        textInfo.second = nullptr;
     }
     text_layers_.clear();
     pthread_mutex_unlock(&queue_mutex_);
@@ -152,20 +153,20 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
             cJSON *size_id_json = cJSON_GetObjectItem(filter_child, "size");
             cJSON *offset_x_json = cJSON_GetObjectItem(filter_child, "offset_x");
             cJSON *offset_y_json = cJSON_GetObjectItem(filter_child, "offset_y");
-            
+
             char *ptr;
             auto *textInfo = new TextInfo();
-            textInfo->ttf_file = fontFolder+"/"+font_json->valuestring;
+            textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
             textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
-            textInfo->isFromTemplate  = true;
+            textInfo->isFromTemplate = true;
+            textInfo->offset_x=strtol(offset_x_json->valuestring, &ptr, 10);
+            textInfo->offset_y=strtol(offset_y_json->valuestring, &ptr, 10);
             cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
             if (text_child != nullptr) {
                 cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
                 textInfo->text = text_->valuestring;
             }
 
-            textInfo->x = 0.0;
-            textInfo->y = 0.;
 
             textLayer->text_deque.push_back(textInfo);
         }

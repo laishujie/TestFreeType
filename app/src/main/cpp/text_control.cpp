@@ -120,7 +120,13 @@ void text_control::HandleMessage(Message *msg) {
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
 
-            auto *textLayer = reinterpret_cast<TextLayer *>(obj);
+
+            if(obj!= nullptr){
+                auto *textLayer = reinterpret_cast<TextLayer *>(obj);
+                shaderManager_->DrawTextLayer(textLayer);
+            }else{
+                shaderManager_->DrawTextInfo(current_text_);
+            }
 
 
             /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
@@ -128,8 +134,6 @@ void text_control::HandleMessage(Message *msg) {
                                     fontManager_->atlas->data, 0)) {
                 LOGE("11111", "ERROR: could not write image");
             }*/
-            if (textLayer != nullptr)
-                shaderManager_->DrawTextLayer(textLayer);
 
             //textShader_->drawText(fontManager_->atlas->id, pFont, textInfo->text);
             //freeTypeShader->draw(fontManager_->atlas->id);
@@ -269,8 +273,8 @@ void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *o
         current_text_->outPath = outPath;
     }
 
-    current_text_->textWidth = 100;
-    current_text_->textHeight = 100;
+    current_text_->surfaceWidth = 100;
+    current_text_->surfaceHeight = 100;
     current_text_->isHorizontal = isHorizontal;
     current_text_->spacing = spacing;
     current_text_->lineSpacing = lineSpacing;
@@ -291,7 +295,7 @@ void text_control::PostDraw() {
     if (current_text_ == nullptr) return;
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;
-    //message->obj = current_text_;
+    message->obj = nullptr;
     PostMessage(message);
 }
 

@@ -11,17 +11,28 @@
         android:layout_gravity="center_horizontal"
         app:layout_constraintDimensionRatio="4:4.4"
         app:layout_constraintTop_toTopOf="parent" />
-<!--
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="98dp"
+        android:background="@color/font_red"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/surface_view"
+        />
 
     <TextView
-        android:text="马甲"
+        android:id="@+id/tv_test"
         android:layout_width="wrap_content"
-        android:textSize="128px"
-        android:textColor="@color/white"
-        android:layout_marginTop="100px"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_height="wrap_content"/>
--->
+        android:layout_height="wrap_content"
+        android:text="Test"
+        android:textColor="@color/font_red"
+        android:textSize="72px"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/surface_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:id="@+id/view_bg"

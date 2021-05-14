@@ -32,11 +32,10 @@ void shader_manager::DrawTextInfo(TextInfo *textInfo) {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    textInfo->textWidth = outShader_->getSurfaceWidth();
-    textInfo->textHeight = outShader_->getSurfaceHeight();
+    textInfo->surfaceWidth = outShader_->getSurfaceWidth();
+    textInfo->surfaceHeight = outShader_->getSurfaceHeight();
 
-    ftgl::texture_font_t *pFont = InsetText(ttf_file, textChart,
-                                            textInfo->fontSize);
+    ftgl::texture_font_t *pFont = InsetText(textInfo);
 
     textShader_->DrawTextInfo(pFont, textInfo);
 
@@ -110,7 +109,7 @@ void shader_manager::InitShader(int width, int height) {
 
 
 ftgl::texture_font_t *
-shader_manager::InsetText(const char *path, const char *text, int fontSize) const {
+shader_manager::InsetText(TextInfo *&textInfo) const {
     LOGCATI("enter %s", __func__)
 
     if (fontManager_->atlas->id == 0) {
@@ -128,9 +127,13 @@ shader_manager::InsetText(const char *path, const char *text, int fontSize) cons
         LOGCATI("create %d ", fontManager_->atlas->id)
     }
 
+    const char *path = textInfo->ttf_file.c_str();
+    const char *text = textInfo->text.c_str();
+
+
     //返回字体表
     ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path,
-                                                                       float(fontSize));
+                                                                       float(textInfo->fontSize));
     pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
     pFont->padding = 10;
     //获取对应得文本
@@ -142,6 +145,22 @@ shader_manager::InsetText(const char *path, const char *text, int fontSize) cons
         LOGCATI("纹理丢失的数量 %s %d ", text, i)
     } else {
         LOGCATI("纹理成功 %s %d ", text, i)
+        float textWidth = 0;
+        float textHeight;
+
+        size_t len = strlen(text);
+        //计算文本宽高
+        for (size_t j = 0; j < len; ++j) {
+            //获取字形
+            ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(pFont, text + j);
+            if (pGlyph != nullptr && pGlyph->width != 0) {
+                textWidth += pGlyph->advance_x;
+            }
+        }
+        textHeight = pFont->height;
+        textInfo->textHeight = textHeight;
+        textInfo->textWidth = textWidth;
+        LOGCATE("textInfo->textWidth %f ",textWidth)
     }
 
     LOGCATI("leave %s", __func__)
@@ -182,12 +201,11 @@ int shader_manager::DrawTextLayer(TextLayer *textLayer) {
         /*glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);*/
 
-        textInfo->textWidth = outShader_->getSurfaceWidth();
-        textInfo->textHeight = outShader_->getSurfaceHeight();
+        textInfo->surfaceWidth = outShader_->getSurfaceWidth();
+        textInfo->surfaceHeight = outShader_->getSurfaceHeight();
 
-        ftgl::texture_font_t *pFont = InsetText(ttf_file, textChart,
-                                                textInfo->fontSize);
-
+        ftgl::texture_font_t *pFont = InsetText(textInfo);
+        //
         textShader_->DrawTextInfo(pFont, textInfo);
     }
     fbo_util::UnBindFbo();
