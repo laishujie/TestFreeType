@@ -358,7 +358,7 @@ void TextEngine::glInitTextShader(int surfaceWidth, int surfaceHeight) {
         textShader = nullptr;
     }
 
-    textShader = new text_shader();
+    textShader = new TextShader();
     textShader->Init();
     //textShader->OnSurfaceChanged(surfaceWidth, surfaceHeight);
     glFontManagerInit();

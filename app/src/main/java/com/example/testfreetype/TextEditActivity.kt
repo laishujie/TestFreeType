@@ -3,26 +3,33 @@ package com.example.testfreetype
 import android.graphics.Typeface
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.testfreetype.bean.TextConfigManager
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.databinding.ActivityTextEditBinding
-import com.example.testfreetype.util.SoftInputUtil
+import com.example.testfreetype.util.FragmentHelp
+import com.example.testfreetype.util.PathHelp
 import com.example.testfreetype.util.StorageHelper
 import com.example.testfreetype.util.TextEditSurfaceManager
 import com.example.testfreetype.widget.TextStyleBottomSheetFragment
 import java.io.File
 
 
-class TextEditActivity : AppCompatActivity() {
+class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
+
 
     private val editSurfaceManager = TextEditSurfaceManager()
-    private val softInputUtil = SoftInputUtil()
+
+    //当前预览的textInfo
+    private val textPreView by lazy {
+        TextInfo(-1, "", ttfPath)
+    }
 
     val ttfPath by lazy {
         intent.getStringExtra("path").toString()
     }
 
     val fontPath by lazy {
-        intent.getStringExtra("fontPath").toString()
+        PathHelp.getFontsPath(this)
     }
     val jsonPath by lazy {
         intent.getStringExtra("jsonPath").toString()
@@ -37,25 +44,28 @@ class TextEditActivity : AppCompatActivity() {
         fragment!!
     }
 
-    var addLayerId = 0;
+    private val viewBinding by viewBinding(ActivityTextEditBinding::bind)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val inflate = ActivityTextEditBinding.inflate(layoutInflater)
-        setContentView(inflate.root)
-
-        inflate.surfaceView.surfaceTextureListener = editSurfaceManager
+        viewBinding.surfaceView.surfaceTextureListener = editSurfaceManager
         val typeface = Typeface.createFromFile(
             File(
                 StorageHelper.getInternalFilesDir(this),
                 "fonts/DroidSansFallback.ttf"
             )
         )
-        inflate.tvTest.setTypeface(typeface)
-        inflate.tvTest.text = "Test"
 
-        inflate.btnText.setOnClickListener {
+        viewBinding.tvTest.typeface = typeface
+        viewBinding.tvTest.text = "Test"
+
+        viewBinding.btnText.setOnClickListener {
+            /*editSurfaceManager.addTextLayer(
+                TextLayer(
+                    TextInfo(-1, "你好呀", ttfPath)
+                )
+            )*/
 
             if (textStyleBottomSheetFragment.isAdded) {
                 supportFragmentManager.beginTransaction().remove(textStyleBottomSheetFragment)
@@ -65,127 +75,139 @@ class TextEditActivity : AppCompatActivity() {
                 supportFragmentManager,
                 "TextStyleBottomSheetFragment"
             )
+
         }
 
-        inflate.btnTestJson.setOnClickListener {
-            if(File(jsonPath).exists())
-            editSurfaceManager.testJson(jsonPath,fontPath)
+        /* viewBinding.btnTestJson.setOnClickListener {
+             if(File(jsonPath).exists())
+             editSurfaceManager.testJson(jsonPath,fontPath)
+         }*/
+
+        viewBinding.tvTemplate.setOnClickListener {
+            FragmentHelp.showTemplateFragment(this, R.id.frame_menu)
         }
-        addLayerId = TextConfigManager.addLayer(ttfPath, "")
 
         textStyleBottomSheetFragment.styleCallBack =
             object : TextStyleBottomSheetFragment.OnStyleChange {
                 override fun changeText(text: String) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    editSurfaceManager
+                    textPreView.apply {
                         char = text
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeHorizontal(horizontal: Boolean) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.horizontal = horizontal
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeWordSpacing(spacing: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.spacing = spacing
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeLineWordSpacing(spacing: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.lineSpacing = spacing
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeFont(fontPath: String) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.ttfPath = fontPath
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeFontSize(pixie: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.size = if (pixie == 0) 1 else pixie
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeFontColor(color: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.fontColor = color
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeDistance(distanceMark: Float) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.distanceMark = distanceMark
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.outLineDistanceMark = outLineDistanceMark
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeOutlineColor(color: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.outLineColor = color
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeShadowDistance(shadowDistance: Float) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.shadowDistance = shadowDistance
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeShadowAlpha(shadowAlpha: Float) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.shadowAlpha = shadowAlpha
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeShadowColor(shadowColor: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.shadowColor = shadowColor
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
 
                 override fun changeShadowAngle(shadowAngle: Int) {
-                    TextConfigManager.getLayer(addLayerId)?.apply {
+                    textPreView.apply {
                         this.shadowAngle = shadowAngle
-                        editSurfaceManager.drawLayer(this)
+                        editSurfaceManager.drawPreViewLayer(this)
                     }
                 }
             }
 
         /*softInputUtil.attachSoftInput(
-            inflate.btnText
+            viewBinding.btnText
         ) { isSoftInputShow, _, viewOffset ->
             if (isSoftInputShow) {
-                inflate.btnText.translationY = inflate.btnText.translationY - viewOffset - SizeUtils.dp2px(10f)
-                inflate.viewBg.translationY = inflate.btnText.translationY
-                //inflate.surfaceView.translationY= inflate.btnText.translationY
+                viewBinding.btnText.translationY = viewBinding.btnText.translationY - viewOffset - SizeUtils.dp2px(10f)
+                viewBinding.viewBg.translationY = viewBinding.btnText.translationY
+                //viewBinding.surfaceView.translationY= viewBinding.btnText.translationY
             } else {
-                inflate.btnText.translationY = 0f
-                inflate.viewBg.translationY=0f
-                //inflate.surfaceView.translationY= 0f
+                viewBinding.btnText.translationY = 0f
+                viewBinding.viewBg.translationY=0f
+                //viewBinding.surfaceView.translationY= 0f
             }
         }*/
     }
+
+    override fun onBackPressed() {
+
+        super.onBackPressed()
+    }
+
+
 }

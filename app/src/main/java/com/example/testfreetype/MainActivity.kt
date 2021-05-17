@@ -6,18 +6,14 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityMainBinding
+import com.example.testfreetype.util.PathHelp
 import com.example.testfreetype.util.StorageHelper
 import java.io.File
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     private val sdfPath by lazy {
         StorageHelper.getInternalFilesDir(this).absolutePath + File.separator + "sdf_test.png"
-    }
-
-    private val testConfigJsonPath by lazy {
-        StorageHelper.getInternalFilesDir(this).absolutePath+ File.separator + "data88797.json"
     }
 
     private val ttfPath by lazy {
@@ -54,10 +50,6 @@ class MainActivity : AppCompatActivity() {
         binding.btnTextEdit.setOnClickListener {
             val intent = Intent(this, TextEditActivity::class.java)
             intent.putExtra("path", ttfPath)
-            intent.putExtra("jsonPath", testConfigJsonPath)
-            val fontDir = File(StorageHelper.getInternalFilesDir(this), "fonts")
-
-            intent.putExtra("fontPath", fontDir.absolutePath)
             startActivity(intent)
         }
 
@@ -71,22 +63,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         Thread(Runnable {
-            val fontDir = File(StorageHelper.getInternalFilesDir(this), "fonts")
-            fontDir.mkdir()
-
-            val fontList: MutableList<String> =
-                ArrayList()
-            fontList.add("DroidSansFallback.ttf")
-            fontList.add("KaBuQiNuo.otf")
-            fontList.add("MFYanSong-Regular.ttf")
-            fontList.add("YouLangRuanBi.ttf")
-            fontList.add("HelveticaInseratLT.ttf")
-            fontList.forEach {
-                val absolutePath = File(fontDir, it).absolutePath
-                StorageHelper.copyAssetToPath(this, "fonts/$it", absolutePath)
-            }
             StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
-            StorageHelper.copyAssetToPath(this, "data88797.json", testConfigJsonPath)
+            StorageHelper.copyFilesFromAssets(this, "template", PathHelp.getTemplatePath(this))
+            StorageHelper.copyFilesFromAssets(this, "fonts", PathHelp.getFontsPath(this))
             //StorageHelper.copyAssetToPath(this, "DroidSansFallback.ttf", ttfPath)
         }).start()
 

@@ -17,9 +17,8 @@
         android:layout_height="98dp"
         android:background="@color/font_red"
         android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/surface_view"
-        />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_test"
@@ -44,14 +43,6 @@
         app:layout_constraintTop_toBottomOf="@id/surface_view" />
 
 
-    <Button
-        android:id="@+id/btn_test_json"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="测试json"
-        app:layout_constraintBottom_toBottomOf="@+id/surface_view"
-        app:layout_constraintStart_toStartOf="@+id/surface_view" />
-
     <TextView
         android:id="@+id/btn_text"
         android:layout_width="wrap_content"
@@ -63,20 +54,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/view_bg" />
 
-    <!--
-     <EditText
-         android:id="@+id/ed_text"
-         android:layout_width="match_parent"
-         android:layout_height="40dp"
-         android:layout_margin="10dp"
-         android:layout_marginBottom="200dp"
-         android:background="#242424"
-         android:hint="输入文字"
-         android:padding="5dp"
-         android:textColor="#7c7c7c"
-         android:textColorHint="#7c7c7c"
-         android:textSize="16sp"
-         app:layout_constraintTop_toTopOf="@id/view_bg" />
- -->
+
+    <TextView
+        android:id="@+id/tv_template"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/share_image_selector"
+        android:padding="10dp"
+        android:text="文字模板"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_text"
+        app:layout_constraintTop_toTopOf="@+id/view_bg" />
+
+
+    <FrameLayout
+        android:id="@+id/frame_menu"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/view_bg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/view_bg" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

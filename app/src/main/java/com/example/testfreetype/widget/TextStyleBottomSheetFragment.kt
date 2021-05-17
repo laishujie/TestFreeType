@@ -80,7 +80,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val bottomSheetDialog = BottomSheetDialog(context!!, R.style.DialogFullScreen)
+        val bottomSheetDialog = BottomSheetDialog(requireContext(), R.style.DialogFullScreen)
         //bottomSheetDialog.behavior.isDraggable = false
         bottomSheetDialog.behavior.peekHeight = 500
         return bottomSheetDialog
@@ -88,7 +88,6 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
 
 
         view.findViewById<EditText>(R.id.ed_text).addTextChangedListener(
@@ -308,6 +307,8 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
                 }
             })
+
+
 
 
         val rvFontList = view.findViewById<RecyclerView>(R.id.rv_font_list)

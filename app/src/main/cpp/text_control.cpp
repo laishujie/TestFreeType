@@ -31,7 +31,7 @@ text_control::text_control() : Handler(),
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kEGLCreate;
     PostMessage(message);
-    shaderManager_ = new shader_manager();
+    shaderManager_ = new ShaderManager();
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -120,14 +120,12 @@ void text_control::HandleMessage(Message *msg) {
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
 
-
-            if(obj!= nullptr){
+            if (obj != nullptr) {
                 auto *textLayer = reinterpret_cast<TextLayer *>(obj);
                 shaderManager_->DrawTextLayer(textLayer);
-            }else{
-                shaderManager_->DrawTextInfo(current_text_);
+            } else {
+                shaderManager_->DrawPreViewTextInfo(current_text_);
             }
-
 
             /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
                                     fontManager_->atlas->height, 1,
@@ -164,6 +162,9 @@ void text_control::OnGLWindowCreate() {
 
     shaderManager_->InitShader(surface_width_, surface_height_);
 
+    if (!core_->SwapBuffers(render_surface_)) {
+        LOGCATE("eglSwapBuffers error: %d", eglGetError())
+    }
     LOGCATI("leave %s", __func__)
 }
 
@@ -291,7 +292,7 @@ void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *o
     LOGCATI("leave %s", __func__)
 }
 
-void text_control::PostDraw() {
+void text_control::DrawPreView() {
     if (current_text_ == nullptr) return;
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;

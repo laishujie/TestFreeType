@@ -1,5 +1,6 @@
 package com.example.testfreetype;
 
+import com.example.testfreetype.bean.TextInfo;
 import com.example.testfreetype.bean.TextLayer;
 
 public class TextEngineJni {
@@ -45,7 +46,7 @@ public class TextEngineJni {
     public static native void glRenderText(long nativeHandle, String ttfPath, String text);
 
 
-    //---------------------------------/
+    //-------------编辑页面--------------------/
     public static native long textEngineCreate();
 
     public static native void textEngineSurfaceCreated(long handler, Object surface, int width,
@@ -55,8 +56,12 @@ public class TextEngineJni {
 
     public static native void textEngineRelease(long handler);
 
-    public static native void textEngineDraw(long handler,String ttfPath, String text,String outPath);
-    public static native void textEngineDrawLayer(long handler, TextLayer layer);
+    public static native void textEngineDraw(long handler, String ttfPath, String text, String outPath);
 
-    public static native void testLayer(long handler,String json,String fontFolder);
+    //测试的玩意
+    public static native void textEngineDrawPreView(long handler, TextInfo textInfo);
+
+    public static native void testLayer(long handler, String json, String fontFolder);
+
+    public static native int addTextLayer(long handle, TextLayer textLayer);
 }

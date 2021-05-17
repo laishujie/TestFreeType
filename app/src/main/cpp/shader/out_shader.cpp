@@ -4,11 +4,11 @@
 
 #include "out_shader.h"
 
-void out_shader::onDestroy() {
+void OutShader::onDestroy() {
 
 }
 
-void out_shader::Init() {
+void OutShader::Init() {
     char vShaderStr[] =
             "#version 300 es                          \n"
             "layout(location = 0) in vec4 vPosition;  \n"
@@ -63,17 +63,17 @@ void out_shader::Init() {
     glvao->setIndex(index, 6);
 }
 
-void out_shader::OnSurfaceChanged(int width, int height) {
+void OutShader::OnSurfaceChanged(int width, int height) {
     glProgram->OnSurfaceChanged(0, 0, width, height);
     surfaceWidth = width;
     surfaceHeight = height;
 }
 
-void out_shader::draw() {
+void OutShader::draw() {
 
 }
 
-void out_shader::draw(GLuint textureId) {
+void OutShader::draw(GLuint textureId) {
     glProgram->useProgram();
 
     GLint textureIndex = glGetUniformLocation(glProgram->program, "textureMap");

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<translate
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="150"
+    android:fromYDelta="0%p"
+    android:toYDelta="100%p"/>
+    <!--    duration：属性为动画持续时间，时间以毫秒为单位。-->
+    <!--    fromXDelta：属性为动画起始时，X坐标上的位置。-->
+    <!--    fromYDelta：属性为动画起始时，Y坐标上的位置。-->
+    <!--    toXDelta：属性为动画结束时，X坐标上的位置。-->
+    <!--    toYDelta：属性为动画结束时，Y坐标上的位置。-->
+

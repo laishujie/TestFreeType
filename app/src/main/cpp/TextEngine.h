@@ -20,7 +20,7 @@ public:
     texture_image_demo *textureImageDemo;
     FreeTypeShader *freeTypeShader;
     ftgl::font_manager_t *fontManager;
-    text_shader *textShader;
+    TextShader *textShader;
 
     TextEngine() : textureImageDemo(nullptr),
                    freeTypeShader(nullptr),

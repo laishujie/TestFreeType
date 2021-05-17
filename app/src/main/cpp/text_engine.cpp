@@ -92,18 +92,14 @@ text_engine::~text_engine() {
 //    }
 }
 
-void text_engine::OnDraw(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
-                         int spacing, jint lineSpacing,
-                         jint fontSize, jint fontColor, jfloat distanceMark,
-                         jfloat outLineDistanceMark,
-                         jint outlineColor,
-                         jfloat shadowDistance, jfloat shadowAlpha, jint shadowColor,
-                         jint shadowAngle) {
-
-
-    /* pthread_mutex_lock(&queue_mutex_);
-     text_deque_.push_back(clip);
-     pthread_mutex_unlock(&queue_mutex_);*/
+void
+text_engine::DrawPreView(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
+                         int spacing, int lineSpacing,
+                         int fontSize, int fontColor, float distanceMark,
+                         float outLineDistanceMark,
+                         int outlineColor,
+                         float shadowDistance, float shadowAlpha, int shadowColor,
+                         int shadowAngle) {
 
     //避免出现竞争
     pthread_mutex_lock(&queue_mutex_);
@@ -111,13 +107,17 @@ void text_engine::OnDraw(const char *ttfPath, const char *text, char *outPath, b
                             fontColor,
                             distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
                             shadowAlpha, shadowColor, shadowAngle);
-    player_->PostDraw();
+    player_->DrawPreView();
     pthread_mutex_unlock(&queue_mutex_);
 }
 
 int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder) {
 
     if (c_layerJson == nullptr || c_fontFolder == nullptr) return -1;
+
+
+    pthread_mutex_lock(&text_mutex_);
+
     std::string layerJson(c_layerJson);
     std::string fontFolder(c_fontFolder);
 
@@ -127,6 +127,7 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
     int ret = ReadFile(layerJson, &config_buffer);
     if (ret != 0 || config_buffer == nullptr) {
         LOGCATE("read info sticker config error: %d", ret);
+        pthread_mutex_unlock(&text_mutex_);
         return -2;
     }
 
@@ -135,10 +136,11 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
 
     if (nullptr == pJson) {
         LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
+        pthread_mutex_unlock(&text_mutex_);
         return -3;
     }
 
-    // pthread_mutex_lock(&text_mutex_);
+
     cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
 
     if (nullptr != layers) {
@@ -159,8 +161,8 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
             textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
             textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
             textInfo->isFromTemplate = true;
-            textInfo->offset_x=strtol(offset_x_json->valuestring, &ptr, 10);
-            textInfo->offset_y=strtol(offset_y_json->valuestring, &ptr, 10);
+            textInfo->offset_x = strtol(offset_x_json->valuestring, &ptr, 10);
+            textInfo->offset_y = strtol(offset_y_json->valuestring, &ptr, 10);
             cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
             if (text_child != nullptr) {
                 cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
@@ -179,10 +181,11 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
 
         cJSON_Delete(pJson);
 
+        pthread_mutex_unlock(&text_mutex_);
+
         return selfIncreasingId;
     }
-
-    //pthread_mutex_unlock(&text_mutex_);
+    pthread_mutex_unlock(&text_mutex_);
 
 
     return -1;
@@ -213,5 +216,82 @@ int text_engine::ReadFile(const std::string &path, char **buffer) {
     fclose(file);
     printf("%s\n", data);
     *buffer = data;
+    return 0;
+}
+
+int text_engine::AddTextLayer(const char *ttfPath, const char *text, char *outPath,
+                              bool isHorizontal, int spacing,
+                              int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                              float outLineDistanceMark, int outLineColor, float shadowDistance,
+                              float shadowAlpha,
+                              int shadowColor, int shadowAngle) {
+    pthread_mutex_lock(&text_mutex_);
+    selfIncreasingId++;
+    auto *textLayer = new TextLayer();
+    textLayer->id = selfIncreasingId;
+
+    auto *textInfo = new TextInfo();
+    textInfo->ttf_file = ttfPath;
+    textInfo->text = text;
+    textInfo->isHorizontal = isHorizontal;
+    textInfo->spacing = spacing;
+    textInfo->lineSpacing = lineSpacing;
+    textInfo->fontSize = fontSize;
+    textInfo->fontColor = fontColor;
+    textInfo->distanceMark = distanceMark;
+    textInfo->outlineDistanceMark = outLineDistanceMark;
+    textInfo->outLineColor = outLineColor;
+    textInfo->shadowDistance = shadowDistance;
+    textInfo->shadowAlpha = shadowAlpha;
+    textInfo->shadowColor = shadowColor;
+    textInfo->shadowAngle = shadowAngle;
+
+    //层添加关系
+    textLayer->text_deque.push_back(textInfo);
+
+    //添加对应关系
+    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    text_layers_.insert(stl);
+
+
+    player_->DrawLayer(text_layers_.at(selfIncreasingId));
+
+
+    pthread_mutex_unlock(&text_mutex_);
+
+
+    return selfIncreasingId;
+}
+
+int text_engine::UpdateTextInfo(int layerId, const char *ttfPath, const char *text, char *outPath,
+                                bool isHorizontal, int spacing, int lineSpacing, int fontSize,
+                                int fontColor, float distanceMark, float outLineDistanceMark,
+                                int outLineColor, float shadowDistance, float shadowAlpha,
+                                int shadowColor, int shadowAngle) {
+    pthread_mutex_lock(&queue_mutex_);
+    TextLayer *&pLayer = text_layers_.at(layerId);
+
+    if (!pLayer->text_deque.empty()) {
+        TextInfo *&textInfo = pLayer->text_deque[0];
+        textInfo->ttf_file = ttfPath;
+        textInfo->text = text;
+        textInfo->isHorizontal = isHorizontal;
+        textInfo->spacing = spacing;
+        textInfo->lineSpacing = lineSpacing;
+        textInfo->fontSize = fontSize;
+        textInfo->fontColor = fontColor;
+        textInfo->distanceMark = distanceMark;
+        textInfo->outlineDistanceMark = outLineDistanceMark;
+        textInfo->outLineColor = outLineColor;
+        textInfo->shadowDistance = shadowDistance;
+        textInfo->shadowAlpha = shadowAlpha;
+        textInfo->shadowColor = shadowColor;
+        textInfo->shadowAngle = shadowAngle;
+
+        player_->DrawLayer(pLayer);
+    }
+
+    pthread_mutex_unlock(&queue_mutex_);
+
     return 0;
 }

@@ -1,12 +1,11 @@
 package com.example.testfreetype.util
 
 import android.graphics.SurfaceTexture
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
-import android.view.WindowId
 import com.example.testfreetype.TextEngineJni
-import com.example.testfreetype.bean.TextConfigManager
+import com.example.testfreetype.bean.LayerManager
+import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.bean.TextLayer
 
 class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
@@ -20,7 +19,6 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         TextEngineJni.textEngineSurfaceDestroyed(mId)
-        clear()
         return true
     }
 
@@ -36,8 +34,12 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
     }
 
-    fun addDefaultTextLayer(ttfPath: String, text: String) {
-        currLayerId = TextConfigManager.addLayer(ttfPath, text)
+    fun addTextLayer(textLayer: TextLayer) {
+        val addTextLayer = TextEngineJni.addTextLayer(mId, textLayer)
+        if (addTextLayer != -1) {
+            textLayer.layerId = addTextLayer
+            LayerManager.addLayer(addTextLayer, textLayer)
+        }
     }
 
 
@@ -45,26 +47,13 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
         TextEngineJni.textEngineDraw(mId, ttfPath, text, outPath)
     }
 
-    fun drawLayer(textLayer: TextLayer) {
-        TextEngineJni.textEngineDrawLayer(mId, textLayer)
+    fun drawPreViewLayer(textLayer: TextInfo) {
+        TextEngineJni.textEngineDrawPreView(mId, textLayer)
     }
 
-    fun drawCurrLayer(ttfPath: String?, text: String?) {
-        val layer = TextConfigManager.getLayer(currLayerId)
-        if (layer != null) {
-            val ttf = TextConfigManager.getStringSame(layer.ttfPath, ttfPath)
-            val char = TextConfigManager.getStringSame(layer.char, text)
-
-            Log.e("11111", "layer $currLayerId ttf $ttf text $char")
-            TextEngineJni.textEngineDraw(mId, ttf, char, null)
-        }
-    }
 
     fun testJson(json: String, fontFolder: String) {
         TextEngineJni.testLayer(mId, json, fontFolder)
     }
 
-    fun clear() {
-        TextConfigManager.clear()
-    }
 }

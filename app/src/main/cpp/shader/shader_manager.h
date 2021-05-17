@@ -13,25 +13,29 @@
 #include "text_bean.h"
 #include "FreeTypeShader.h"
 
-class shader_manager {
+class ShaderManager {
 
 private:
-    text_shader *textShader_;
-    out_shader *outShader_;
+    TextShader *textShader_;
+    OutShader *outShader_;
     FreeTypeShader *freeTypeShader;
-    TextLayer *textLayer_;
+    TextLayer *previewLayer_;
     ftgl::font_manager_t *fontManager_;
 
 public:
     int DrawTextLayer(TextLayer *textLayer);
 
-    void DrawTextInfo(TextInfo *textInfo);
+    /**
+     * 绘制预览textInfo
+     * @param textInfo
+     */
+    void DrawPreViewTextInfo(TextInfo *textInfo);
 
     void InitShader(int width, int height);
 
-    shader_manager();
+    ShaderManager();
 
-    ~shader_manager();
+    ~ShaderManager();
 
     ftgl::texture_font_t *InsetText(TextInfo *&textInfo) const;
 };

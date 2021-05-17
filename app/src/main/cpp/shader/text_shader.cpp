@@ -6,7 +6,7 @@
 #include "logUtil.h"
 #include "color_util.h"
 
-void text_shader::Init() {
+void TextShader::Init() {
     char vShaderStr[] =
             "#version 300 es                          \n"
             "layout(location = 0) in vec2 vPosition;  \n"
@@ -83,7 +83,7 @@ void text_shader::Init() {
 }
 
 /*
-void text_shader::OnSurfaceChanged(int width, int height) {
+void TextShader::OnSurfaceChanged(int width, int height) {
     glViewport(0, 0, width, height);
 }
 */
@@ -106,16 +106,16 @@ PointF normalizePoint(float x, float y, int width, int height) {
 }
 
 
-void text_shader::DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo) {
+void TextShader::DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo) {
     DrawShadowText(textInfo, font);
     DrawStrokeNormalText(textInfo, font);
 }
 
-text_shader::text_shader() : shadowProgram(nullptr), shadowVao(nullptr), glProgram(nullptr), glvao(
+TextShader::TextShader() : shadowProgram(nullptr), shadowVao(nullptr), glProgram(nullptr), glvao(
         nullptr) {
 }
 
-text_shader::~text_shader() {
+TextShader::~TextShader() {
     if (shadowVao != nullptr) {
         delete shadowVao;
         shadowVao = nullptr;
@@ -135,19 +135,25 @@ text_shader::~text_shader() {
     }
 }
 
-int text_shader::FillVertex(TextInfo *&textInfo,
-                            ftgl::texture_font_t *font) {
+int TextShader::FillVertex(TextInfo *&textInfo,
+                           ftgl::texture_font_t *font) {
     std::vector<GLfloat> vertex;
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
-    float initX = textInfo->offset_x;
+    float initX = 0.;
     float startX = initX;
-    float initY = textInfo->offset_y;
+    float initY = 0.;
     float startY = initY;
     lineSpace = startY;
     bool isHorizontal = textInfo->isHorizontal;
     const char *textChart = textInfo->text.c_str();
     lineSpace = isHorizontal ? startY : startX;
+
+    //模板比例
+    // float templateRatioW = 1.f;// float(textInfo->surfaceWidth) / 1920.f;
+    //  float templateRatioH = 1.f; //float(textInfo->surfaceHeight) / 1920.f;
+    float templateRatioW = textInfo->isFromTemplate ? float(textInfo->surfaceWidth) / 1920.f : 1.f;
+    float templateRatioH = textInfo->isFromTemplate ? float(textInfo->surfaceHeight) / 1920.f : 1.f;
 
     for (size_t i = 0; i < strlen(textChart); ++i) {
         //获取字形
@@ -165,6 +171,7 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                     //文字居中
                     startX = lineSpace + canterX;
                 }
+
                 float kerning = 0.0f;
 
                 if (i > 0) {
@@ -187,52 +194,58 @@ int text_shader::FillVertex(TextInfo *&textInfo,
 
                 startX += kerning;
 
-                float centerX =
-                        float(textInfo->surfaceWidth) * 0.5f - float(textInfo->textWidth) * 0.5f;
-                float centerY =
-                        float(textInfo->surfaceHeight) * 0.5f - float(textInfo->textHeight) * 0.5f;
+                float x0 = startX + float(pGlyph->offset_x) - float(font->padding);
+                float y0 = startY + font->ascender - float(pGlyph->offset_y) - float(font->padding);
 
-
-                /*//取得图片和图片所处空间的比例
-                float scaleBitmap = ((float) textInfo->textWidth) / (float) textInfo->textHeight;
-                float scaleView =
-                        ((float) textInfo->surfaceWidth) / (float) textInfo->surfaceHeight;
-                // 空间的大小 / bitmap 的大小 = bitmap 缩放的倍数
-                float scaleWidth = ((float) textInfo->surfaceWidth) / (float) textInfo->textWidth;
-                float scaleHeight =
-                        ((float) textInfo->surfaceHeight) / (float) textInfo->textHeight;
-                float scale = 1.f;
-                //按照比例选择缩放参照
-                if (scaleBitmap < scaleView) {
-                    //比例小于视框时，全部按照图片高度和视框高度的比例进行缩放
-                    scale = scaleHeight;
-                } else {
-                    //比例大于视框时，全部按照图片宽度和视框宽度的比例进行缩放
-                    scale = scaleWidth;
-                }
-*/
-                float x0 =
-                        startX + float(pGlyph->offset_x) - float(font->padding) + centerX ;
-                //往下多少
-                float y0 =startY + font->ascender - float(pGlyph->offset_y) - float(font->padding) +centerY;
                 float x1 = x0 + float(pGlyph->width);
                 float y1 = y0 + float(pGlyph->height);
 
+                PointF leftTop{x0, y0};
+                PointF rightBottom{x1, y1};
 
-                const PointF &leftTop = vertexWithPoint(x0, y0, textInfo->surfaceWidth,
-                                                        textInfo->surfaceHeight);
+                //缩放比例
+                leftTop.x *= templateRatioW;
+                leftTop.y *= templateRatioH;
+                rightBottom.x *= templateRatioW;
+                rightBottom.y *= templateRatioH;
 
-                const PointF &rightBottom = vertexWithPoint(x1, y1, textInfo->surfaceWidth,
-                                                            textInfo->surfaceHeight);
+                //平移到中间
+                float centerX = float(textInfo->surfaceWidth) * 0.5f -
+                                float(textInfo->textWidth * templateRatioW) * 0.5f;
+                float centerY = float(textInfo->surfaceHeight) * 0.5f -
+                                float(textInfo->textHeight * templateRatioH) * 0.5f;
+
+                leftTop.x += centerX;
+                leftTop.y += centerY;
+                rightBottom.x += centerX;
+                rightBottom.y += centerY;
+
+                float offsetX = textInfo->offset_x * templateRatioW;
+                float offsetY = textInfo->offset_y * templateRatioH;
+
+                //模板偏移量
+                leftTop.x += offsetX;
+                rightBottom.x += offsetX;
+
+                rightBottom.y += offsetY;
+                leftTop.y += offsetY;
 
 
+                //坐标转换 -1. ~ 1.
+                leftTop = vertexWithPoint(leftTop.x, leftTop.y, textInfo->surfaceWidth,
+                                          textInfo->surfaceHeight);
+
+                rightBottom = vertexWithPoint(rightBottom.x, rightBottom.y, textInfo->surfaceWidth,
+                                              textInfo->surfaceHeight);
+
+                //坐标映射
                 float s0 = pGlyph->s0;
                 float t0 = pGlyph->t0;
                 float s1 = pGlyph->s1;
                 float t1 = pGlyph->t1;
 
-                LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
-                        leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
+                /*  LOGCATE("leftTop.x %f leftTop.y %f rightBottom.x %f rightBottom.y %f",
+                          leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)*/
 
                 float rectangleVertices[] = {
                         leftTop.x, leftTop.y,// 左上角
@@ -258,7 +271,6 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                 vertex.push_back(rectangleVertices[5]);
                 vertex.push_back(rectangleVertices[6]);
                 vertex.push_back(rectangleVertices[7]);
-                // vertex.push_back(rectangleVertices);
 
 
                 GLfloat uv[] = {
@@ -267,12 +279,7 @@ int text_shader::FillVertex(TextInfo *&textInfo,
                         s1, t1,
                         s0, t1,
                 };
-                /* GLfloat uv[] = {
-                         s0, t1,
-                         s1, t1,
-                         s1, t0,
-                         s0, t0,
-                 };*/
+
                 uvVertex.push_back(uv[0]);
                 uvVertex.push_back(uv[1]);
                 uvVertex.push_back(uv[2]);
@@ -297,8 +304,8 @@ int text_shader::FillVertex(TextInfo *&textInfo,
     return indexVertex.size();
 }
 
-int text_shader::DrawShadowText(TextInfo *&textInfo,
-                                ftgl::texture_font_t *font) {
+int TextShader::DrawShadowText(TextInfo *&textInfo,
+                               ftgl::texture_font_t *font) {
 
     //默认的0.5，不绘制
     if (textInfo->shadowDistance == 0.) {
@@ -345,7 +352,7 @@ int text_shader::DrawShadowText(TextInfo *&textInfo,
     return 0;
 }
 
-int text_shader::DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font) {
+int TextShader::DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font) {
     glProgram->useProgram();
 
     int indexVertex = FillVertex(textInfo, font);

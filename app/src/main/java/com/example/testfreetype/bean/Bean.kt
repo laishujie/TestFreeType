@@ -4,7 +4,7 @@ import android.graphics.Color
 import android.util.SparseArray
 import com.google.gson.annotations.SerializedName
 
-data class TextLayer(
+data class TextInfo(
     var id: Int,
     var char: String?,
     var ttfPath: String?,
@@ -20,8 +20,16 @@ data class TextLayer(
     var shadowAlpha: Float = 0.5f,
     var size: Int = 72,
     var horizontal: Boolean = true
-) {
-}
+)
+
+data class TextLayer(
+    var textInfo: TextInfo,
+    //层id
+    var layerId: Int = -1,
+    var isTemplate: Boolean = false,
+    var tempConfigPath: String? = null,
+    var fontFolder: String? = null
+)
 
 data class FontItem(
     @field:SerializedName("path") var fontPath: String,
@@ -31,33 +39,32 @@ data class FontItem(
     var selected: Boolean = false
 )
 
-object TextConfigManager {
+data class ImgItem(
+    @field:SerializedName("path") var path: String,
+    @field:SerializedName(
+        "imagePath"
+    ) var imagePath: String,
+    var selected: Boolean = false
+)
 
-    var currId = 0
 
+object LayerManager {
+
+    var currLayerId = -1
     var layers = SparseArray<TextLayer>()
 
+
+    fun getPreViewTextInfo(){
+
+    }
 
     fun getLayer(id: Int): TextLayer? {
         return layers[id]
     }
 
-    fun addLayer(ttfPath: String, text: String): Int {
-
-        layers.append(currId, TextLayer(currId, text, ttfPath))
-
-        currId++
-
-        return layers[layers.size() - 1].id
-    }
-
-    fun configLayer(id: Int, text: String? = null, ttfPath: String?, horizontal: Boolean = true) {
-        val textLayer = layers[id]
-        if (textLayer != null) {
-            textLayer.char = text
-            textLayer.horizontal = horizontal
-            textLayer.ttfPath = ttfPath
-        }
+    fun addLayer(id: Int, textInfo: TextLayer) {
+        layers.append(id, textInfo)
+        currLayerId = id
     }
 
     fun getStringSame(src: String?, des: String?): String? {
@@ -67,7 +74,7 @@ object TextConfigManager {
 
 
     fun clear() {
-        currId = 0
+        currLayerId = -1
         layers.clear()
     }
 }

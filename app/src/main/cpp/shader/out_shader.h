@@ -8,7 +8,7 @@
 
 #include "shader_base.h"
 
-class out_shader : public shader_base  {
+class OutShader : public shader_base  {
 
 public:
     void onDestroy();

@@ -19,7 +19,7 @@ class text_control : public Handler {
     int surface_height_;
     MessageQueue *message_queue_;
     pthread_t message_queue_thread_;
-    shader_manager *shaderManager_;
+    ShaderManager *shaderManager_;
     TextInfo *current_text_;
 public:
     static int Init();
@@ -75,7 +75,7 @@ public:
                         int shadowColor, int shadowAngle);
     void DrawLayer(TextLayer* textLayer);
 
-    void PostDraw();
+    void DrawPreView();
 };
 
 

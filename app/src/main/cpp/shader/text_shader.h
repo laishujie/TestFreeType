@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "text_bean.h"
 
-class text_shader {
+class TextShader {
 private:
     int DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font);
 
@@ -25,9 +25,9 @@ private:
     GLProgram *glProgram;
     GLVAO *glvao;
 public:
-    text_shader();
+    TextShader();
 
-    ~text_shader();
+    ~TextShader();
 
     void Init();
 
