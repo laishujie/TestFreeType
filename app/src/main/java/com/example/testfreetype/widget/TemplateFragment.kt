@@ -1,7 +1,6 @@
 package com.example.testfreetype.widget
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,14 +10,23 @@ import com.example.testfreetype.adapter.TmpAdapter
 import com.example.testfreetype.bean.ImgItem
 import com.example.testfreetype.databinding.FragmentTemplateBinding
 import com.example.testfreetype.util.AssetsUtil
+import com.example.testfreetype.util.PathHelp
+import java.io.File
 
 class TemplateFragment : Fragment(R.layout.fragment_template) {
 
     private val viewBinding by viewBinding(FragmentTemplateBinding::bind)
+    var selectCallBack: ((String) -> Unit?)? = null
+    var selectOk: (() -> Unit?)? = null
+
 
     private val imgList: List<ImgItem> by lazy {
         val fontList =
-            AssetsUtil.parseJsonToList(requireContext(), "template/templates.json", ImgItem::class.java)
+            AssetsUtil.parseJsonToList(
+                requireContext(),
+                "template/templates.json",
+                ImgItem::class.java
+            )
         fontList
     }
 
@@ -27,7 +35,8 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
         TmpAdapter(this.context, imgList,
             TmpAdapter.OnImgSelectListener { position ->
                 val imgItem = imgList[position]
-                Log.e("11111", "item $imgItem")
+                val file = File(PathHelp.getTemplatePath(requireContext()), imgItem.path)
+                selectCallBack?.invoke(file.absolutePath)
             })
     }
 
@@ -36,5 +45,8 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
 
         viewBinding.rvList.layoutManager = GridLayoutManager(requireContext(), 4)
         viewBinding.rvList.adapter = imgAdapter
+        viewBinding.ivYes.setOnClickListener {
+            selectOk?.invoke()
+        }
     }
 }

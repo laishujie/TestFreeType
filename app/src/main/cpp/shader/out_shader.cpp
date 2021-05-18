@@ -32,8 +32,14 @@ void OutShader::Init() {
             "{                                            \n"
             "vec2 uv = vec2(outUvPos.x,1.0-outUvPos.y); \n"
             "vec4 textureMap = texture(textureMap,uv); \n"
-            // "   fragColor = vec4 ( outPos, 1.0 ); \n"
+           /* "if(textureMap.a<=0.2){"
+            " discard;"
+            "}  else{"
             "fragColor = textureMap;\n"
+            "}"*/
+            "fragColor = textureMap;\n"
+            // "   fragColor = vec4 ( outPos, 1.0 ); \n"
+
             "}                                            \n";
 
 

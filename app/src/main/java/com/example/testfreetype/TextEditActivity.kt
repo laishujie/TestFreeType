@@ -31,6 +31,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     val fontPath by lazy {
         PathHelp.getFontsPath(this)
     }
+
     val jsonPath by lazy {
         intent.getStringExtra("jsonPath").toString()
     }
@@ -75,7 +76,6 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                 supportFragmentManager,
                 "TextStyleBottomSheetFragment"
             )
-
         }
 
         /* viewBinding.btnTestJson.setOnClickListener {
@@ -84,7 +84,9 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
          }*/
 
         viewBinding.tvTemplate.setOnClickListener {
-            FragmentHelp.showTemplateFragment(this, R.id.frame_menu)
+            FragmentHelp.showTemplateFragment(this, R.id.frame_menu, selectCallBack = { path ->
+                editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
+            })
         }
 
         textStyleBottomSheetFragment.styleCallBack =
@@ -186,6 +188,13 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                         this.shadowAngle = shadowAngle
                         editSurfaceManager.drawPreViewLayer(this)
                     }
+                }
+
+                override fun onCreateLayer() {
+                    //TODO 这里应该需要重新复制临时配置
+                    textPreView.char = null
+                    editSurfaceManager.addThePreviewLayer2Map()
+                    textStyleBottomSheetFragment.dismissAllowingStateLoss()
                 }
             }
 

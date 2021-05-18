@@ -33,11 +33,13 @@ public:
     bool isFromTemplate;
     float textWidth;
     float textHeight;
+
     TextInfo() : ttf_file(), text(), outPath(nullptr),
                  surfaceWidth(0), surfaceHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
                  fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
-                 shadowColor(0), shadowAngle(0), isFromTemplate(false),textWidth(0.f),textHeight(0.f){
+                 shadowColor(0), shadowAngle(0), isFromTemplate(false), textWidth(0.f),
+                 textHeight(0.f) {
     }
 
     ~TextInfo() {
@@ -73,12 +75,14 @@ public:
     GLuint textureId;
     GLuint frameBuffer;
     int id;
+
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);
         glDeleteTextures(1, &textureId);
 
-        for (auto clip : text_deque) {
+        for (auto &clip : text_deque) {
             delete clip;
+            clip = nullptr;
         }
         text_deque.clear();
     }

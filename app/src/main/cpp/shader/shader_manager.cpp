@@ -4,58 +4,17 @@
 
 #include "shader_manager.h"
 #include "logUtil.h"
+/*
+#include "ImageLoad.h"
+#include "string"
+*/
 
-void ShaderManager::DrawPreViewTextInfo(TextInfo *textInfo) {
-    LOGCATI("enter ShaderManager %s", __func__)
-    if (previewLayer_ == nullptr) {
-        return;
-    }
-
-    const char *textChart = textInfo->text.c_str();
-    const char *ttf_file = textInfo->ttf_file.c_str();
-
-    LOGCATI("info ttf %s textInfo->text %s textInfo->fontSize %d", ttf_file,
-            textChart, textInfo->fontSize)
-
-    if (textInfo->text.empty()) {
-        fbo_util::UnBindFbo();
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        return;
-    }
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    fbo_util::BindFbo(previewLayer_->frameBuffer);
-
-    //glViewport(0,0,200,200);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    textInfo->surfaceWidth = outShader_->getSurfaceWidth();
-    textInfo->surfaceHeight = outShader_->getSurfaceHeight();
-
-    ftgl::texture_font_t *pFont = InsetText(textInfo);
-
-    textShader_->DrawTextInfo(pFont, textInfo);
-
-    fbo_util::UnBindFbo();
-
-    outShader_->draw(previewLayer_->textureId);
-
-
-    /*  InsetText(ttf_file, textChart,textInfo->fontSize);
-     freeTypeShader->draw(fontManager_->atlas->id);*/
-    // LOGCATE("fboTexture %d fbo %d", previewLayer_->textureId, previewLayer_->frameBuffer)
-    LOGCATI("leave: ShaderManager %s", __func__)
-}
-
-ShaderManager::ShaderManager() : textShader_(nullptr), outShader_(nullptr), previewLayer_(nullptr),
+ShaderManager::ShaderManager() : textShader_(nullptr), outShader_(nullptr),
                                  fontManager_(
                                          nullptr), freeTypeShader(nullptr) {
     textShader_ = new TextShader();
     outShader_ = new OutShader();
-    freeTypeShader = new FreeTypeShader();
+    //freeTypeShader = new FreeTypeShader();
 }
 
 ShaderManager::~ShaderManager() {
@@ -73,10 +32,6 @@ ShaderManager::~ShaderManager() {
         fontManager_->atlas->id = 0;
         font_manager_delete(fontManager_);
     }
-    if (previewLayer_ != nullptr) {
-        delete previewLayer_;
-        previewLayer_ = nullptr;
-    }
     if (freeTypeShader != nullptr) {
         delete freeTypeShader;
         freeTypeShader = nullptr;
@@ -90,22 +45,14 @@ void ShaderManager::InitShader(int width, int height) {
     outShader_->Init();
     outShader_->OnSurfaceChanged(width, height);
     textShader_->Init();
-    freeTypeShader->Init();
+    //freeTypeShader->Init();
     fontManager_ = ftgl::font_manager_new(width, height, 1);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
 
-
-    if (previewLayer_ == nullptr) {
-        FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
-                                              outShader_->getSurfaceHeight(), GL_RGBA);
-        previewLayer_ = new TextLayer(1, fboInfo);
-    }
-
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
     LOGCATI("leave: %s", __func__)
 }
 
@@ -182,11 +129,11 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     fbo_util::BindFbo(textLayer->frameBuffer);
     //前景色合成要用到
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (auto textInfo:textLayer->text_deque) {
 
+    for (auto textInfo:textLayer->text_deque) {
         const char *textChart = textInfo->text.c_str();
         const char *ttf_file = textInfo->ttf_file.c_str();
 
@@ -194,9 +141,9 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
                 textChart, textInfo->fontSize)
 
         if (textInfo->text.empty()) {
-            glClearColor(0.0, 0.0, 0.0, 1.0);
+            glClearColor(0.0, 0.0, 0.0, 0.0);
             glClear(GL_COLOR_BUFFER_BIT);
-            return 0;
+            continue;
         }
 
         textInfo->surfaceWidth = outShader_->getSurfaceWidth();
@@ -207,9 +154,27 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         //绘制文字
         textShader_->DrawTextInfo(pFont, textInfo);
     }
+
+
     fbo_util::UnBindFbo();
 
+    LOGCATE("textLayer->textureId %d ", textLayer->textureId)
+
     outShader_->draw(textLayer->textureId);
+
+    /*long long int i = GetSysCurrentTime();
+    int width = outShader_->getSurfaceWidth();
+    int height = outShader_->getSurfaceHeight();
+    unsigned char *buffer = new unsigned char[outShader_->getSurfaceWidth() *
+                                              outShader_->getSurfaceHeight() * 4];
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    std::string path = "/storage/emulated/0/DCIM/Camera/" + std::to_string(i) + ".png";
+
+    LOGE("11111", "save %s ", path.c_str())
+
+    if (!ImageLoad::savePng(path.c_str(), width, height, 4, buffer, 0)) {
+        LOGE("11111", "ERROR: could not write image")
+    }*/
     return 0;
 }
 

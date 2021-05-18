@@ -339,10 +339,9 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
         env->ReleaseStringUTFChars(outPath, out_Path);
     }
 
-    editor->DrawPreView(ttf_File_copy, text_file_copy, out_File_copy, true, 0, 0, 0, 0, 0, 0, 0, 0,
+    editor->DrawPreView(ttf_File_copy, text_file_copy, true, 0, 0, 0, 0, 0, 0, 0, 0,
                         0,
                         0, 0);
-
 }
 
 
@@ -397,7 +396,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreView(JNIEnv *env, j
     const char *text = env->GetStringUTFChars(j_text, nullptr);
     const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
 
-    editor->DrawPreView(ttf_path, text, nullptr, isHorizontal, spacing, lineSpacing, fontSize,
+    editor->DrawPreView(ttf_path, text, isHorizontal, spacing, lineSpacing, fontSize,
                         fontColor, distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
                         shadowAlpha, shadowColor, shadowAngle);
 
@@ -492,7 +491,7 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jclass cla
             const char *text = env->GetStringUTFChars(j_text, nullptr);
             const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
 
-            layerId = editor->AddTextLayer(ttf_path, text, nullptr, isHorizontal, spacing,
+            layerId = editor->AddTextLayer(ttf_path, text, isHorizontal, spacing,
                                            lineSpacing,
                                            fontSize, fontColor, distanceMark,
                                            outLineDistanceMark,
@@ -510,4 +509,40 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jclass cla
     env->DeleteLocalRef(textLayerClazz);
 
     return layerId;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_testfreetype_TextEngineJni_AddThePreviewLayer2Map(JNIEnv *env, jclass clazz,
+                                                                   jlong handle) {
+    if (handle <= 0) {
+        return -1;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+
+    return editor->AddThePreviewLayer2Map();
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreViewByJson(JNIEnv *env, jclass clazz,
+                                                                        jlong handler, jstring json,
+                                                                        jstring font_folder) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+
+    const char *json_file = env->GetStringUTFChars(json, nullptr);
+    const char *font_folder_ = env->GetStringUTFChars(font_folder, nullptr);
+
+    editor->DrawPreViewByJson(json_file, font_folder_);
+
+    env->ReleaseStringUTFChars(json, json_file);
+    env->ReleaseStringUTFChars(font_folder, font_folder_);
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_testfreetype_TextEngineJni_AddThePreviewLayerByJson2Map(JNIEnv *env, jclass clazz,
+                                                                         jlong handle) {
+    if (handle <= 0) {
+        return -1;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+    return editor->AddThePreviewLayer2MapByJson();
 }

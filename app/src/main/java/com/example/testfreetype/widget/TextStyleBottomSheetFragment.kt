@@ -4,14 +4,16 @@ import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.RadioGroup
 import android.widget.SeekBar
-import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.testfreetype.R
@@ -28,6 +30,17 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
 
     var styleCallBack: OnStyleChange? = null
 
+    private val textWatcher = object : TextWatcher {
+        override fun afterTextChanged(s: Editable?) {
+        }
+
+        override fun beforeTextChanged(text: CharSequence?, start: Int, count: Int, after: Int) {
+        }
+
+        override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+            styleCallBack?.changeText(text.toString())
+        }
+    }
 
     private val mFontList: List<FontItem> by lazy {
         val fontList =
@@ -63,6 +76,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         fun changeShadowAlpha(shadowAlpha: Float)
         fun changeShadowColor(shadowColor: Int)
         fun changeShadowAngle(shadowAngle: Int)
+        fun onCreateLayer()
     }
 
 
@@ -90,11 +104,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
 
-        view.findViewById<EditText>(R.id.ed_text).addTextChangedListener(
-            onTextChanged = { text, start, count, after ->
-                styleCallBack?.changeText(text.toString())
-            }
-        )
+        view.findViewById<EditText>(R.id.ed_text).addTextChangedListener(textWatcher)
 
         view.findViewById<RadioGroup>(R.id.rg_line).setOnCheckedChangeListener { group, checkedId ->
             styleCallBack?.changeHorizontal(checkedId == R.id.rb_horizontal)
@@ -308,7 +318,12 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
 
-
+        view.findViewById<ImageView>(R.id.iv_yes).setOnClickListener {
+            view.findViewById<EditText>(R.id.ed_text).removeTextChangedListener(textWatcher)
+            view.findViewById<EditText>(R.id.ed_text).setText("")
+            view.findViewById<EditText>(R.id.ed_text).addTextChangedListener(textWatcher)
+            styleCallBack?.onCreateLayer()
+        }
 
 
         val rvFontList = view.findViewById<RecyclerView>(R.id.rv_font_list)

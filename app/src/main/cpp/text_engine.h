@@ -9,7 +9,6 @@
 #include <android/native_window_jni.h>
 #include "text_control.h"
 #include <map>
-#include "cJSON.h"
 
 class text_engine {
 
@@ -39,6 +38,7 @@ public:
      */
     int AddTextLayer(const char *layerJson, const char *fontFolder);
 
+
     /**
      * 添加文字层
      * @param ttfPath  字体路径
@@ -57,7 +57,7 @@ public:
      * @param shadowAngle 阴影角度
      * @return
      */
-    int AddTextLayer(const char *ttfPath, const char *text, char *outPath,
+    int AddTextLayer(const char *ttfPath, const char *text,
                      bool isHorizontal, int spacing,
                      int lineSpacing, int fontSize, int fontColor, float distanceMark,
                      float outLineDistanceMark, int outLineColor, float shadowDistance,
@@ -71,37 +71,41 @@ public:
                        float shadowAlpha,
                        int shadowColor, int shadowAngle);
 
-    /**
-     * 读取文件
-     * @param path
-     * @param buffer
-     * @return
-     */
-    static int ReadFile(const std::string &path, char **buffer);
-
-    void DrawPreView(const char *ttfPath, const char *text, char *outPath, bool isHorizontal, int spacing,
+    void DrawPreView(const char *ttfPath, const char *text, bool isHorizontal,
+                     int spacing,
                      int lineSpacing,
                      int fontSize, int fontColor, float distanceMark, float outLineDistanceMark,
                      int outlineColor,
                      float shadowDistance, float shadowAlpha, int shadowColor, int shadowAngle);
 
+    void DrawPreViewByJson(const char *layerJson, const char *fontFolder);
+
+    /**
+     * 预览层添加到确定层列表
+     */
+    int AddThePreviewLayer2Map();
+
+    /**
+     * 刷新显示所有层
+     */
+    void Display();
 
     ~text_engine();
 
     int Init();
+
+    int AddThePreviewLayer2MapByJson();
 
 private:
     ANativeWindow *window_;
     JavaVM *vm_;
     //文本控制器
     text_control *player_;
+
+
     //文本队列互斥量
     pthread_mutex_t queue_mutex_;
     pthread_mutex_t text_mutex_;
-    //信息队列
-    std::map<int, TextLayer *> text_layers_;
-    //json提取器
-    int selfIncreasingId;
 };
 
 

@@ -1,7 +1,6 @@
 package com.example.testfreetype.util
 
 import android.content.Context
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.R
 import com.example.testfreetype.widget.TemplateFragment
@@ -23,21 +22,22 @@ object PathHelp {
 
 object FragmentHelp {
 
-    fun showTemplateFragment(activity: AppCompatActivity, contextId: Int) {
+    fun showTemplateFragment(
+        activity: AppCompatActivity,
+        contextId: Int,
+        selectCallBack: (path: String) -> Unit
+    ) {
         val tag = "TemplateFragment"
         var findFragmentByTag =
             activity.supportFragmentManager.findFragmentByTag(tag) as? TemplateFragment
         if (findFragmentByTag == null) {
-            Log.e("11111", "findFragmentByTag == null")
-
             findFragmentByTag = TemplateFragment()
+            findFragmentByTag.selectCallBack = selectCallBack
             activity.supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide)
                 .add(contextId, findFragmentByTag, tag)
                 .addToBackStack(null).commitAllowingStateLoss()
         } else {
-            Log.e("11111", "findFragmentByTag != null")
-
             activity.supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide)
                 .show(findFragmentByTag)

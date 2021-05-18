@@ -9,6 +9,7 @@
 #include "message/handler.h"
 #include "egl/egl_core.h"
 #include "shader_manager.h"
+#include "cJSON.h"
 
 class text_control : public Handler {
     BufferPool *buffer_pool_;
@@ -20,7 +21,9 @@ class text_control : public Handler {
     MessageQueue *message_queue_;
     pthread_t message_queue_thread_;
     ShaderManager *shaderManager_;
-    TextInfo *current_text_;
+    TextLayer *previewLayer;
+    std::map<int, TextLayer *> layerMaps;
+    int selfIncreasingId;
 public:
     static int Init();
 
@@ -57,7 +60,7 @@ public:
 
     void OnGLDestroy();
 
-    void OnGlFontDestroy();
+    void OnGlResourcesDestroy();
 
     static void *MessageQueueThread(void *args);
 
@@ -67,15 +70,54 @@ public:
 
     void ProcessMessage();
 
-    void ConfigTextInfo(const char *ttfPath, const char *text, char *outPath, bool isHorizontal,
-                        int spacing,
-                        int lineSpacing, int fontSize, int fontColor, float distanceMark,
-                        float outLineDistanceMark, int outLineColor, float shadowDistance,
-                        float shadowAlpha,
-                        int shadowColor, int shadowAngle);
-    void DrawLayer(TextLayer* textLayer);
+    /**
+     * 更新临时层数据
+     * @param ttfPath
+     * @param text
+     * @param isHorizontal
+     * @param spacing
+     * @param lineSpacing
+     * @param fontSize
+     * @param fontColor
+     * @param distanceMark
+     * @param outLineDistanceMark
+     * @param outLineColor
+     * @param shadowDistance
+     * @param shadowAlpha
+     * @param shadowColor
+     * @param shadowAngle
+     */
+    void UpdatePreViewTextInfo(const char *ttfPath, const char *text, bool isHorizontal,
+                               int spacing,
+                               int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                               float outLineDistanceMark, int outLineColor, float shadowDistance,
+                               float shadowAlpha,
+                               int shadowColor, int shadowAngle);
 
-    void DrawPreView();
+    int AddTextLayerByJson(const char *layerJson, const char *fontFolder);
+
+
+    int AddTextLayer(const char *ttfPath, const char *text,
+                     bool isHorizontal, int spacing,
+                     int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                     float outLineDistanceMark, int outLineColor, float shadowDistance,
+                     float shadowAlpha,
+                     int shadowColor, int shadowAngle);
+
+    void Display();
+
+    int AddThePreviewLayer2Map();
+    int AddThePreviewLayer2MapByJson();
+
+    /**
+   * 读取文件
+   * @param path
+   * @param buffer
+   * @return
+   */
+    static int ReadFile(const std::string &path, char **buffer);
+
+    int UpdatePreViewByJson(const char *layoutJson, const char *fontFolder);
 };
 
 

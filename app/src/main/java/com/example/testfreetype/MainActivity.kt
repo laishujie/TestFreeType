@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityMainBinding
 import com.example.testfreetype.util.PathHelp
@@ -62,6 +63,8 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        val cameraPath = StorageHelper.getCameraPath(this)
+            Log.e("11111","cameraPath $cameraPath")
         Thread(Runnable {
             StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
             StorageHelper.copyFilesFromAssets(this, "template", PathHelp.getTemplatePath(this))

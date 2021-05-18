@@ -51,9 +51,16 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
         TextEngineJni.textEngineDrawPreView(mId, textLayer)
     }
 
+    fun addThePreviewLayer2Map() {
+        val layerId = TextEngineJni.AddThePreviewLayer2Map(mId)
+    }
 
-    fun testJson(json: String, fontFolder: String) {
-        TextEngineJni.testLayer(mId, json, fontFolder)
+    fun addThePreviewLayerByJson2Map() {
+        val layerId = TextEngineJni.AddThePreviewLayerByJson2Map(mId)
+    }
+
+    fun drawPreViewLayerByJson(json: String, fontFolder: String) {
+        TextEngineJni.textEngineDrawPreViewByJson(mId, json, fontFolder)
     }
 
 }

@@ -12,7 +12,8 @@ enum RenderMessage {
     kEGLDestroy,
     kEGLWindowCreate,
     kEGLWindowDestroy,
-    kDRAW
+    kDRAW,
+    kDisplay
 };
 
 
@@ -23,7 +24,7 @@ text_control::text_control() : Handler(),
                                surface_height_(0),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
-                               current_text_(nullptr) {
+                               previewLayer(nullptr), layerMaps(), selfIncreasingId(0) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -56,10 +57,7 @@ text_control::~text_control() {
         delete message_queue_;
         message_queue_ = nullptr;
     }
-    if (current_text_ != nullptr) {
-        delete current_text_;
-        current_text_ = nullptr;
-    }
+
     if (nullptr != buffer_pool_) {
         delete buffer_pool_;
         buffer_pool_ = nullptr;
@@ -111,7 +109,7 @@ void text_control::HandleMessage(Message *msg) {
             OnGLWindowCreate();
             break;
         case kEGLDestroy:
-            OnGlFontDestroy();
+            OnGlResourcesDestroy();
             OnGLDestroy();
             break;
         case kEGLWindowDestroy:
@@ -119,27 +117,27 @@ void text_control::HandleMessage(Message *msg) {
             break;
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
+            //清理数据
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            if (obj != nullptr) {
-                auto *textLayer = reinterpret_cast<TextLayer *>(obj);
-                shaderManager_->DrawTextLayer(textLayer);
-            } else {
-                shaderManager_->DrawPreViewTextInfo(current_text_);
+            //绘制层
+            if (!layerMaps.empty()) {
+                for (auto &textInfo : layerMaps) {
+                    TextLayer *pLayer = textInfo.second;
+                    shaderManager_->DrawTextLayer(pLayer);
+                }
             }
 
-            /*if (!ImageLoad::savePng(textInfo->outPath, fontManager_->atlas->width,
-                                    fontManager_->atlas->height, 1,
-                                    fontManager_->atlas->data, 0)) {
-                LOGE("11111", "ERROR: could not write image");
-            }*/
-
-            //textShader_->drawText(fontManager_->atlas->id, pFont, textInfo->text);
-            //freeTypeShader->draw(fontManager_->atlas->id);
+            //绘制内置临时预览层数据
+            if (previewLayer != nullptr)
+                shaderManager_->DrawTextLayer(previewLayer);
 
             if (!core_->SwapBuffers(render_surface_)) {
                 LOGCATE("eglSwapBuffers error: %d", eglGetError())
             }
-            LOGCATI(" leave %s", __func__)
+
+            LOGCATI(" leave kDRAW %s", __func__)
         }
             break;
         default:
@@ -229,8 +227,28 @@ void text_control::ProcessMessage() {
     LOGCATI("leave %s", __func__)
 }
 
-void text_control::OnGlFontDestroy() {
+void text_control::OnGlResourcesDestroy() {
     LOGCATI("enter %s", __func__)
+
+    if (previewLayer != nullptr) {
+        delete previewLayer;
+        previewLayer = nullptr;
+    }
+
+    for (auto &textInfo : layerMaps) {
+        delete textInfo.second;
+        textInfo.second = nullptr;
+    }
+
+    layerMaps.clear();
+
+    /*pthread_mutex_lock(&queue_mutex_);
+     for (auto &textInfo : text_layers_) {
+         delete textInfo.second;
+         textInfo.second = nullptr;
+     }
+     text_layers_.clear();
+     pthread_mutex_unlock(&queue_mutex_);*/
 
     if (shaderManager_ != nullptr) {
         delete shaderManager_;
@@ -240,42 +258,31 @@ void text_control::OnGlFontDestroy() {
     LOGCATI("leave %s", __func__)
 }
 
-void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *outPath,
-                                  bool isHorizontal, int spacing,
-                                  int lineSpacing, int fontSize, int fontColor, float distanceMark,
-                                  float outLineDistanceMark, int outLineColor, float shadowDistance,
-                                  float shadowAlpha,
-                                  int shadowColor, int shadowAngle) {
+void text_control::UpdatePreViewTextInfo(const char *ttfPath, const char *text,
+                                         bool isHorizontal, int spacing,
+                                         int lineSpacing, int fontSize, int fontColor,
+                                         float distanceMark,
+                                         float outLineDistanceMark, int outLineColor,
+                                         float shadowDistance,
+                                         float shadowAlpha,
+                                         int shadowColor, int shadowAngle) {
     LOGCATI("enter %s", __func__)
+    TextInfo *current_text_;
 
-    if (current_text_ == nullptr) {
+    if (previewLayer == nullptr) {
+        previewLayer = new TextLayer();
         current_text_ = new TextInfo();
+        previewLayer->text_deque.push_back(current_text_);
     }
+    current_text_ = previewLayer->text_deque[0];
+
     if (ttfPath != nullptr) {
-        /*if (current_text_->ttf_file != nullptr) {
-            delete []current_text_->ttf_file;
-            current_text_->ttf_file = nullptr;
-        }*/
         current_text_->ttf_file = ttfPath;
     }
     if (text != nullptr) {
-        /*if (current_text_->text != nullptr) {
-            delete []current_text_->text;
-            current_text_->text = nullptr;
-        }*/
         current_text_->text = text;
     }
 
-    if (outPath != nullptr) {
-        if (current_text_->outPath != nullptr) {
-            delete[]current_text_->outPath;
-            current_text_->outPath = nullptr;
-        }
-        current_text_->outPath = outPath;
-    }
-
-    current_text_->surfaceWidth = 100;
-    current_text_->surfaceHeight = 100;
     current_text_->isHorizontal = isHorizontal;
     current_text_->spacing = spacing;
     current_text_->lineSpacing = lineSpacing;
@@ -292,20 +299,247 @@ void text_control::ConfigTextInfo(const char *ttfPath, const char *text, char *o
     LOGCATI("leave %s", __func__)
 }
 
-void text_control::DrawPreView() {
-    if (current_text_ == nullptr) return;
+void text_control::Display() {
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;
-    message->obj = nullptr;
     PostMessage(message);
 }
 
-void text_control::DrawLayer(TextLayer *textLayer) {
-    auto message = buffer_pool_->GetBuffer<Message>();
-    message->what = kDRAW;
-    message->obj = textLayer;
-    PostMessage(message);
+int text_control::AddThePreviewLayer2Map() {
+    if (previewLayer == nullptr || previewLayer->textureId == 0 ||
+        previewLayer->text_deque.empty()) {
+        return -1;
+    }
+    TextInfo *&pInfo = previewLayer->text_deque[0];
+    int layerID = AddTextLayer(pInfo->ttf_file.c_str(), pInfo->text.c_str(), pInfo->isHorizontal,
+                               pInfo->spacing,
+                               pInfo->lineSpacing, pInfo->fontSize,
+                               pInfo->fontColor, pInfo->distanceMark, pInfo->outlineDistanceMark,
+                               pInfo->outLineColor, pInfo->shadowDistance, pInfo->shadowAlpha,
+                               pInfo->shadowColor,
+                               pInfo->shadowAngle);
+
+    layerMaps[layerID]->textureId = previewLayer->textureId;
+    layerMaps[layerID]->frameBuffer = previewLayer->frameBuffer;
+
+    previewLayer->frameBuffer = 0;
+    previewLayer->textureId = 0;
+
+    return layerID;
 }
+
+int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFolder) {
+    std::string layerJson(cLayerJson);
+    std::string fontFolder(cFontFolder);
+
+
+    char *config_buffer = nullptr;
+
+    int ret = ReadFile(layerJson, &config_buffer);
+    if (ret != 0 || config_buffer == nullptr) {
+        LOGCATE("read info sticker config error: %d", ret);
+        return -2;
+    }
+
+    cJSON *pJson = cJSON_Parse(config_buffer);
+    delete config_buffer;
+
+    if (nullptr == pJson) {
+        LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
+        return -3;
+    }
+
+
+    cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
+
+    if (nullptr != layers) {
+        selfIncreasingId++;
+        auto *textLayer = new TextLayer();
+        textLayer->id = selfIncreasingId;
+
+        int filter_size = cJSON_GetArraySize(layers);
+        for (int i = 0; i < filter_size; i++) {
+            cJSON *filter_child = cJSON_GetArrayItem(layers, i);
+            cJSON *font_json = cJSON_GetObjectItem(filter_child, "font");
+            cJSON *size_id_json = cJSON_GetObjectItem(filter_child, "size");
+            cJSON *offset_x_json = cJSON_GetObjectItem(filter_child, "offset_x");
+            cJSON *offset_y_json = cJSON_GetObjectItem(filter_child, "offset_y");
+
+            char *ptr;
+            auto *textInfo = new TextInfo();
+            textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
+            textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
+            textInfo->isFromTemplate = true;
+            textInfo->offset_x = strtol(offset_x_json->valuestring, &ptr, 10);
+            textInfo->offset_y = strtol(offset_y_json->valuestring, &ptr, 10);
+            cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
+            if (text_child != nullptr) {
+                cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
+                textInfo->text = text_->valuestring;
+            }
+
+
+            textLayer->text_deque.push_back(textInfo);
+        }
+
+        std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+
+        layerMaps.insert(stl);
+
+        cJSON_Delete(pJson);
+        return selfIncreasingId;
+    }
+    return -1;
+}
+
+int text_control::ReadFile(const std::string &path, char **buffer) {
+    FILE *file = fopen(path.c_str(), "r");
+    printf("path: %s\n", path.c_str());
+    if (file == nullptr) {
+        return -1;
+    }
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    rewind(file);
+    char *data = new char[sizeof(char) * file_size + 1];
+    /* if (nullptr == data) {
+         fclose(file);
+         return -2;
+     }*/
+    memset(data, 0, sizeof(char) * file_size);
+    data[file_size] = '\0';
+    size_t read_size = fread(data, 1, file_size, file);
+    if (read_size != file_size) {
+        fclose(file);
+        delete[] data;
+        return -3;
+    }
+    fclose(file);
+    printf("%s\n", data);
+    *buffer = data;
+    return 0;
+}
+
+int
+text_control::AddTextLayer(const char *ttfPath, const char *text, bool isHorizontal, int spacing,
+                           int lineSpacing, int fontSize, int fontColor, float distanceMark,
+                           float outLineDistanceMark, int outLineColor, float shadowDistance,
+                           float shadowAlpha, int shadowColor, int shadowAngle) {
+    selfIncreasingId++;
+    auto *textLayer = new TextLayer();
+    textLayer->id = selfIncreasingId;
+    auto *textInfo = new TextInfo();
+    textInfo->ttf_file = ttfPath;
+    textInfo->text = text;
+    textInfo->isHorizontal = isHorizontal;
+    textInfo->spacing = spacing;
+    textInfo->lineSpacing = lineSpacing;
+    textInfo->fontSize = fontSize;
+    textInfo->fontColor = fontColor;
+    textInfo->distanceMark = distanceMark;
+    textInfo->outlineDistanceMark = outLineDistanceMark;
+    textInfo->outLineColor = outLineColor;
+    textInfo->shadowDistance = shadowDistance;
+    textInfo->shadowAlpha = shadowAlpha;
+    textInfo->shadowColor = shadowColor;
+    textInfo->shadowAngle = shadowAngle;
+
+    //层添加关系
+    textLayer->text_deque.push_back(textInfo);
+
+    //添加对应关系
+    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    layerMaps.insert(stl);
+    return selfIncreasingId;
+}
+
+int text_control::AddThePreviewLayer2MapByJson() {
+    if (previewLayer == nullptr || previewLayer->textureId == 0 ||
+        previewLayer->text_deque.empty()) {
+        return -1;
+    }
+
+    selfIncreasingId++;
+
+    auto *textLayer = new TextLayer();
+    textLayer->id = selfIncreasingId;
+    textLayer->textureId = previewLayer->textureId;
+    textLayer->frameBuffer = previewLayer->frameBuffer;
+    textLayer->text_deque = previewLayer->text_deque;
+
+
+    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    layerMaps.insert(stl);
+    previewLayer->id = -1;
+    previewLayer->frameBuffer = 0;
+    previewLayer->textureId = 0;
+    for (auto text:previewLayer->text_deque) {
+        delete text;
+    }
+    previewLayer->text_deque.clear();
+
+    return selfIncreasingId;
+}
+
+int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontFolder) {
+    std::string layerJson(cLayerJson);
+    std::string fontFolder(cFontFolder);
+
+    char *config_buffer = nullptr;
+
+    int ret = ReadFile(layerJson, &config_buffer);
+    if (ret != 0 || config_buffer == nullptr) {
+        LOGCATE("read info sticker config error: %d", ret);
+        return -2;
+    }
+
+    cJSON *pJson = cJSON_Parse(config_buffer);
+    delete config_buffer;
+
+    if (nullptr == pJson) {
+        LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
+        return -3;
+    }
+
+    cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
+
+    if (nullptr != layers) {
+        if (previewLayer == nullptr) {
+            previewLayer = new TextLayer();
+        }
+        previewLayer->text_deque.clear();
+
+        int filter_size = cJSON_GetArraySize(layers);
+        for (int i = 0; i < filter_size; i++) {
+            cJSON *filter_child = cJSON_GetArrayItem(layers, i);
+            cJSON *font_json = cJSON_GetObjectItem(filter_child, "font");
+            cJSON *size_id_json = cJSON_GetObjectItem(filter_child, "size");
+            cJSON *offset_x_json = cJSON_GetObjectItem(filter_child, "offset_x");
+            cJSON *offset_y_json = cJSON_GetObjectItem(filter_child, "offset_y");
+
+            char *ptr;
+            auto *textInfo = new TextInfo();
+            textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
+            textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
+            textInfo->isFromTemplate = true;
+            textInfo->offset_x = (float) strtol(offset_x_json->valuestring, &ptr, 10);
+            textInfo->offset_y = (float) strtol(offset_y_json->valuestring, &ptr, 10);
+            cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
+            if (text_child != nullptr) {
+                cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
+                textInfo->text = text_->valuestring;
+            }
+
+
+            previewLayer->text_deque.push_back(textInfo);
+        }
+
+        cJSON_Delete(pJson);
+    }
+    return 0;
+}
+
+
 
 
 

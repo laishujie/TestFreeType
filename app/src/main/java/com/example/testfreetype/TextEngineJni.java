@@ -60,8 +60,13 @@ public class TextEngineJni {
 
     //测试的玩意
     public static native void textEngineDrawPreView(long handler, TextInfo textInfo);
+    public static native void textEngineDrawPreViewByJson(long handler, String json, String fontFolder);
 
     public static native void testLayer(long handler, String json, String fontFolder);
 
     public static native int addTextLayer(long handle, TextLayer textLayer);
+
+    public static native int AddThePreviewLayer2Map(long handle);
+    public static native int AddThePreviewLayerByJson2Map(long handle);
+
 }

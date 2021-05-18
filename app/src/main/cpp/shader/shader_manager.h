@@ -7,6 +7,7 @@
 
 
 #include <font-manager.h>
+#include <map>
 #include "text_shader.h"
 #include "out_shader.h"
 #include "fbo_util.h"
@@ -19,17 +20,10 @@ private:
     TextShader *textShader_;
     OutShader *outShader_;
     FreeTypeShader *freeTypeShader;
-    TextLayer *previewLayer_;
     ftgl::font_manager_t *fontManager_;
 
 public:
     int DrawTextLayer(TextLayer *textLayer);
-
-    /**
-     * 绘制预览textInfo
-     * @param textInfo
-     */
-    void DrawPreViewTextInfo(TextInfo *textInfo);
 
     void InitShader(int width, int height);
 

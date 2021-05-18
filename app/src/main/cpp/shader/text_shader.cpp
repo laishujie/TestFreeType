@@ -39,6 +39,9 @@ void TextShader::Init() {
             "void main(){"
             "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
             "vec4 col = texture(textureMap,uv); \n"
+            /*"vec3 glyph_color = vec3(0.8,_FontColor.g,_FontColor.b);"
+            "vec4 sampled = vec4(1.0, 1.0, 1.0, col.r);"
+            "fragColor = vec4(glyph_color, 1.0) * sampled;"*/
             "float dist  = col.r;\n"
             "float width = fwidth(dist);\n"
             "float outline_center = 0.5;"
@@ -49,7 +52,7 @@ void TextShader::Init() {
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
             "float finalA = max(alpha,mu);"
-            /* "if(finalA==0.){"
+             /*"if(finalA==0.){"
              " fragColor = vec4(0.,0.,1., 1.);"
              "}else{"
              "fragColor = vec4(rgb, finalA);"
@@ -107,7 +110,7 @@ PointF normalizePoint(float x, float y, int width, int height) {
 
 
 void TextShader::DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo) {
-    DrawShadowText(textInfo, font);
+   // DrawShadowText(textInfo, font);
     DrawStrokeNormalText(textInfo, font);
 }
 
