@@ -21,7 +21,12 @@ class text_control : public Handler {
     MessageQueue *message_queue_;
     pthread_t message_queue_thread_;
     ShaderManager *shaderManager_;
+    //普通文字预览层
     TextLayer *previewLayer;
+    //模版预览层
+    TextLayer *previewTemplateLayer;
+
+
     std::map<int, TextLayer *> layerMaps;
     int selfIncreasingId;
 public:

@@ -25,7 +25,8 @@ object FragmentHelp {
     fun showTemplateFragment(
         activity: AppCompatActivity,
         contextId: Int,
-        selectCallBack: (path: String) -> Unit
+        selectCallBack: (path: String) -> Unit,
+        selectOkBack: () -> Unit
     ) {
         val tag = "TemplateFragment"
         var findFragmentByTag =
@@ -33,6 +34,7 @@ object FragmentHelp {
         if (findFragmentByTag == null) {
             findFragmentByTag = TemplateFragment()
             findFragmentByTag.selectCallBack = selectCallBack
+            findFragmentByTag.selectOk = selectOkBack;
             activity.supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide)
                 .add(contextId, findFragmentByTag, tag)

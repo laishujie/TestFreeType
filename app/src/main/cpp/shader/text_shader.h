@@ -9,7 +9,7 @@
 #include "shader_base.h"
 #include <ctype.h>
 #include "text_bean.h"
-
+#include "math.h"
 class TextShader {
 private:
     int DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font);

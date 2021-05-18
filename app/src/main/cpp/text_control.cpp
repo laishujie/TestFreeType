@@ -24,7 +24,8 @@ text_control::text_control() : Handler(),
                                surface_height_(0),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
-                               previewLayer(nullptr), layerMaps(), selfIncreasingId(0) {
+                               previewLayer(nullptr), previewTemplateLayer(nullptr), layerMaps(),
+                               selfIncreasingId(0) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -273,7 +274,21 @@ void text_control::UpdatePreViewTextInfo(const char *ttfPath, const char *text,
         previewLayer = new TextLayer();
         current_text_ = new TextInfo();
         previewLayer->text_deque.push_back(current_text_);
+    } else {
+        if (previewLayer->isTemplate) {
+            if (!previewLayer->text_deque.empty()) {
+                for (auto textInfo:previewLayer->text_deque) {
+                    delete textInfo;
+                }
+            }
+            previewLayer->text_deque.clear();
+
+            current_text_ = new TextInfo();
+            previewLayer->text_deque.push_back(current_text_);
+            previewLayer->isTemplate = false;
+        }
     }
+    //TODO 有风险
     current_text_ = previewLayer->text_deque[0];
 
     if (ttfPath != nullptr) {
@@ -465,7 +480,7 @@ int text_control::AddThePreviewLayer2MapByJson() {
     textLayer->id = selfIncreasingId;
     textLayer->textureId = previewLayer->textureId;
     textLayer->frameBuffer = previewLayer->frameBuffer;
-    textLayer->text_deque = previewLayer->text_deque;
+    textLayer->text_deque.swap(previewLayer->text_deque);
 
 
     std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
@@ -473,10 +488,10 @@ int text_control::AddThePreviewLayer2MapByJson() {
     previewLayer->id = -1;
     previewLayer->frameBuffer = 0;
     previewLayer->textureId = 0;
-    for (auto text:previewLayer->text_deque) {
-        delete text;
-    }
-    previewLayer->text_deque.clear();
+    /* for (auto text:previewLayer->text_deque) {
+         delete text;
+     }*/
+    //previewLayer->text_deque.clear();
 
     return selfIncreasingId;
 }
@@ -506,8 +521,16 @@ int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontF
     if (nullptr != layers) {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
+        } else {
+            if (!previewLayer->isTemplate && !previewLayer->text_deque.empty()) {
+                for (auto textInfo:previewLayer->text_deque) {
+                    delete textInfo;
+                }
+                previewLayer->text_deque.clear();
+            }
         }
-        previewLayer->text_deque.clear();
+        previewLayer->isTemplate = true;
+
 
         int filter_size = cJSON_GetArraySize(layers);
         for (int i = 0; i < filter_size; i++) {

@@ -65,7 +65,7 @@ typedef struct {
 
 class TextLayer {
 public:
-    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque() {}
+    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
                                          textureId(fboInfo.frameBuffer), text_deque() {}
@@ -74,6 +74,7 @@ public:
     std::deque<TextInfo *> text_deque;
     GLuint textureId;
     GLuint frameBuffer;
+    bool isTemplate;
     int id;
 
     ~TextLayer() {

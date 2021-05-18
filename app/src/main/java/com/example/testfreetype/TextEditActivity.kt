@@ -86,6 +86,8 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         viewBinding.tvTemplate.setOnClickListener {
             FragmentHelp.showTemplateFragment(this, R.id.frame_menu, selectCallBack = { path ->
                 editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
+            }, selectOkBack = {
+                editSurfaceManager.addThePreviewLayerByJson2Map()
             })
         }
 

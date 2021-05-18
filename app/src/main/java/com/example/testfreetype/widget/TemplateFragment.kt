@@ -2,7 +2,9 @@ package com.example.testfreetype.widget
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.testfreetype.R
@@ -47,6 +49,34 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
         viewBinding.rvList.adapter = imgAdapter
         viewBinding.ivYes.setOnClickListener {
             selectOk?.invoke()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide).hide(this)
+                .commitAllowingStateLoss();
         }
+
+        addOnBackPressed(this) {
+
+            return@addOnBackPressed false
+        }
+
     }
+
+    fun addOnBackPressed(
+        owner: LifecycleOwner,
+        onBackPressed: () -> Boolean
+    ): OnBackPressedCallback {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!onBackPressed()) {
+                    isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(owner, callback)
+        return callback
+    }
+
+
 }
