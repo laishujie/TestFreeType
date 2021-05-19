@@ -4,6 +4,7 @@
 
 #include "shader_manager.h"
 #include "logUtil.h"
+
 /*
 #include "ImageLoad.h"
 #include "string"
@@ -132,6 +133,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    textLayer->textArea.reset();
 
     for (auto textInfo:textLayer->text_deque) {
         const char *textChart = textInfo->text.c_str();
@@ -153,6 +155,16 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
         //绘制文字
         textShader_->DrawTextInfo(pFont, textInfo);
+        //计算最大文字边框
+        if (textLayer->textArea.getWidth() == 0.f) {
+            textLayer->textArea = textInfo->area;
+        } else {
+            textLayer->textArea.left = std::min(textLayer->textArea.left, textInfo->area.left);
+            textLayer->textArea.right = std::max(textLayer->textArea.right, textInfo->area.right);
+            textLayer->textArea.top = std::min(textLayer->textArea.top, textInfo->area.top);
+            textLayer->textArea.bottom = std::max(textLayer->textArea.bottom,
+                                                  textInfo->area.bottom);
+        }
     }
 
 

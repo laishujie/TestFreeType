@@ -20,6 +20,7 @@ import com.example.testfreetype.R
 import com.example.testfreetype.adapter.TextFontAdapter
 import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.util.AssetsUtil
+import com.example.testfreetype.util.FragmentHelp
 import com.example.testfreetype.util.StorageHelper
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -68,7 +69,7 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
         fun changeLineWordSpacing(spacing: Int)
         fun changeFont(fontPath: String)
         fun changeFontSize(pixie: Int)
-        fun changeFontColor(color: Int);
+        fun changeFontColor(color: Int)
         fun changeDistance(distanceMark: Float)
         fun changeOutlineDistanceMark(outLineDistanceMark: Float)
         fun changeOutlineColor(color: Int)
@@ -325,10 +326,10 @@ class TextStyleBottomSheetFragment : BottomSheetDialogFragment() {
             styleCallBack?.onCreateLayer()
         }
 
-
         val rvFontList = view.findViewById<RecyclerView>(R.id.rv_font_list)
         rvFontList.layoutManager = GridLayoutManager(this.context, 4)
         rvFontList.adapter = textFontAdapter
     }
+
 
 }

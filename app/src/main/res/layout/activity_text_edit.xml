@@ -12,13 +12,6 @@
         app:layout_constraintDimensionRatio="4:4.4"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="98dp"
-        android:background="@color/font_red"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/surface_view"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_test"

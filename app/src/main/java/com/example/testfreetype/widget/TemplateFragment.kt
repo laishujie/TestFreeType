@@ -1,10 +1,9 @@
 package com.example.testfreetype.widget
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.testfreetype.R
@@ -12,6 +11,7 @@ import com.example.testfreetype.adapter.TmpAdapter
 import com.example.testfreetype.bean.ImgItem
 import com.example.testfreetype.databinding.FragmentTemplateBinding
 import com.example.testfreetype.util.AssetsUtil
+import com.example.testfreetype.util.FragmentHelp
 import com.example.testfreetype.util.PathHelp
 import java.io.File
 
@@ -51,31 +51,15 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
             selectOk?.invoke()
             requireActivity().supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide).hide(this)
-                .commitAllowingStateLoss();
+                .commitAllowingStateLoss()
         }
 
-        addOnBackPressed(this) {
+        FragmentHelp.addOnBackPressed(this, this) {
+            if(FragmentHelp.isFragmentShowing(this))
+            FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
 
-            return@addOnBackPressed false
+            return@addOnBackPressed true
         }
-
-    }
-
-    fun addOnBackPressed(
-        owner: LifecycleOwner,
-        onBackPressed: () -> Boolean
-    ): OnBackPressedCallback {
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (!onBackPressed()) {
-                    isEnabled = false
-                    requireActivity().onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
-                }
-            }
-        }
-        requireActivity().onBackPressedDispatcher.addCallback(owner, callback)
-        return callback
     }
 
 

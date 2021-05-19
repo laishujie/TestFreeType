@@ -12,8 +12,7 @@ enum RenderMessage {
     kEGLDestroy,
     kEGLWindowCreate,
     kEGLWindowDestroy,
-    kDRAW,
-    kDisplay
+    kDRAW
 };
 
 
@@ -133,6 +132,10 @@ void text_control::HandleMessage(Message *msg) {
             //绘制内置临时预览层数据
             if (previewLayer != nullptr)
                 shaderManager_->DrawTextLayer(previewLayer);
+
+
+            //获取信息
+
 
             if (!core_->SwapBuffers(render_surface_)) {
                 LOGCATE("eglSwapBuffers error: %d", eglGetError())
@@ -269,25 +272,8 @@ void text_control::UpdatePreViewTextInfo(const char *ttfPath, const char *text,
                                          int shadowColor, int shadowAngle) {
     LOGCATI("enter %s", __func__)
     TextInfo *current_text_;
-
-    if (previewLayer == nullptr) {
-        previewLayer = new TextLayer();
-        current_text_ = new TextInfo();
-        previewLayer->text_deque.push_back(current_text_);
-    } else {
-        if (previewLayer->isTemplate) {
-            if (!previewLayer->text_deque.empty()) {
-                for (auto textInfo:previewLayer->text_deque) {
-                    delete textInfo;
-                }
-            }
-            previewLayer->text_deque.clear();
-
-            current_text_ = new TextInfo();
-            previewLayer->text_deque.push_back(current_text_);
-            previewLayer->isTemplate = false;
-        }
-    }
+    //重置层信息
+    RestoreTmpLayer(false);
     //TODO 有风险
     current_text_ = previewLayer->text_deque[0];
 
@@ -312,6 +298,68 @@ void text_control::UpdatePreViewTextInfo(const char *ttfPath, const char *text,
     current_text_->shadowAngle = shadowAngle;
 
     LOGCATI("leave %s", __func__)
+}
+
+int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontFolder) {
+    std::string layerJson(cLayerJson);
+    std::string fontFolder(cFontFolder);
+
+    char *config_buffer = nullptr;
+
+    int ret = ReadFile(layerJson, &config_buffer);
+    if (ret != 0 || config_buffer == nullptr) {
+        LOGCATE("read info sticker config error: %d", ret);
+        return -2;
+    }
+
+    cJSON *pJson = cJSON_Parse(config_buffer);
+    delete config_buffer;
+
+    if (nullptr == pJson) {
+        LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
+        return -3;
+    }
+
+    cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
+
+    if (nullptr != layers) {
+        //重置预览的层信息
+        RestoreTmpLayer(true);
+
+        int filter_size = cJSON_GetArraySize(layers);
+        for (int i = 0; i < filter_size; i++) {
+            cJSON *filter_child = cJSON_GetArrayItem(layers, i);
+            cJSON *font_json = cJSON_GetObjectItem(filter_child, "font");
+            cJSON *size_id_json = cJSON_GetObjectItem(filter_child, "size");
+            cJSON *offset_x_json = cJSON_GetObjectItem(filter_child, "offset_x");
+            cJSON *offset_y_json = cJSON_GetObjectItem(filter_child, "offset_y");
+            cJSON *font_color_json = cJSON_GetObjectItem(filter_child, "color");
+
+            char *ptr;
+            auto *textInfo = new TextInfo();
+            textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
+            textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
+            textInfo->isFromTemplate = true;
+            textInfo->offset_x = (float) strtol(offset_x_json->valuestring, &ptr, 10);
+            textInfo->offset_y = (float) strtol(offset_y_json->valuestring, &ptr, 10);
+
+            // unsigned long i1 = strtoul(font_color_json->valuestring, &ptr, 16);
+            textInfo->fontColor = (int)strtoul(font_color_json->valuestring, &ptr, 16);
+
+
+            cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
+            if (text_child != nullptr) {
+                cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
+                textInfo->text = text_->valuestring;
+            }
+
+
+            previewLayer->text_deque.push_back(textInfo);
+        }
+
+        cJSON_Delete(pJson);
+    }
+    return 0;
 }
 
 void text_control::Display() {
@@ -387,6 +435,7 @@ int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFo
             textInfo->isFromTemplate = true;
             textInfo->offset_x = strtol(offset_x_json->valuestring, &ptr, 10);
             textInfo->offset_y = strtol(offset_y_json->valuestring, &ptr, 10);
+
             cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
             if (text_child != nullptr) {
                 cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
@@ -496,33 +545,14 @@ int text_control::AddThePreviewLayer2MapByJson() {
     return selfIncreasingId;
 }
 
-int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontFolder) {
-    std::string layerJson(cLayerJson);
-    std::string fontFolder(cFontFolder);
 
-    char *config_buffer = nullptr;
 
-    int ret = ReadFile(layerJson, &config_buffer);
-    if (ret != 0 || config_buffer == nullptr) {
-        LOGCATE("read info sticker config error: %d", ret);
-        return -2;
-    }
-
-    cJSON *pJson = cJSON_Parse(config_buffer);
-    delete config_buffer;
-
-    if (nullptr == pJson) {
-        LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
-        return -3;
-    }
-
-    cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
-
-    if (nullptr != layers) {
+int text_control::RestoreTmpLayer(bool isFromTemplate) {
+    if (isFromTemplate) {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
         } else {
-            if (!previewLayer->isTemplate && !previewLayer->text_deque.empty()) {
+            if (!previewLayer->text_deque.empty()) {
                 for (auto textInfo:previewLayer->text_deque) {
                     delete textInfo;
                 }
@@ -530,34 +560,26 @@ int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontF
             }
         }
         previewLayer->isTemplate = true;
-
-
-        int filter_size = cJSON_GetArraySize(layers);
-        for (int i = 0; i < filter_size; i++) {
-            cJSON *filter_child = cJSON_GetArrayItem(layers, i);
-            cJSON *font_json = cJSON_GetObjectItem(filter_child, "font");
-            cJSON *size_id_json = cJSON_GetObjectItem(filter_child, "size");
-            cJSON *offset_x_json = cJSON_GetObjectItem(filter_child, "offset_x");
-            cJSON *offset_y_json = cJSON_GetObjectItem(filter_child, "offset_y");
-
-            char *ptr;
-            auto *textInfo = new TextInfo();
-            textInfo->ttf_file = fontFolder + "/" + font_json->valuestring;
-            textInfo->fontSize = strtol(size_id_json->valuestring, &ptr, 10);
-            textInfo->isFromTemplate = true;
-            textInfo->offset_x = (float) strtol(offset_x_json->valuestring, &ptr, 10);
-            textInfo->offset_y = (float) strtol(offset_y_json->valuestring, &ptr, 10);
-            cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
-            if (text_child != nullptr) {
-                cJSON *text_ = cJSON_GetArrayItem(text_child, 0);
-                textInfo->text = text_->valuestring;
+    } else {
+        if (previewLayer == nullptr) {
+            previewLayer = new TextLayer();
+            previewLayer->text_deque.push_back(new TextInfo());
+        } else {
+            //如果上次是模板预览
+            if (previewLayer->isTemplate) {
+                //清空上次选择的数据
+                if (!previewLayer->text_deque.empty()) {
+                    for (auto textInfo:previewLayer->text_deque) {
+                        delete textInfo;
+                    }
+                }
+                //清空
+                previewLayer->text_deque.clear();
+                //添加模板信息
+                previewLayer->text_deque.push_back(new TextInfo());
             }
-
-
-            previewLayer->text_deque.push_back(textInfo);
+            previewLayer->isTemplate = false;
         }
-
-        cJSON_Delete(pJson);
     }
     return 0;
 }

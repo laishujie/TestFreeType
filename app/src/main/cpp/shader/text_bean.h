@@ -9,8 +9,28 @@
 #include <string>
 #include <deque>
 
-class TextInfo {
+struct PointF {
+    float x;
+    float y;
+};
 
+class TextArea {
+public:
+    float left, top, right, bottom;
+
+    float getWidth() {
+        return right - left;
+    }
+
+    void reset(){
+        left =0.f;
+        top =0.f;
+        right =0.f;
+        bottom =0.f;
+    }
+};
+
+class TextInfo {
 public:
     std::string ttf_file;
     std::string text;
@@ -33,8 +53,9 @@ public:
     bool isFromTemplate;
     float textWidth;
     float textHeight;
+    TextArea area;
 
-    TextInfo() : ttf_file(), text(), outPath(nullptr),
+    TextInfo() : area(), ttf_file(), text(), outPath(nullptr),
                  surfaceWidth(0), surfaceHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
                  fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
@@ -63,17 +84,19 @@ typedef struct {
     GLuint textureId;
 } FboInfo;
 
+
 class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
-                                         textureId(fboInfo.frameBuffer), text_deque() {}
+                                         textureId(fboInfo.frameBuffer), text_deque(), textArea() {}
 
     //容器信息
     std::deque<TextInfo *> text_deque;
     GLuint textureId;
     GLuint frameBuffer;
+    TextArea textArea;
     bool isTemplate;
     int id;
 

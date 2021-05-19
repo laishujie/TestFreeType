@@ -12,6 +12,11 @@ public class TextEngineJni {
         System.loadLibrary("myTest");
     }
 
+    public interface TextAreaCallBack {
+        void onchangeArea(int layerId, int width, int height);
+    }
+
+
     public static native void test(String sdfPath, String outPath);
 
     public static native long initTextEngine();
@@ -58,8 +63,10 @@ public class TextEngineJni {
 
     public static native void textEngineDraw(long handler, String ttfPath, String text, String outPath);
 
-    //测试的玩意
+    //更新普通预览层
     public static native void textEngineDrawPreView(long handler, TextInfo textInfo);
+
+    //更新json模板预览层
     public static native void textEngineDrawPreViewByJson(long handler, String json, String fontFolder);
 
     public static native void testLayer(long handler, String json, String fontFolder);
@@ -67,6 +74,8 @@ public class TextEngineJni {
     public static native int addTextLayer(long handle, TextLayer textLayer);
 
     public static native int AddThePreviewLayer2Map(long handle);
+
     public static native int AddThePreviewLayerByJson2Map(long handle);
+
 
 }

@@ -5,7 +5,6 @@
 #ifndef TESTFREETYPE_SHADER_MANAGER_H
 #define TESTFREETYPE_SHADER_MANAGER_H
 
-
 #include <font-manager.h>
 #include <map>
 #include "text_shader.h"

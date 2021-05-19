@@ -52,11 +52,11 @@ void TextShader::Init() {
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
             "float finalA = max(alpha,mu);"
-             /*"if(finalA==0.){"
-             " fragColor = vec4(0.,0.,1., 1.);"
-             "}else{"
-             "fragColor = vec4(rgb, finalA);"
-             "}"*/
+            /*"if(finalA==0.){"
+            " fragColor = vec4(0.,0.,1., 1.);"
+            "}else{"
+            "fragColor = vec4(rgb, finalA);"
+            "}"*/
             "fragColor = vec4(rgb, finalA);"
             "}";
     char ShadowShaderStr[] = "#version 300 es                              \n"
@@ -91,10 +91,6 @@ void TextShader::OnSurfaceChanged(int width, int height) {
 }
 */
 
-struct PointF {
-    float x;
-    float y;
-};
 
 PointF vertexWithPoint(float x, float y, int width, int height) {
     float openglX = (x / float(width)) * 2.f - 1.f;
@@ -110,7 +106,7 @@ PointF normalizePoint(float x, float y, int width, int height) {
 
 
 void TextShader::DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo) {
-   // DrawShadowText(textInfo, font);
+    DrawShadowText(textInfo, font);
     DrawStrokeNormalText(textInfo, font);
 }
 
@@ -144,19 +140,21 @@ int TextShader::FillVertex(TextInfo *&textInfo,
     std::vector<GLfloat> uvVertex;
     std::vector<unsigned int> indexVertex;
     float initX = 0.;
-    float startX = initX;
+    float xPointer = initX;
     float initY = 0.;
-    float startY = initY;
-    lineSpace = startY;
+    float yPointer = initY;
+    lineSpace = yPointer;
     bool isHorizontal = textInfo->isHorizontal;
     const char *textChart = textInfo->text.c_str();
-    lineSpace = isHorizontal ? startY : startX;
+    lineSpace = isHorizontal ? yPointer : xPointer;
 
     //模板比例
-    // float templateRatioW = 1.f;// float(textInfo->surfaceWidth) / 1920.f;
-    //  float templateRatioH = 1.f; //float(textInfo->surfaceHeight) / 1920.f;
     float templateRatioW = textInfo->isFromTemplate ? float(textInfo->surfaceWidth) / 1920.f : 1.f;
     float templateRatioH = textInfo->isFromTemplate ? float(textInfo->surfaceHeight) / 1920.f : 1.f;
+    float readWidth = textInfo->textWidth * templateRatioW;
+    float readHeight = textInfo->textHeight * templateRatioH;
+
+    textInfo->area.reset();
 
     for (size_t i = 0; i < strlen(textChart); ++i) {
         //获取字形
@@ -164,15 +162,15 @@ int TextShader::FillVertex(TextInfo *&textInfo,
 
         if (pGlyph != nullptr && pGlyph->width != 0) {
             if (isspace(textChart[i]) && !textInfo->isFromTemplate) {
-                isHorizontal ? startX = initX : startY = initY;
+                isHorizontal ? xPointer = initX : yPointer = initY;
                 lineSpace += font->size;
             } else {
-                if (isHorizontal)
-                    startY = lineSpace;
-                else {
+                if (isHorizontal) {
+                    yPointer = lineSpace;
+                } else {
                     float canterX = font->size / 2.f - pGlyph->width / 2.f;
                     //文字居中
-                    startX = lineSpace + canterX;
+                    xPointer = lineSpace + canterX;
                 }
 
                 float kerning = 0.0f;
@@ -195,10 +193,11 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                         pGlyph->s0, pGlyph->t0,
                         pGlyph->s1, pGlyph->t1)
 
-                startX += kerning;
+                xPointer += kerning;
 
-                float x0 = startX + float(pGlyph->offset_x) - float(font->padding);
-                float y0 = startY + font->ascender - float(pGlyph->offset_y) - float(font->padding);
+                float x0 = xPointer + float(pGlyph->offset_x) - float(font->padding);
+                float y0 =
+                        yPointer + font->ascender - float(pGlyph->offset_y) - float(font->padding);
 
                 float x1 = x0 + float(pGlyph->width);
                 float y1 = y0 + float(pGlyph->height);
@@ -213,10 +212,8 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 rightBottom.y *= templateRatioH;
 
                 //平移到中间
-                float centerX = float(textInfo->surfaceWidth) * 0.5f -
-                                float(textInfo->textWidth * templateRatioW) * 0.5f;
-                float centerY = float(textInfo->surfaceHeight) * 0.5f -
-                                float(textInfo->textHeight * templateRatioH) * 0.5f;
+                float centerX = float(textInfo->surfaceWidth) * 0.5f - readWidth * 0.5f;
+                float centerY = float(textInfo->surfaceHeight) * 0.5f - readHeight * 0.5f;
 
                 leftTop.x += centerX;
                 leftTop.y += centerY;
@@ -233,6 +230,11 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 rightBottom.y += offsetY;
                 leftTop.y += offsetY;
 
+                //第一次，记录文本左上角
+                if (i == 0) {
+                    textInfo->area.left = leftTop.x;
+                    textInfo->area.top = leftTop.y;
+                }
 
                 //坐标转换 -1. ~ 1.
                 leftTop = vertexWithPoint(leftTop.x, leftTop.y, textInfo->surfaceWidth,
@@ -293,17 +295,21 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 uvVertex.push_back(uv[7]);
 
                 if (isHorizontal) {
-                    startX += pGlyph->advance_x + float(textInfo->spacing);
+                    xPointer += pGlyph->advance_x + float(textInfo->spacing);
                 } else {
-                    startY += font->size + float(textInfo->lineSpacing);
+                    yPointer += font->size + float(textInfo->lineSpacing);
                 }
             }
         }
     }
+    textInfo->area.bottom = textInfo->area.top + readHeight;
+    textInfo->area.right = textInfo->area.left + readWidth;
 
     glvao->updateVertex2D(textVbo, &vertex[0], vertex.size() / 2, 0);
     glvao->updateVertex2D(uvVbo, &uvVertex[0], uvVertex.size() / 2, 1);
     glvao->updateIndex(&indexVertex[0], indexVertex.size());
+
+
     return indexVertex.size();
 }
 

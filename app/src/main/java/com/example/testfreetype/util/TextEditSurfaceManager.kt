@@ -63,4 +63,7 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
         TextEngineJni.textEngineDrawPreViewByJson(mId, json, fontFolder)
     }
 
+
+
+
 }

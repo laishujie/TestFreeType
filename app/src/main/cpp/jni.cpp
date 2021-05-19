@@ -393,8 +393,8 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreView(JNIEnv *env, j
     jint shadowColor = env->GetIntField(layer, shadowColor_file_id);
     jint shadowAngle = env->GetIntField(layer, shadowAngle_file_id);
 
-    const char *text = env->GetStringUTFChars(j_text, nullptr);
-    const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
+    const char *text = j_text == nullptr ? "" : env->GetStringUTFChars(j_text, nullptr);
+    const char *ttf_path = j_ttf == nullptr ? "" : env->GetStringUTFChars(j_ttf, nullptr);
 
     editor->DrawPreView(ttf_path, text, isHorizontal, spacing, lineSpacing, fontSize,
                         fontColor, distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
@@ -445,6 +445,8 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jclass cla
 
     jfieldID text_info_field = env->GetFieldID(textLayerClazz, "textInfo",
                                                "Lcom/example/testfreetype/bean/TextInfo;");
+
+
     if (text_info_field != nullptr) {
         jobject text_object = env->GetObjectField(text_layer, text_info_field);
         if (text_object != nullptr) {

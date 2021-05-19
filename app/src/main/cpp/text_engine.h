@@ -10,6 +10,7 @@
 #include "text_control.h"
 #include <map>
 
+
 class text_engine {
 
     void OnSurfaceChanged(int width, int height);
@@ -71,13 +72,37 @@ public:
                        float shadowAlpha,
                        int shadowColor, int shadowAngle);
 
-    void DrawPreView(const char *ttfPath, const char *text, bool isHorizontal,
+    /**
+     * 更新普通预览层
+     * @param ttfPath
+     * @param text
+     * @param isHorizontal
+     * @param spacing
+     * @param lineSpacing
+     * @param fontSize
+     * @param fontColor
+     * @param distanceMark
+     * @param outLineDistanceMark
+     * @param outlineColor
+     * @param shadowDistance
+     * @param shadowAlpha
+     * @param shadowColor
+     * @param shadowAngle
+     */
+    void DrawPreView(const char *ttfPath,
+                     const char *text,
+                     bool isHorizontal,
                      int spacing,
                      int lineSpacing,
                      int fontSize, int fontColor, float distanceMark, float outLineDistanceMark,
                      int outlineColor,
                      float shadowDistance, float shadowAlpha, int shadowColor, int shadowAngle);
 
+    /**
+     * 更新模板预览层
+     * @param layerJson
+     * @param fontFolder
+     */
     void DrawPreViewByJson(const char *layerJson, const char *fontFolder);
 
     /**

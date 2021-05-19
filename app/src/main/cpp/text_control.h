@@ -12,6 +12,7 @@
 #include "cJSON.h"
 
 class text_control : public Handler {
+private:
     BufferPool *buffer_pool_;
     ANativeWindow *window_;
     EGLSurface render_surface_;
@@ -29,6 +30,8 @@ class text_control : public Handler {
 
     std::map<int, TextLayer *> layerMaps;
     int selfIncreasingId;
+
+    int RestoreTmpLayer(bool isFromTemplate);
 public:
     static int Init();
 
