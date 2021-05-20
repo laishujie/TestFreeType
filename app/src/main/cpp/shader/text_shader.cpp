@@ -3,8 +3,8 @@
 //
 
 #include "text_shader.h"
-#include "logUtil.h"
-#include "color_util.h"
+#include "../util/logUtil.h"
+#include "../util/color_util.h"
 
 void TextShader::Init() {
     char vShaderStr[] =
@@ -52,12 +52,12 @@ void TextShader::Init() {
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
             "float finalA = max(alpha,mu);"
-            /*"if(finalA==0.){"
+            "if(finalA==0.){"
             " fragColor = vec4(0.,0.,1., 1.);"
             "}else{"
             "fragColor = vec4(rgb, finalA);"
-            "}"*/
-            "fragColor = vec4(rgb, finalA);"
+            "}"
+            //"fragColor = vec4(rgb, finalA);"
             "}";
     char ShadowShaderStr[] = "#version 300 es                              \n"
                              "precision mediump float;                     \n"
@@ -179,7 +179,7 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                     kerning = texture_glyph_get_kerning(pGlyph, textChart + i - 1);
                 }
 
-                LOGCATE("text %c kerning %f i %d textInfo.x %f textInfo.y %ffont->descender= %f font->height %f\n "
+                /*LOGCATE("text %c kerning %f i %d textInfo.x %f textInfo.y %ffont->descender= %f font->height %f\n "
                         "pGlyph->advance_x =%f pGlyph->advance_y =%f \n"
                         "glyph->offset_x =%d glyph->offset_y =%d \n"
                         "glyph->width =%d glyph->height =%d ascender %F\n "
@@ -191,7 +191,7 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                         pGlyph->offset_x, pGlyph->offset_y,
                         pGlyph->width, pGlyph->height, font->ascender,
                         pGlyph->s0, pGlyph->t0,
-                        pGlyph->s1, pGlyph->t1)
+                        pGlyph->s1, pGlyph->t1)*/
 
                 xPointer += kerning;
 
@@ -233,7 +233,8 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 //第一次，记录文本左上角
                 if (i == 0) {
                     textInfo->area.left = leftTop.x;
-                    textInfo->area.top = leftTop.y;
+                    //需要减去文字顶部的距离和文字设置的padding距离
+                    textInfo->area.top = leftTop.y -y0;
                 }
 
                 //坐标转换 -1. ~ 1.

@@ -12,6 +12,14 @@
         app:layout_constraintDimensionRatio="4:4.4"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.example.testfreetype.widget.TextRectManagerView
+        android:id="@+id/text_rect_manager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/surface_view"
+        app:layout_constraintEnd_toEndOf="@id/surface_view"
+        app:layout_constraintStart_toStartOf="@id/surface_view"
+        app:layout_constraintTop_toTopOf="@id/surface_view" />
 
     <TextView
         android:id="@+id/tv_test"

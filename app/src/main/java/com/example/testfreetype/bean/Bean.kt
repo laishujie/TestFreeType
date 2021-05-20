@@ -1,6 +1,7 @@
 package com.example.testfreetype.bean
 
 import android.graphics.Color
+import android.graphics.RectF
 import android.util.SparseArray
 import com.google.gson.annotations.SerializedName
 
@@ -28,7 +29,8 @@ data class TextLayer(
     var layerId: Int = -1,
     var isTemplate: Boolean = false,
     var tempConfigPath: String? = null,
-    var fontFolder: String? = null
+    var fontFolder: String? = null,
+    var rect: RectF = RectF()
 )
 
 data class FontItem(
@@ -54,7 +56,7 @@ object LayerManager {
     var layers = SparseArray<TextLayer>()
 
 
-    fun getPreViewTextInfo(){
+    fun getPreViewTextInfo() {
 
     }
 

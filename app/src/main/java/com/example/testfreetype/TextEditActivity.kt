@@ -2,16 +2,13 @@ package com.example.testfreetype
 
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.databinding.ActivityTextEditBinding
 import com.example.testfreetype.util.*
 import com.example.testfreetype.widget.TemplateFragment
 import com.example.testfreetype.widget.TextStyleFragment
 import java.io.File
-import java.lang.Math.abs
 
 
 class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
@@ -20,12 +17,9 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     private val editSurfaceManager = TextEditSurfaceManager()
 
     //当前预览的textInfo
-    private val textPreView by lazy {
-        TextInfo(-1, "", ttfPath)
-    }
-
-    private val softInputUtil by lazy {
-        SoftInputUtil()
+    private val preViewTextInfo by lazy {
+        //获取内置的普通文本预览层
+        viewBinding.textRectManager.getDefaultPreviewTextInfo()
     }
 
     val ttfPath by lazy {
@@ -88,98 +82,98 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     private val textStyleCallBack = object : TextStyleFragment.OnStyleChange {
         override fun changeText(text: String) {
             editSurfaceManager
-            textPreView.apply {
+            preViewTextInfo.apply {
                 char = text
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeHorizontal(horizontal: Boolean) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.horizontal = horizontal
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeWordSpacing(spacing: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.spacing = spacing
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeLineWordSpacing(spacing: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.lineSpacing = spacing
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeFont(fontPath: String) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.ttfPath = fontPath
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeFontSize(pixie: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.size = if (pixie == 0) 1 else pixie
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeFontColor(color: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.fontColor = color
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeDistance(distanceMark: Float) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.distanceMark = distanceMark
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.outLineDistanceMark = outLineDistanceMark
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeOutlineColor(color: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.outLineColor = color
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeShadowDistance(shadowDistance: Float) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.shadowDistance = shadowDistance
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeShadowAlpha(shadowAlpha: Float) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.shadowAlpha = shadowAlpha
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeShadowColor(shadowColor: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.shadowColor = shadowColor
                 editSurfaceManager.drawPreViewLayer(this)
             }
         }
 
         override fun changeShadowAngle(shadowAngle: Int) {
-            textPreView.apply {
+            preViewTextInfo.apply {
                 this.shadowAngle = shadowAngle
                 editSurfaceManager.drawPreViewLayer(this)
             }
@@ -187,7 +181,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
         override fun onCreateLayer() {
             //TODO 这里应该需要重新复制临时配置
-            textPreView.char = null
+            preViewTextInfo.char = null
             editSurfaceManager.addThePreviewLayer2Map()
 
         }
@@ -225,13 +219,11 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             FragmentHelp.showOrHideFragment(this, templateFragment)
         }
 
-        /*KeyboardUtils.registerSoftInputChangedListener(this) { height ->
-            if (height == 0) {
-                viewBinding.frameMenu.translationY = 0F;
-            } else {
-                viewBinding.frameMenu.translationY =-200f
+        //注册层次移动回调
+        TextEngineHelper.getTextEngine()
+            .registerTextAreaCallBack { layerId, left, top, right, bottom ->
+                viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
             }
-        }*/
     }
 
 

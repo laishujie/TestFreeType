@@ -3,7 +3,6 @@ package com.example.testfreetype.widget
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.widget.SeekBar
 import androidx.fragment.app.Fragment
@@ -15,8 +14,8 @@ import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.databinding.DialogTextBinding
 import com.example.testfreetype.util.AssetsUtil
 import com.example.testfreetype.util.FragmentHelp
-import com.example.testfreetype.util.KeyboardUtils
 import com.example.testfreetype.util.StorageHelper
+import com.example.testfreetype.util.TextEngineHelper
 import java.io.File
 
 class TextStyleFragment : Fragment(R.layout.dialog_text) {
@@ -262,8 +261,12 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
         rvFontList.adapter = textFontAdapter
 
         FragmentHelp.addOnBackPressed(this, this) {
-            if (FragmentHelp.isFragmentShowing(this))
+            if (FragmentHelp.isFragmentShowing(this)) {
                 FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
+                TextEngineHelper.getTextEngine().cleanPreview()
+            }
+
+
             return@addOnBackPressed true
         }
     }

@@ -7,14 +7,13 @@ import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.math.MathUtils.clamp
 import com.example.testfreetype.databinding.ActivityTestFontTextureBinding
+import com.example.testfreetype.util.TextEngineHelper
 import com.example.testfreetype.widget.ColorPickerView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 
 class SdfShaderActivity : AppCompatActivity() {
-
-    private var textEngine = TextEngineJni.TEXT_ENGINE_ID
 
     var stokeColor = Color.BLUE
     var shadowColor = Color.BLUE
@@ -41,8 +40,7 @@ class SdfShaderActivity : AppCompatActivity() {
                 val outLine =
                     0.5f - (binding.ySeekBar.progress.toFloat() / binding.ySeekBar.max) * 0.5f
 
-                TextEngineJni.testSdfShaderOnDraw(
-                    textEngine,
+                TextEngineHelper.getTextEngine().testSdfShaderOnDraw(
                     stokeColor,
                     shadowColor,
                     binding.xSeekBar.progress.toFloat() / binding.xSeekBar.max,
@@ -54,7 +52,7 @@ class SdfShaderActivity : AppCompatActivity() {
             }
 
             override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-                TextEngineJni.testSdfShaderInit(textEngine, path, width, height, null)
+                TextEngineHelper.getTextEngine().testSdfShaderInit(path, width, height, null)
             }
 
             override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {

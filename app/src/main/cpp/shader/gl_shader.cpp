@@ -3,7 +3,7 @@
 //
 
 #include <malloc.h>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 #include "comm_gl.hpp"
 
 GLShader::GLShader(char *shaderStr, GLShaderType type) {

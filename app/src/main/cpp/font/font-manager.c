@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 #include "font-manager.h"
 
 

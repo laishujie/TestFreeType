@@ -32,20 +32,20 @@ void text_engine::OnSurfaceCreated(jobject surface, int width, int height) {
 
     window_ = ANativeWindow_fromSurface(env, surface);
 
-    if (nullptr != player_) {
-        player_->OnSurfaceCreated(window_, width, height);
+    if (nullptr != textControl) {
+        textControl->OnSurfaceCreated(window_, width, height);
     }
 }
 
 void text_engine::OnSurfaceChanged(int width, int height) {
-    if (nullptr != player_) {
-        player_->OnSurfaceChanged(width, height);
+    if (nullptr != textControl) {
+        textControl->OnSurfaceChanged(width, height);
     }
 }
 
 void text_engine::OnSurfaceDestroyed() {
-    if (nullptr != player_) {
-        player_->OnSurfaceDestroy();
+    if (nullptr != textControl) {
+        textControl->OnSurfaceDestroy();
     }
     if (nullptr != window_) {
         ANativeWindow_release(window_);
@@ -54,23 +54,27 @@ void text_engine::OnSurfaceDestroyed() {
 
 }
 
-text_engine::text_engine(JNIEnv *env) : window_(nullptr), vm_(nullptr), queue_mutex_(),
-                                        text_mutex_() {
+text_engine::text_engine(JNIEnv *env, JavaCallHelper *javaCallHelper) : window_(nullptr),
+                                                                        vm_(nullptr),
+                                                                        queue_mutex_(),
+                                                                        text_mutex_(){
     env->GetJavaVM(&vm_);
-    player_ = new text_control();
+    textControl = new text_control();
+    textControl->Init(javaCallHelper);
 }
 
 text_engine::~text_engine() {
     LOGCATI("enter %s", __func__)
 
-    if (nullptr != player_) {
-        delete player_;
-        player_ = nullptr;
+    if (nullptr != textControl) {
+        delete textControl;
+        textControl = nullptr;
     }
     if (window_ != nullptr) {
         ANativeWindow_release(window_);
         window_ = nullptr;
     }
+
 
     /*pthread_mutex_lock(&queue_mutex_);
     for (auto &textInfo : text_layers_) {
@@ -99,14 +103,16 @@ text_engine::DrawPreView(const char *ttfPath, const char *text, bool isHorizonta
                          int outlineColor,
                          float shadowDistance, float shadowAlpha, int shadowColor,
                          int shadowAngle) {
+    LOGCATI("enter %s", __func__)
     //避免出现竞争
     pthread_mutex_lock(&queue_mutex_);
-    player_->UpdatePreViewTextInfo(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
-                                   fontColor,
-                                   distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
-                                   shadowAlpha, shadowColor, shadowAngle);
-    player_->Display();
+    textControl->UpdatePreViewTextInfo(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
+                                       fontColor,
+                                       distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
+                                       shadowAlpha, shadowColor, shadowAngle);
+    textControl->Display();
     pthread_mutex_unlock(&queue_mutex_);
+    LOGCATI("leave %s", __func__)
 }
 
 int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder) {
@@ -114,7 +120,7 @@ int text_engine::AddTextLayer(const char *c_layerJson, const char *c_fontFolder)
     if (c_layerJson == nullptr || c_fontFolder == nullptr) return -1;
 
     pthread_mutex_lock(&text_mutex_);
-    int id = player_->AddTextLayerByJson(c_layerJson, c_fontFolder);
+    int id = textControl->AddTextLayerByJson(c_layerJson, c_fontFolder);
     pthread_mutex_unlock(&text_mutex_);
 
     return id;
@@ -134,11 +140,11 @@ int text_engine::AddTextLayer(const char *ttfPath, const char *text,
 
     pthread_mutex_lock(&text_mutex_);
 
-    int layerId = player_->AddTextLayer(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
-                                        fontColor,
-                                        distanceMark, outLineDistanceMark, outLineColor,
-                                        shadowDistance,
-                                        shadowAlpha, shadowColor, shadowAngle);
+    int layerId = textControl->AddTextLayer(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
+                                            fontColor,
+                                            distanceMark, outLineDistanceMark, outLineColor,
+                                            shadowDistance,
+                                            shadowAlpha, shadowColor, shadowAngle);
     pthread_mutex_unlock(&text_mutex_);
 
 
@@ -170,7 +176,7 @@ int text_engine::UpdateTextInfo(int layerId, const char *ttfPath, const char *te
           textInfo->shadowColor = shadowColor;
           textInfo->shadowAngle = shadowAngle;
 
-          player_->DrawLayer(pLayer);
+          textControl->DrawLayer(pLayer);
       }
 
       pthread_mutex_unlock(&queue_mutex_);*/
@@ -179,26 +185,33 @@ int text_engine::UpdateTextInfo(int layerId, const char *ttfPath, const char *te
 }
 
 void text_engine::Display() {
-    player_->Display();
+    textControl->Display();
 }
 
 int text_engine::AddThePreviewLayer2Map() {
     pthread_mutex_lock(&text_mutex_);
-    int layerId = player_->AddThePreviewLayer2Map();
+    int layerId = textControl->AddThePreviewLayer2Map();
     pthread_mutex_unlock(&text_mutex_);
     return layerId;
 }
 
 void text_engine::DrawPreViewByJson(const char *layerJson, const char *fontFolder) {
     pthread_mutex_lock(&queue_mutex_);
-    player_->UpdatePreViewByJson(layerJson, fontFolder);
-    player_->Display();
+    textControl->UpdatePreViewByJson(layerJson, fontFolder);
+    textControl->Display();
     pthread_mutex_unlock(&queue_mutex_);
 }
 
 int text_engine::AddThePreviewLayer2MapByJson() {
     pthread_mutex_lock(&text_mutex_);
-    int layerId = player_->AddThePreviewLayer2MapByJson();
+    int layerId = textControl->AddThePreviewLayer2MapByJson();
     pthread_mutex_unlock(&text_mutex_);
     return layerId;
 }
+
+void text_engine::CleanPreview() {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->CleanPreview();
+    pthread_mutex_unlock(&queue_mutex_);
+}
+

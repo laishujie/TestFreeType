@@ -3,7 +3,7 @@
 //
 
 #include "shader_manager.h"
-#include "logUtil.h"
+#include "../util/logUtil.h"
 
 /*
 #include "ImageLoad.h"
@@ -95,22 +95,36 @@ ShaderManager::InsetText(TextInfo *&textInfo) const {
         LOGCATI("纹理丢失的数量 %s %d ", text, i)
     } else {
         LOGCATI("纹理成功 %s %d ", text, i)
-        float textWidth = 0;
-        float textHeight;
+        float textWidth = 0.f;
+        float textHeight = 0.f;
 
         size_t len = strlen(text);
+        float xPointer = 0.f;
+        float yPointer = 0.f;
+        float startX = -1.f;
+        float endX = 0.0f;
         //计算文本宽高
         for (size_t j = 0; j < len; ++j) {
             //获取字形
             ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(pFont, text + j);
             if (pGlyph != nullptr && pGlyph->width != 0) {
-                textWidth += pGlyph->advance_x;
+                float x0 = xPointer + float(pGlyph->offset_x) - float(pFont->padding);
+                float y0 = yPointer + pFont->ascender - float(pGlyph->offset_y) -
+                           float(pFont->padding);
+
+                float x1 = x0 + float(pGlyph->width);
+                float y1 = y0 + float(pGlyph->height);
+                if (startX == -1.f) {
+                    startX = x0;
+                }
+                endX = x1;
+                //textHeight = std::max(float(abs(pFont->ascender) + abs(pFont->descender)), y1-y0);
+
+                xPointer += pGlyph->advance_x + float(textInfo->spacing);
             }
         }
-        textHeight = pFont->height;
-        textInfo->textHeight = textHeight;
-        textInfo->textWidth = textWidth;
-        LOGCATE("textInfo->textWidth %f ", textWidth)
+        textInfo->textHeight = abs(pFont->ascender) + abs(pFont->descender);
+        textInfo->textWidth = endX - startX;
     }
 
     LOGCATI("leave %s", __func__)
@@ -170,7 +184,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     fbo_util::UnBindFbo();
 
-    LOGCATE("textLayer->textureId %d ", textLayer->textureId)
+    //LOGCATE("textLayer->textureId %d ", textLayer->textureId)
 
     outShader_->draw(textLayer->textureId);
 

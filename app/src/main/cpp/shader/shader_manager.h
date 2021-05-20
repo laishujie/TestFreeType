@@ -9,7 +9,7 @@
 #include <map>
 #include "text_shader.h"
 #include "out_shader.h"
-#include "fbo_util.h"
+#include "../util/fbo_util.h"
 #include "text_bean.h"
 #include "FreeTypeShader.h"
 

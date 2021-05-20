@@ -27,8 +27,6 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        TextEngineJni.TEXT_ENGINE_ID = TextEngineJni.initTextEngine()
-
 
         binding.btnCreateSdf.setOnClickListener {
             val intent = Intent(this, SdfShaderActivity::class.java)

@@ -19,7 +19,7 @@
 // Created by wlanjie on 2019/4/13.
 //
 
-#include <logUtil.h>
+#include "../util/logUtil.h"
 #include "egl_core.h"
 
 

@@ -13,6 +13,7 @@ import com.example.testfreetype.databinding.FragmentTemplateBinding
 import com.example.testfreetype.util.AssetsUtil
 import com.example.testfreetype.util.FragmentHelp
 import com.example.testfreetype.util.PathHelp
+import com.example.testfreetype.util.TextEngineHelper
 import java.io.File
 
 class TemplateFragment : Fragment(R.layout.fragment_template) {
@@ -55,8 +56,10 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
         }
 
         FragmentHelp.addOnBackPressed(this, this) {
-            if(FragmentHelp.isFragmentShowing(this))
-            FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
+            if(FragmentHelp.isFragmentShowing(this)){
+                FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
+                TextEngineHelper.getTextEngine().cleanPreview();
+            }
 
             return@addOnBackPressed true
         }

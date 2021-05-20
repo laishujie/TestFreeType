@@ -5,12 +5,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityTestTextureBinding
+import com.example.testfreetype.util.TextEngineHelper
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class TextureManagerActivity : AppCompatActivity() {
-
-    var textEngine = TextEngineJni.TEXT_ENGINE_ID
 
     val ttfPath by lazy {
         intent.getStringExtra("path")
@@ -28,11 +27,11 @@ class TextureManagerActivity : AppCompatActivity() {
 
         binding.glSurface.setRenderer(object : GLSurfaceView.Renderer {
             override fun onDrawFrame(gl: GL10?) {
-                TextEngineJni.freeDraw(textEngine)
+                TextEngineHelper.getTextEngine().freeDraw()
             }
 
             override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-                TextEngineJni.testFreeTypeInit(textEngine, ttfPath, width, height)
+                TextEngineHelper.getTextEngine().testFreeTypeInit(ttfPath, width, height)
             }
 
             override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -45,11 +44,12 @@ class TextureManagerActivity : AppCompatActivity() {
         binding.btnTextInfo.setOnClickListener {
             val text = binding.edText.text.toString()
             if (text.isEmpty()) return@setOnClickListener
-            if(text.length>2){
-                Toast.makeText(this,"请输入一个字符",Toast.LENGTH_LONG).show()
+            if (text.length > 2) {
+                Toast.makeText(this, "请输入一个字符", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            binding.tvInfo.text = "\"$text\" 偏移信息: \n      "+TextEngineJni.printTextInfo(textEngine, ttfPath, text)
+            binding.tvInfo.text =
+                "\"$text\" 偏移信息: \n      " + TextEngineHelper.getTextEngine().printTextInfo(ttfPath, text)
         }
 
 
@@ -57,7 +57,7 @@ class TextureManagerActivity : AppCompatActivity() {
             val text = binding.edInset.text.toString()
             if (text.isEmpty()) return@setOnClickListener;
             binding.glSurface.queueEvent {
-                TextEngineJni.insetText(textEngine, ttfPath, text)
+                TextEngineHelper.getTextEngine().insetText(ttfPath, text)
                 binding.glSurface.requestRender()
             }
         }

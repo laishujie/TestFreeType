@@ -2,7 +2,7 @@
 // Created by admin on 2021/5/6.
 //
 
-#include <ImageLoad.h>
+#include "util/ImageLoad.h"
 #include <shader_manager.h>
 #include "text_control.h"
 
@@ -12,7 +12,8 @@ enum RenderMessage {
     kEGLDestroy,
     kEGLWindowCreate,
     kEGLWindowDestroy,
-    kDRAW
+    kDRAW,
+    kPreviewClean
 };
 
 
@@ -24,7 +25,7 @@ text_control::text_control() : Handler(),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
                                previewLayer(nullptr), previewTemplateLayer(nullptr), layerMaps(),
-                               selfIncreasingId(0) {
+                               selfIncreasingId(0), javaCallHelper(nullptr) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -58,6 +59,12 @@ text_control::~text_control() {
         message_queue_ = nullptr;
     }
 
+
+    if (javaCallHelper != nullptr) {
+        delete javaCallHelper;
+        javaCallHelper = nullptr;
+    }
+
     if (nullptr != buffer_pool_) {
         delete buffer_pool_;
         buffer_pool_ = nullptr;
@@ -65,7 +72,8 @@ text_control::~text_control() {
     LOGCATI("leave: %s", __func__)
 }
 
-int text_control::Init() {
+int text_control::Init(JavaCallHelper *callHelper) {
+    text_control::javaCallHelper = callHelper;
     return 0;
 }
 
@@ -130,18 +138,29 @@ void text_control::HandleMessage(Message *msg) {
             }
 
             //绘制内置临时预览层数据
-            if (previewLayer != nullptr)
+            if (previewLayer != nullptr) {
                 shaderManager_->DrawTextLayer(previewLayer);
+                //获取信息
+                if (javaCallHelper != nullptr) {
 
-
-            //获取信息
-
+                    javaCallHelper->onTextAreaChanged(previewLayer->textArea.left,
+                                                      previewLayer->textArea.top,
+                                                      previewLayer->textArea.right,
+                                                      previewLayer->textArea.bottom);
+                }
+            }
 
             if (!core_->SwapBuffers(render_surface_)) {
                 LOGCATE("eglSwapBuffers error: %d", eglGetError())
             }
 
             LOGCATI(" leave kDRAW %s", __func__)
+        }
+            break;
+        case kPreviewClean: {
+            delete previewLayer;
+            previewLayer = nullptr;
+            Display();
         }
             break;
         default:
@@ -344,7 +363,7 @@ int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontF
             textInfo->offset_y = (float) strtol(offset_y_json->valuestring, &ptr, 10);
 
             // unsigned long i1 = strtoul(font_color_json->valuestring, &ptr, 16);
-            textInfo->fontColor = (int)strtoul(font_color_json->valuestring, &ptr, 16);
+            textInfo->fontColor = (int) strtoul(font_color_json->valuestring, &ptr, 16);
 
 
             cJSON *text_child = cJSON_GetObjectItem(filter_child, "wenan");
@@ -546,7 +565,6 @@ int text_control::AddThePreviewLayer2MapByJson() {
 }
 
 
-
 int text_control::RestoreTmpLayer(bool isFromTemplate) {
     if (isFromTemplate) {
         if (previewLayer == nullptr) {
@@ -582,6 +600,12 @@ int text_control::RestoreTmpLayer(bool isFromTemplate) {
         }
     }
     return 0;
+}
+
+void text_control::CleanPreview() {
+    auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kPreviewClean;
+    PostMessage(message);
 }
 
 

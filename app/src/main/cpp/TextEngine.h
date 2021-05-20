@@ -6,12 +6,12 @@
 #define TESTFREETYPE_TEXTENGINE_H
 //
 
-#include <tiny_sdf.h>
+#include "util/tiny_sdf.h"
 #include "texture_image_demo.h"
 #include <android/bitmap.h>
 #include <handler.h>
 #include "FreeTypeShader.h"
-#include "ImageLoad.h"
+#include "util/ImageLoad.h"
 #include "font-manager.h"
 #include "text_shader.h"
 

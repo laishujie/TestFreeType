@@ -16,7 +16,7 @@ class text_engine {
     void OnSurfaceChanged(int width, int height);
 
 public:
-    text_engine(JNIEnv *env);
+    text_engine(JNIEnv *env,JavaCallHelper *javaCallHelper);
 
     /**
      * surfaceView 创建
@@ -121,11 +121,13 @@ public:
 
     int AddThePreviewLayer2MapByJson();
 
+    void CleanPreview();
+
 private:
     ANativeWindow *window_;
     JavaVM *vm_;
     //文本控制器
-    text_control *player_;
+    text_control *textControl;
 
 
     //文本队列互斥量

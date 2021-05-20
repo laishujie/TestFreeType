@@ -5,7 +5,7 @@
 #include "comm_gl.hpp"
 #include <GLES3/gl3.h>
 #include <malloc.h>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 
 GLProgram::GLProgram(char *vertexShaderStr, char *fragmentShaderSrc) {
     program = glCreateProgram();

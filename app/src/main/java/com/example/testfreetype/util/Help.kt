@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.example.testfreetype.R
+import com.example.testfreetype.TextEngineJni
 import com.example.testfreetype.widget.TemplateFragment
 import java.io.File
 
@@ -22,6 +23,23 @@ object PathHelp {
         fontDir.mkdir()
         return fontDir.absolutePath
     }
+}
+
+
+object TextEngineHelper {
+    private val textEngineJni by lazy {
+        TextEngineJni()
+    }
+
+    fun getTextEngine(): TextEngineJni {
+        return textEngineJni
+    }
+
+    fun getTextEngineId(): Long {
+        return textEngineJni.TEXT_ENGINE_ID
+    }
+
+
 }
 
 object FragmentHelp {

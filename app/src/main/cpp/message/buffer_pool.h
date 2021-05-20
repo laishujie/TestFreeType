@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 #include <mutex>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 
 class BufferPool {
  public:

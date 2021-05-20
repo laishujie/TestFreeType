@@ -1,11 +1,11 @@
 #include <jni.h>
 #include "TextEngine.h"
-#include <logUtil.h>
+#include "util/logUtil.h"
 #include <texture-atlas.h>
 
 #include "texture-atlas.h"
 #include "texture-font.h"
-#include "ImageLoad.h"
+#include "util/ImageLoad.h"
 #include "text_engine.h"
 
 #ifdef __cplusplus
@@ -19,11 +19,22 @@ using namespace ftgl;
 // Created by admin on 2021/4/21.
 //
 
+JavaVM *javaVm = nullptr;
+
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env = NULL;
+    if ((vm)->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+    javaVm = vm;
+    return JNI_VERSION_1_6;
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_test(JNIEnv
                                                  *env,
-                                                 jclass clazz,
+                                                 jobject clazz,
                                                  jstring path,
                                                  jstring outPath
 ) {
@@ -57,7 +68,7 @@ Java_com_example_testfreetype_TextEngineJni_test(JNIEnv
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testSDF(JNIEnv *env, jclass clazz, jstring image_file,
+Java_com_example_testfreetype_TextEngineJni_testSDF(JNIEnv *env, jobject clazz, jstring image_file,
                                                     jstring image_out_file,
                                                     jfloat radius, jfloat image_aspect) {
     //tx->createSdfTexture2(env, image_file, image_out_file, radius, image_aspect);
@@ -65,7 +76,7 @@ Java_com_example_testfreetype_TextEngineJni_testSDF(JNIEnv *env, jclass clazz, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testOpengGlSDF(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_testOpengGlSDF(JNIEnv *env, jobject clazz,
                                                            jstring image_file,
                                                            jstring image_out_file, jfloat radius,
                                                            jfloat image_aspect) {
@@ -76,7 +87,7 @@ Java_com_example_testfreetype_TextEngineJni_testOpengGlSDF(JNIEnv *env, jclass c
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testSdfShaderOnDraw(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_testSdfShaderOnDraw(JNIEnv *env, jobject clazz,
                                                                 jlong na, jint stokeColor,
                                                                 jint shadowColor,
                                                                 jfloat distanceMark,
@@ -104,7 +115,7 @@ Java_com_example_testfreetype_TextEngineJni_testSdfShaderOnDraw(JNIEnv *env, jcl
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testSdfShaderInit(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_testSdfShaderInit(JNIEnv *env, jobject clazz,
                                                               jlong text_engine,
                                                               jstring sdf_path, jint s_width,
                                                               jint s_height, jobject bitmap) {
@@ -123,7 +134,7 @@ Java_com_example_testfreetype_TextEngineJni_testSdfShaderInit(JNIEnv *env, jclas
     }
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TypeJni_testSdfChange(JNIEnv *env, jclass clazz, jlong na,
+Java_com_example_testfreetype_TypeJni_testSdfChange(JNIEnv *env, jobject thiz, jlong na,
                                                     jfloat distance_mark) {
     auto *text = reinterpret_cast<TextEngine *>(na);
     float d = abs(sin(distance_mark));
@@ -134,7 +145,7 @@ Java_com_example_testfreetype_TypeJni_testSdfChange(JNIEnv *env, jclass clazz, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testFreeTypeInit(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_testFreeTypeInit(JNIEnv *env, jobject thiz,
                                                              jlong text_engine, jstring ttf_path,
                                                              jint surface_width,
                                                              jint surface_height) {
@@ -181,7 +192,7 @@ Java_com_example_testfreetype_TextEngineJni_testFreeTypeInit(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_freeDraw(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_freeDraw(JNIEnv *env, jobject thiz,
                                                      jlong native_handle) {
     auto *text = reinterpret_cast<TextEngine *>(native_handle);
 
@@ -189,7 +200,7 @@ Java_com_example_testfreetype_TextEngineJni_freeDraw(JNIEnv *env, jclass clazz,
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_insetText(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_insetText(JNIEnv *env, jobject thiz,
                                                       jlong native_handle,
                                                       jstring ttf_path, jstring text) {
     const char *src = env->GetStringUTFChars(ttf_path, nullptr);
@@ -204,12 +215,12 @@ Java_com_example_testfreetype_TextEngineJni_insetText(JNIEnv *env, jclass clazz,
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_com_example_testfreetype_TextEngineJni_initTextEngine(JNIEnv *env, jclass clazz) {
+Java_com_example_testfreetype_TextEngineJni_initTextEngine(JNIEnv *env, jobject thiz) {
     return reinterpret_cast<jlong>(new TextEngine());
 
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_destroy(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_destroy(JNIEnv *env, jobject thiz,
                                                     jlong native_handle) {
 
     auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
@@ -227,7 +238,7 @@ jstring chartoJstring(JNIEnv *env, const char *pat) {
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_example_testfreetype_TextEngineJni_printTextInfo(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_printTextInfo(JNIEnv *env, jobject thiz,
                                                           jlong native_handle, jstring ttf,
                                                           jstring str) {
 
@@ -245,7 +256,7 @@ Java_com_example_testfreetype_TextEngineJni_printTextInfo(JNIEnv *env, jclass cl
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_glInitTextShader(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_glInitTextShader(JNIEnv *env, jobject thiz,
                                                              jlong native_handle,
                                                              jint surface_width,
                                                              jint suface_height) {
@@ -254,7 +265,7 @@ Java_com_example_testfreetype_TextEngineJni_glInitTextShader(JNIEnv *env, jclass
     textEngine->glInitTextShader(surface_width, suface_height);
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jobject thiz,
                                                          jlong native_handle, jstring ttf_path,
                                                          jstring text) {
     auto *textEngine = reinterpret_cast<TextEngine *>(native_handle);
@@ -269,15 +280,15 @@ Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jclass cla
 
 
 JNIEXPORT jlong JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineCreate(JNIEnv *env, jclass clazz) {
-    auto textEngine = new text_engine(env);
+Java_com_example_testfreetype_TextEngineJni_textEngineCreate(JNIEnv *env, jobject thiz) {
+    auto textEngine = new text_engine(env, new JavaCallHelper(javaVm,env,thiz));
     textEngine->Init();
     return reinterpret_cast<jlong>(textEngine);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceCreated(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceCreated(JNIEnv *env, jobject thiz,
                                                                      jlong handler, jobject surface,
                                                                      jint width, jint height) {
     if (handler <= 0) {
@@ -288,7 +299,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceCreated(JNIEnv *env
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceDestroyed(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceDestroyed(JNIEnv *env, jobject thiz,
                                                                        jlong handler) {
     if (handler <= 0) {
         return;
@@ -298,7 +309,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineSurfaceDestroyed(JNIEnv *e
     delete editor;
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineRelease(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineRelease(JNIEnv *env, jobject thiz,
                                                               jlong handler) {
 //    if (handler <= 0) {
 //        return;
@@ -307,7 +318,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineRelease(JNIEnv *env, jclas
 //    delete editor;
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jobject thiz,
                                                            jlong native_handle,
                                                            jstring ttf_path, jstring text,
                                                            jstring outPath) {
@@ -348,7 +359,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jclass c
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreView(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreView(JNIEnv *env, jobject thiz,
                                                                   jlong handler, jobject layer) {
     if (handler <= 0) {
         return;
@@ -408,7 +419,7 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreView(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_testLayer(JNIEnv *env, jclass clazz, jlong handler,
+Java_com_example_testfreetype_TextEngineJni_testLayer(JNIEnv *env, jobject thiz, jlong handler,
                                                       jstring json,
                                                       jstring font_folder) {
     if (handler <= 0) {
@@ -430,7 +441,7 @@ Java_com_example_testfreetype_TextEngineJni_testLayer(JNIEnv *env, jclass clazz,
 
 extern "C"
 JNIEXPORT int JNICALL
-Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jclass clazz, jlong handler,
+Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject thiz, jlong handler,
                                                          jobject text_layer) {
 
     if (handler <= 0) {
@@ -513,7 +524,7 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jclass cla
     return layerId;
 }extern "C"
 JNIEXPORT jint JNICALL
-Java_com_example_testfreetype_TextEngineJni_AddThePreviewLayer2Map(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_addThePreviewLayer2Map(JNIEnv *env, jobject thiz,
                                                                    jlong handle) {
     if (handle <= 0) {
         return -1;
@@ -523,7 +534,7 @@ Java_com_example_testfreetype_TextEngineJni_AddThePreviewLayer2Map(JNIEnv *env, 
     return editor->AddThePreviewLayer2Map();
 }extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreViewByJson(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreViewByJson(JNIEnv *env, jobject thiz,
                                                                         jlong handler, jstring json,
                                                                         jstring font_folder) {
     if (handler <= 0) {
@@ -540,11 +551,20 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDrawPreViewByJson(JNIEnv *
     env->ReleaseStringUTFChars(font_folder, font_folder_);
 }extern "C"
 JNIEXPORT jint JNICALL
-Java_com_example_testfreetype_TextEngineJni_AddThePreviewLayerByJson2Map(JNIEnv *env, jclass clazz,
+Java_com_example_testfreetype_TextEngineJni_addThePreviewLayerByJson2Map(JNIEnv *env, jobject thiz,
                                                                          jlong handle) {
     if (handle <= 0) {
         return -1;
     }
     auto *editor = reinterpret_cast<text_engine *>(handle);
     return editor->AddThePreviewLayer2MapByJson();
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_cleanPreview(JNIEnv *env, jobject thiz, jlong handle) {
+    if (handle <= 0) {
+        return ;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+
+    editor->CleanPreview();
 }

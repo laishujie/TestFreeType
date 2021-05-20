@@ -3,27 +3,21 @@ package com.example.testfreetype.util
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
-import com.example.testfreetype.TextEngineJni
 import com.example.testfreetype.bean.LayerManager
 import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.bean.TextLayer
 
 class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
-    private var mId: Long = 0
     private var currLayerId: Int = 0
-
-    init {
-        mId = TextEngineJni.textEngineCreate()
-    }
 
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-        TextEngineJni.textEngineSurfaceDestroyed(mId)
+        TextEngineHelper.getTextEngine().textEngineSurfaceDestroyed()
         return true
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        TextEngineJni.textEngineSurfaceCreated(mId, Surface(surface), width, height)
+        TextEngineHelper.getTextEngine().textEngineSurfaceCreated(Surface(surface), width, height)
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
@@ -35,7 +29,7 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
     }
 
     fun addTextLayer(textLayer: TextLayer) {
-        val addTextLayer = TextEngineJni.addTextLayer(mId, textLayer)
+        val addTextLayer = TextEngineHelper.getTextEngine().addTextLayer(textLayer)
         if (addTextLayer != -1) {
             textLayer.layerId = addTextLayer
             LayerManager.addLayer(addTextLayer, textLayer)
@@ -44,26 +38,24 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
 
     fun drawText(ttfPath: String?, text: String?, outPath: String?) {
-        TextEngineJni.textEngineDraw(mId, ttfPath, text, outPath)
+        TextEngineHelper.getTextEngine().textEngineDraw(ttfPath, text, outPath)
     }
 
-    fun drawPreViewLayer(textLayer: TextInfo) {
-        TextEngineJni.textEngineDrawPreView(mId, textLayer)
+    fun drawPreViewLayer(textInfo: TextInfo) {
+        TextEngineHelper.getTextEngine().textEngineDrawPreView(textInfo)
     }
 
     fun addThePreviewLayer2Map() {
-        val layerId = TextEngineJni.AddThePreviewLayer2Map(mId)
+        val layerId = TextEngineHelper.getTextEngine().addThePreviewLayer2Map()
     }
 
     fun addThePreviewLayerByJson2Map() {
-        val layerId = TextEngineJni.AddThePreviewLayerByJson2Map(mId)
+        val layerId = TextEngineHelper.getTextEngine().addThePreviewLayerByJson2Map()
     }
 
     fun drawPreViewLayerByJson(json: String, fontFolder: String) {
-        TextEngineJni.textEngineDrawPreViewByJson(mId, json, fontFolder)
+        TextEngineHelper.getTextEngine().textEngineDrawPreViewByJson(json, fontFolder)
     }
-
-
 
 
 }

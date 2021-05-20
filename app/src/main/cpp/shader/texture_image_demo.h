@@ -8,7 +8,7 @@
 #include "shader_base.h"
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.inl>
-#include "color_util.h"
+#include "../util/color_util.h"
 class texture_image_demo : public shader_base {
     glm::mat4 mInitMatrix;
     GLuint textureId;

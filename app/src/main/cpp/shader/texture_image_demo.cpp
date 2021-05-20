@@ -3,7 +3,7 @@
 //
 
 #include "texture_image_demo.h"
-#include "logUtil.h"
+#include "../util/logUtil.h"
 
 
 void texture_image_demo::Init() {

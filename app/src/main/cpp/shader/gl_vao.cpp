@@ -4,7 +4,7 @@
 
 #include "comm_gl.hpp"
 #include <GLES3/gl3.h>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 
 GLuint GLVAO::AddVertex3D(float *data, int vertexCount, GLuint layout) {
     glBindVertexArray(vao);

@@ -10,6 +10,7 @@
 #include "egl/egl_core.h"
 #include "shader_manager.h"
 #include "cJSON.h"
+#include "java_call_util.h"
 
 class text_control : public Handler {
 private:
@@ -27,13 +28,15 @@ private:
     //模版预览层
     TextLayer *previewTemplateLayer;
 
+    JavaCallHelper *javaCallHelper;
 
     std::map<int, TextLayer *> layerMaps;
     int selfIncreasingId;
 
     int RestoreTmpLayer(bool isFromTemplate);
+
 public:
-    static int Init();
+    int Init(JavaCallHelper *callHelper);
 
     /**
      * 在OpenGL线程发送消息,创建显示的surface
@@ -115,6 +118,7 @@ public:
     void Display();
 
     int AddThePreviewLayer2Map();
+
     int AddThePreviewLayer2MapByJson();
 
     /**
@@ -126,6 +130,8 @@ public:
     static int ReadFile(const std::string &path, char **buffer);
 
     int UpdatePreViewByJson(const char *layoutJson, const char *fontFolder);
+
+    void CleanPreview();
 };
 
 

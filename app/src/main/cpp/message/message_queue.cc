@@ -1,7 +1,7 @@
 
 #include "message_queue.h"
 #include "handler.h"
-#include "../shader/logUtil.h"
+#include "../util/logUtil.h"
 
 
 MessageQueue::MessageQueue()

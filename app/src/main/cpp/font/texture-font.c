@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-#include <logUtil.h>
+#include "../util/logUtil.h"
 #include <GLES3/gl3.h>
 #include "distance-field.h"
 #include "texture-font.h"
@@ -22,7 +22,7 @@
 
 #define SDF_IMPLEMENTATION
 
-#include "sdf_2.h"
+#include "../util/sdf_2.h"
 
 #define HRES  64
 #define HRESf 64.f
@@ -638,8 +638,8 @@ texture_font_load_glyph(texture_font_t *self,
         glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, tgt_w,
                         tgt_h,
                         GL_RED, GL_UNSIGNED_BYTE, buffer);
-        LOGCATE("texture_atlas_set_region (line %d) : \n x %d  y  %d tag_w %d tag_h %d",
-                __LINE__, x, y, tgt_h, tgt_w)
+        /*LOGCATE("texture_atlas_set_region (line %d) : \n x %d  y  %d tag_w %d tag_h %d",
+                __LINE__, x, y, tgt_h, tgt_w)*/
     }
 
     free(buffer);
