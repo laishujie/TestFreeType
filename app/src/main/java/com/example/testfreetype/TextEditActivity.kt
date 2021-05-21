@@ -20,6 +20,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     private val preViewTextInfo by lazy {
         //获取内置的普通文本预览层
         viewBinding.textRectManager.getDefaultPreviewTextInfo()
+
     }
 
     val ttfPath by lazy {
@@ -192,8 +193,10 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //android.opengl.Matrix.scaleM();
 
         //AndroidBug5497Workaround.assistActivity(this)
+        TextEngineHelper.init()
 
         viewBinding.surfaceView.surfaceTextureListener = editSurfaceManager
         val typeface = Typeface.createFromFile(

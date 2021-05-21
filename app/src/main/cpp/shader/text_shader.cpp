@@ -105,10 +105,6 @@ PointF normalizePoint(float x, float y, int width, int height) {
 }
 
 
-void TextShader::DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo) {
-    DrawShadowText(textInfo, font);
-    DrawStrokeNormalText(textInfo, font);
-}
 
 TextShader::TextShader() : shadowProgram(nullptr), shadowVao(nullptr), glProgram(nullptr), glvao(
         nullptr) {
@@ -234,7 +230,7 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 if (i == 0) {
                     textInfo->area.left = leftTop.x;
                     //需要减去文字顶部的距离和文字设置的padding距离
-                    textInfo->area.top = leftTop.y -y0;
+                    textInfo->area.top = leftTop.y - y0;
                 }
 
                 //坐标转换 -1. ~ 1.
@@ -314,36 +310,19 @@ int TextShader::FillVertex(TextInfo *&textInfo,
     return indexVertex.size();
 }
 
-int TextShader::DrawShadowText(TextInfo *&textInfo,
-                               ftgl::texture_font_t *font) {
 
-    //默认的0.5，不绘制
-    if (textInfo->shadowDistance == 0.) {
-        return 0;
-    }
-    //幅度值
-    float angle = float(textInfo->shadowAngle) * 0.01745329252f;// pi / 180
-    float x = textInfo->shadowDistance * cos(angle);
-    float y = textInfo->shadowDistance * sin(angle);
+int TextShader::DrawShadowText(TextInfo *&textInfo, GLuint fontTexture) {
 
-    float temp_x = textInfo->offset_x;
-    float temp_y = textInfo->offset_y;
+    int indexSize = textInfo->indexVertex;
 
-    textInfo->offset_x = x;
-    textInfo->offset_y = y;
+    if (indexSize == 0)return -1;
 
-    int indexSize = FillVertex(textInfo, font);
-
-    textInfo->offset_x = temp_x;
-    textInfo->offset_y = temp_y;
-
-    if (indexSize == 0)return 0;
     shadowProgram->useProgram();
 
     GLint textureIndex2 = glGetUniformLocation(shadowProgram->program, "textureMap");
     glActiveTexture(GL_TEXTURE0);
     //textureId 绑定到GL_TEXTURE0纹理单元上
-    glBindTexture(GL_TEXTURE_2D, font->atlas->id);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
     //glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
     glUniform1i(textureIndex2, 0);
 
@@ -362,16 +341,16 @@ int TextShader::DrawShadowText(TextInfo *&textInfo,
     return 0;
 }
 
-int TextShader::DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font) {
+int TextShader::DrawStrokeNormalText(TextInfo *&textInfo, GLuint fontTexture) {
     glProgram->useProgram();
 
-    int indexVertex = FillVertex(textInfo, font);
+    int indexVertex = textInfo->indexVertex;
 
     GLint textureIndex = glGetUniformLocation(glProgram->program, "textureMap");
 
     glActiveTexture(GL_TEXTURE0);
     //textureId 绑定到GL_TEXTURE0纹理单元上
-    glBindTexture(GL_TEXTURE_2D, font->atlas->id);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
     //glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
     glUniform1i(textureIndex, 0);
 

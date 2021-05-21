@@ -15,10 +15,34 @@ void OutShader::Init() {
             "layout(location = 1) in vec3 uvPos;\n"
             "uniform mat4 uMatrix;\n"
             "out vec3 outUvPos;\n"
+
+            "mat2 rotate2d(float _angle){\n"
+            "    return mat2(cos(_angle),-sin(_angle),\n"
+            "                sin(_angle),cos(_angle));\n"
+            "}"
+
+            "mat2 scale(vec2 _scale){\n"
+            "    return mat2(_scale.x,0.0,\n"
+            "                0.0,_scale.y);\n"
+            "}"
+
             "void main()                              \n"
             "{                                        \n"
-            "   gl_Position =  vPosition;              \n"
-            "   outUvPos = uvPos;              \n"
+
+            "vec2 position = vec2(vPosition.x,vPosition.y);"
+//            "position+=vec2(0.1851851851851852,-0.1683501683501684);"
+//            "float ratio = 0.9090909090909091;"
+
+           // "position -= vec2(0.5);"
+//            "position.x = position.x * ratio;"
+//            "position = rotate2d(radians(float(45))) * position;"
+//            "position.x = position.x / ratio;"
+            //"position += vec2(0.5);"
+
+            " gl_Position =  vec4(position,0.,1.);              \n"
+
+
+            " outUvPos = uvPos;              \n"
             "}                                        \n";
 
     char fboShaderStr[] =
@@ -28,18 +52,38 @@ void OutShader::Init() {
             "uniform sampler2D textureMap;\n"
             "in vec3 outPos;\n"
             "in vec3 outUvPos;\n"
+
+            "mat2 rotate2d(float _angle){\n"
+            "    return mat2(cos(_angle),-sin(_angle),\n"
+            "                sin(_angle),cos(_angle));\n"
+            "}"
+
+            "mat2 scale(vec2 _scale){\n"
+            "    return mat2(_scale.x,0.0,\n"
+            "                0.0,_scale.y);\n"
+            "}"
+
+
+
             "void main()                                  \n"
             "{                                            \n"
-            "vec2 uv = vec2(outUvPos.x,1.0-outUvPos.y); \n"
-            "vec4 textureMap = texture(textureMap,uv); \n"
-           /* "if(textureMap.a<=0.2){"
-            " discard;"
-            "}  else{"
-            "fragColor = textureMap;\n"
-            "}"*/
-            "fragColor = textureMap;\n"
-            // "   fragColor = vec4 ( outPos, 1.0 ); \n"
+            "vec2 uv = vec2(outUvPos.x,1.-outUvPos.y); \n"
 
+            "ivec2 size = textureSize(textureMap, 0);"
+
+           /* "float ratio = float(size.x)/float(size.y);"
+            "uv -= vec2(0.5);"
+            "uv.x = uv.x * ratio;"
+           "uv = rotate2d(radians(float(-45))) * uv;"
+            "uv.x = uv.x / ratio;"
+            "uv += vec2(0.5);"*/
+
+
+            "vec4 textureMap = texture(textureMap,uv); \n"
+
+
+
+            "fragColor = textureMap;\n"
             "}                                            \n";
 
 

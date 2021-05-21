@@ -22,15 +22,20 @@ public:
         return right - left;
     }
 
-    void reset(){
-        left =0.f;
-        top =0.f;
-        right =0.f;
-        bottom =0.f;
+    void reset() {
+        left = 0.f;
+        top = 0.f;
+        right = 0.f;
+        bottom = 0.f;
     }
 };
 
 class TextInfo {
+private:
+    int lastFontSize;
+    unsigned int lastTextSize;
+    std::string last_ttf_file;
+
 public:
     std::string ttf_file;
     std::string text;
@@ -54,13 +59,32 @@ public:
     float textWidth;
     float textHeight;
     TextArea area;
+    int indexVertex;
+
+
+    bool isCreateVertexAndSet() {
+        bool isCreate = isSameText();
+        if (isCreate) {
+            lastFontSize = fontSize;
+            lastTextSize = text.size();
+            last_ttf_file = ttf_file;
+        }
+        return isCreate;
+    }
+
+    bool isSameText() {
+        return lastFontSize != fontSize || lastTextSize != text.size() ||
+               last_ttf_file != ttf_file;
+    }
+
 
     TextInfo() : area(), ttf_file(), text(), outPath(nullptr),
                  surfaceWidth(0), surfaceHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
                  fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
                  shadowColor(0), shadowAngle(0), isFromTemplate(false), textWidth(0.f),
-                 textHeight(0.f) {
+                 textHeight(0.f), lastFontSize(0), lastTextSize(0), indexVertex(0),
+                 last_ttf_file() {
     }
 
     ~TextInfo() {
@@ -87,9 +111,11 @@ typedef struct {
 
 class TextLayer {
 public:
-    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false) {}
+    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false),
+                  isChangeTextArea(false) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
+                                         isChangeTextArea(false),
                                          textureId(fboInfo.frameBuffer), text_deque(), textArea() {}
 
     //容器信息
@@ -98,6 +124,7 @@ public:
     GLuint frameBuffer;
     TextArea textArea;
     bool isTemplate;
+    bool isChangeTextArea;
     int id;
 
     ~TextLayer() {

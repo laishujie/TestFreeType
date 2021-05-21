@@ -14,10 +14,6 @@
 
 class TextShader {
 private:
-    int DrawStrokeNormalText(TextInfo *&textInfo, ftgl::texture_font_t *font);
-
-    int DrawShadowText(TextInfo *&textInfo, ftgl::texture_font_t *font);
-
     GLuint textVbo = 0;
     GLuint uvVbo = 0;
     float lineSpace = 0.f;
@@ -33,9 +29,11 @@ public:
 
     void Init();
 
-    void DrawTextInfo(ftgl::texture_font_t *font, TextInfo *&textInfo);
-
     int FillVertex(TextInfo *&textInfo, ftgl::texture_font_t *font);
+
+    int DrawStrokeNormalText(TextInfo *&textInfo,GLuint fontTexture);
+    int DrawShadowText(TextInfo *&textInfo,GLuint fontTexture);
+
 };
 
 

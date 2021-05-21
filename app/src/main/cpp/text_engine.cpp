@@ -26,7 +26,9 @@ void text_engine::OnSurfaceCreated(jobject surface, int width, int height) {
 
     JNIEnv *env = nullptr;
     if (vm_ != nullptr &&
-        (vm_)->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        (vm_)->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK && surface ==
+                                                                                     nullptr) {
+        LOGCATE("text_engine::OnSurfaceCreated 失败")
         return;
     }
 
@@ -57,7 +59,7 @@ void text_engine::OnSurfaceDestroyed() {
 text_engine::text_engine(JNIEnv *env, JavaCallHelper *javaCallHelper) : window_(nullptr),
                                                                         vm_(nullptr),
                                                                         queue_mutex_(),
-                                                                        text_mutex_(){
+                                                                        text_mutex_() {
     env->GetJavaVM(&vm_);
     textControl = new text_control();
     textControl->Init(javaCallHelper);
@@ -108,10 +110,11 @@ text_engine::DrawPreView(const char *ttfPath, const char *text, bool isHorizonta
     pthread_mutex_lock(&queue_mutex_);
     textControl->UpdatePreViewTextInfo(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
                                        fontColor,
-                                       distanceMark, outLineDistanceMark, outlineColor, shadowDistance,
+                                       distanceMark, outLineDistanceMark, outlineColor,
+                                       shadowDistance,
                                        shadowAlpha, shadowColor, shadowAngle);
-    textControl->Display();
     pthread_mutex_unlock(&queue_mutex_);
+    textControl->Display();
     LOGCATI("leave %s", __func__)
 }
 
@@ -140,7 +143,8 @@ int text_engine::AddTextLayer(const char *ttfPath, const char *text,
 
     pthread_mutex_lock(&text_mutex_);
 
-    int layerId = textControl->AddTextLayer(ttfPath, text, isHorizontal, spacing, lineSpacing, fontSize,
+    int layerId = textControl->AddTextLayer(ttfPath, text, isHorizontal, spacing, lineSpacing,
+                                            fontSize,
                                             fontColor,
                                             distanceMark, outLineDistanceMark, outLineColor,
                                             shadowDistance,

@@ -140,9 +140,9 @@ void text_control::HandleMessage(Message *msg) {
             //绘制内置临时预览层数据
             if (previewLayer != nullptr) {
                 shaderManager_->DrawTextLayer(previewLayer);
-                //获取信息
-                if (javaCallHelper != nullptr) {
 
+                //获取信息
+                if (javaCallHelper != nullptr && previewLayer->isChangeTextArea) {
                     javaCallHelper->onTextAreaChanged(previewLayer->textArea.left,
                                                       previewLayer->textArea.top,
                                                       previewLayer->textArea.right,

@@ -35,8 +35,8 @@ object TextEngineHelper {
         return textEngineJni
     }
 
-    fun getTextEngineId(): Long {
-        return textEngineJni.TEXT_ENGINE_ID
+    fun init() {
+        getTextEngine().init()
     }
 
 

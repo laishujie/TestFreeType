@@ -59,7 +59,7 @@ void ShaderManager::InitShader(int width, int height) {
 
 
 ftgl::texture_font_t *
-ShaderManager::InsetText(TextInfo *&textInfo) const {
+ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
     LOGCATI("enter %s", __func__)
 
     if (fontManager_->atlas->id == 0) {
@@ -84,6 +84,7 @@ ShaderManager::InsetText(TextInfo *&textInfo) const {
     //返回字体表
     ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_, path,
                                                                        float(textInfo->fontSize));
+
     pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
     pFont->padding = 10;
     //获取对应得文本
@@ -95,12 +96,8 @@ ShaderManager::InsetText(TextInfo *&textInfo) const {
         LOGCATI("纹理丢失的数量 %s %d ", text, i)
     } else {
         LOGCATI("纹理成功 %s %d ", text, i)
-        float textWidth = 0.f;
-        float textHeight = 0.f;
-
         size_t len = strlen(text);
         float xPointer = 0.f;
-        float yPointer = 0.f;
         float startX = -1.f;
         float endX = 0.0f;
         //计算文本宽高
@@ -109,16 +106,11 @@ ShaderManager::InsetText(TextInfo *&textInfo) const {
             ftgl::texture_glyph_t *pGlyph = texture_font_find_glyph(pFont, text + j);
             if (pGlyph != nullptr && pGlyph->width != 0) {
                 float x0 = xPointer + float(pGlyph->offset_x) - float(pFont->padding);
-                float y0 = yPointer + pFont->ascender - float(pGlyph->offset_y) -
-                           float(pFont->padding);
-
                 float x1 = x0 + float(pGlyph->width);
-                float y1 = y0 + float(pGlyph->height);
                 if (startX == -1.f) {
                     startX = x0;
                 }
                 endX = x1;
-                //textHeight = std::max(float(abs(pFont->ascender) + abs(pFont->descender)), y1-y0);
 
                 xPointer += pGlyph->advance_x + float(textInfo->spacing);
             }
@@ -133,6 +125,7 @@ ShaderManager::InsetText(TextInfo *&textInfo) const {
 
 
 int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
+    LOGCATI("enter ShaderManager %s", __func__)
     if (textLayer == nullptr) return -1;
 
     if (textLayer->textureId == 0) {
@@ -165,20 +158,56 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         textInfo->surfaceWidth = outShader_->getSurfaceWidth();
         textInfo->surfaceHeight = outShader_->getSurfaceHeight();
 
-        ftgl::texture_font_t *pFont = InsetText(textInfo);
+        //需要重新绘制阴影部分
+        if (textInfo->shadowDistance != 0.) {
+            LOGCATI("阴影绘制，重新生成点顶点数据")
+            //幅度值
+            float angle = float(textInfo->shadowAngle) * 0.01745329252f;// pi / 180
+            float x = textInfo->shadowDistance * cos(angle);
+            float y = textInfo->shadowDistance * sin(angle);
 
-        //绘制文字
-        textShader_->DrawTextInfo(pFont, textInfo);
-        //计算最大文字边框
-        if (textLayer->textArea.getWidth() == 0.f) {
-            textLayer->textArea = textInfo->area;
-        } else {
-            textLayer->textArea.left = std::min(textLayer->textArea.left, textInfo->area.left);
-            textLayer->textArea.right = std::max(textLayer->textArea.right, textInfo->area.right);
-            textLayer->textArea.top = std::min(textLayer->textArea.top, textInfo->area.top);
-            textLayer->textArea.bottom = std::max(textLayer->textArea.bottom,
-                                                  textInfo->area.bottom);
+            float temp_x = textInfo->offset_x;
+            float temp_y = textInfo->offset_y;
+
+            textInfo->offset_x = x;
+            textInfo->offset_y = y;
+
+            //需要重新生成阴影偏移点
+            ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
+            textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
+
+            textShader_->DrawShadowText(textInfo, fontManager_->atlas->id);
+
+            textInfo->offset_x = temp_x;
+            textInfo->offset_y = temp_y;
         }
+
+        //需要重新填充顶点数据，调整了阴影的话需要
+        if (textInfo->isCreateVertexAndSet() || textInfo->shadowDistance != 0.) {
+            LOGCATI("重新生成顶点，并赋值边框")
+            ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
+            textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
+
+            //计算最大文字边框
+            if (textLayer->textArea.getWidth() == 0.f) {
+                textLayer->textArea = textInfo->area;
+            } else {
+                textLayer->textArea.left = std::min(textLayer->textArea.left,
+                                                    textInfo->area.left);
+                textLayer->textArea.right = std::max(textLayer->textArea.right,
+                                                     textInfo->area.right);
+                textLayer->textArea.top = std::min(textLayer->textArea.top, textInfo->area.top);
+                textLayer->textArea.bottom = std::max(textLayer->textArea.bottom,
+                                                      textInfo->area.bottom);
+            }
+            textLayer->isChangeTextArea = true;
+        } else {
+            textLayer->isChangeTextArea = false;
+            LOGCATI("不需要重新生成顶点")
+        }
+
+        //绘制普通不带阴影的值
+        textShader_->DrawStrokeNormalText(textInfo, fontManager_->atlas->id);
     }
 
 
@@ -201,6 +230,8 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     if (!ImageLoad::savePng(path.c_str(), width, height, 4, buffer, 0)) {
         LOGE("11111", "ERROR: could not write image")
     }*/
+
+    LOGCATI("leave ShaderManager %s", __func__)
     return 0;
 }
 

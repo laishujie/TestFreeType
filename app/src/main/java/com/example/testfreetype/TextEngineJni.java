@@ -32,6 +32,12 @@ public class TextEngineJni {
 
     public void textEngineSurfaceDestroyed() {
         textEngineSurfaceDestroyed(TEXT_ENGINE_ID);
+        TEXT_ENGINE_ID = 0;
+    }
+
+    public void init() {
+        if (TEXT_ENGINE_ID == 0)
+            TEXT_ENGINE_ID = textEngineCreate();
     }
 
     public void textEngineSurfaceCreated(Object surface, int width,

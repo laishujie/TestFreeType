@@ -281,7 +281,7 @@ Java_com_example_testfreetype_TextEngineJni_glRenderText(JNIEnv *env, jobject th
 
 JNIEXPORT jlong JNICALL
 Java_com_example_testfreetype_TextEngineJni_textEngineCreate(JNIEnv *env, jobject thiz) {
-    auto textEngine = new text_engine(env, new JavaCallHelper(javaVm,env,thiz));
+    auto textEngine = new text_engine(env, new JavaCallHelper(javaVm, env, thiz));
     textEngine->Init();
     return reinterpret_cast<jlong>(textEngine);
 }
@@ -562,7 +562,7 @@ Java_com_example_testfreetype_TextEngineJni_addThePreviewLayerByJson2Map(JNIEnv 
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_cleanPreview(JNIEnv *env, jobject thiz, jlong handle) {
     if (handle <= 0) {
-        return ;
+        return;
     }
     auto *editor = reinterpret_cast<text_engine *>(handle);
 
