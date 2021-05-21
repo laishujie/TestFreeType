@@ -16,7 +16,6 @@ import com.example.testfreetype.util.PathHelp
 import com.example.testfreetype.util.SizeUtils
 import java.io.File
 import kotlin.math.abs
-import kotlin.math.pow
 
 
 class TextRectManagerView @JvmOverloads constructor(
@@ -29,7 +28,7 @@ class TextRectManagerView @JvmOverloads constructor(
     private var textRectAll = ArrayList<TextRect>()
 
     enum class TouchMode {
-        NONE, DOWN, NORTH, SOUTH
+        NONE, DOWN, ICON, SOUTH
     }
 
     private val mDensity by lazy {
@@ -132,7 +131,10 @@ class TextRectManagerView @JvmOverloads constructor(
 
         mCurrTextRect?.let {
             val findHandlingTextRectButton = findHandlingTextRectButton(event)
-            Log.e("11111", "findHandlingTextRectButton $findHandlingTextRectButton")
+            if (findHandlingTextRectButton) {
+                currMode = TouchMode.ICON
+                Log.e("11111", "选中icon")
+            }
             mDownMatrix.set(it.getMatrix())
         }
         invalidate()
@@ -152,6 +154,9 @@ class TextRectManagerView @JvmOverloads constructor(
                         this.previewTextRect.setMatrix(this.mMoveMatrix)
                     }
                 }
+            }
+            TouchMode.ICON -> {
+
 
             }
         }
@@ -330,6 +335,6 @@ class ButtonMark(context: Context, @DrawableRes iconRes: Int) {
     fun contain(downX: Float, downY: Float, matrix: Matrix): Boolean {
         tmpBottomRect.set(rectRightBottomRect)
         matrix.mapRect(tmpBottomRect)
-        return tmpBottomRect.contains(downX,downY)
+        return tmpBottomRect.contains(downX, downY)
     }
 }
