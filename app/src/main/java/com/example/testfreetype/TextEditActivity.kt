@@ -225,7 +225,9 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         //注册层次移动回调
         TextEngineHelper.getTextEngine()
             .registerTextAreaCallBack { layerId, left, top, right, bottom ->
-                viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
+                runOnUiThread {
+                    viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
+                }
             }
 
 
