@@ -26,6 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Test"
+        android:visibility="gone"
         android:background="@color/colorWhite"
         android:textColor="@color/font_red"
         android:rotation="45"
@@ -78,5 +79,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/view_bg" />
+
+    <Button
+        android:id="@+id/btn_matrix"
+        android:text="测试变换"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

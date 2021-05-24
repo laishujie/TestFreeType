@@ -227,6 +227,23 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             .registerTextAreaCallBack { layerId, left, top, right, bottom ->
                 viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
             }
+
+
+
+        viewBinding.btnMatrix.setOnClickListener {
+            viewBinding.textRectManager.getMatrixInfo().apply {
+                var currentMatrix = FloatArray(16)
+                currentMatrix = floatArrayOf(
+                    1F, 0F, 0F, 0F,
+                    0F, 1F, 0F, 0F,
+                    0F, 0F, 1F, 0F,
+                    0F, 0F, 0F, 1F
+                )
+                android.opengl.Matrix.scaleM(currentMatrix, 0, scale, scale, scale)
+
+                TextEngineHelper.getTextEngine().textMatrix(this)
+            }
+        }
     }
 
 

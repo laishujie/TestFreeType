@@ -142,6 +142,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     textLayer->textArea.reset();
 
+    //绘制文字层下的文字组
     for (auto textInfo:textLayer->text_deque) {
         const char *textChart = textInfo->text.c_str();
         const char *ttf_file = textInfo->ttf_file.c_str();
@@ -215,7 +216,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     //LOGCATE("textLayer->textureId %d ", textLayer->textureId)
 
-    outShader_->draw(textLayer->textureId);
+    outShader_->draw(textLayer->textureId,textLayer->tx,textLayer->ty,textLayer->sc,textLayer->r);
 
     /*long long int i = GetSysCurrentTime();
     int width = outShader_->getSurfaceWidth();

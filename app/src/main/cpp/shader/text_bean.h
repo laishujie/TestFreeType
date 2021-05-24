@@ -112,7 +112,7 @@ typedef struct {
 class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false),
-                  isChangeTextArea(false) {}
+                  isChangeTextArea(false),tx(0.f),ty(0.f),sc(1.f),r(0.f) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
                                          isChangeTextArea(false),
@@ -126,6 +126,7 @@ public:
     bool isTemplate;
     bool isChangeTextArea;
     int id;
+    float tx, ty, sc, r;
 
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);

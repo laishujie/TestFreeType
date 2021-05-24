@@ -33,6 +33,8 @@ data class TextLayer(
     var rect: RectF = RectF()
 )
 
+data class MatrixInfo(var tx: Float, var ty: Float, var scale: Float, var rangle: Float)
+
 data class FontItem(
     @field:SerializedName("path") var fontPath: String,
     @field:SerializedName(

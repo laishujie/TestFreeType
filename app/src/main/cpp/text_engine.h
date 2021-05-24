@@ -123,6 +123,8 @@ public:
 
     void CleanPreview();
 
+    void previewMatrix(float tx, float ty, float sc, float r);
+
 private:
     ANativeWindow *window_;
     JavaVM *vm_;
@@ -133,6 +135,7 @@ private:
     //文本队列互斥量
     pthread_mutex_t queue_mutex_;
     pthread_mutex_t text_mutex_;
+
 };
 
 

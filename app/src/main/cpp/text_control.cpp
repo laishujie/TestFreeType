@@ -608,6 +608,14 @@ void text_control::CleanPreview() {
     PostMessage(message);
 }
 
+void text_control::previewMatrix(float tx, float ty, float sc, float r) {
+    previewLayer->tx = tx;
+    previewLayer->ty = ty;
+    previewLayer->sc = sc;
+    previewLayer->r = r;
+    Display();
+}
+
 
 
 

@@ -132,6 +132,8 @@ public:
     int UpdatePreViewByJson(const char *layoutJson, const char *fontFolder);
 
     void CleanPreview();
+
+    void previewMatrix(float tx, float ty, float sc, float r);
 };
 
 

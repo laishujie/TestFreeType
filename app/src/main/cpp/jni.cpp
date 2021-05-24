@@ -567,4 +567,16 @@ Java_com_example_testfreetype_TextEngineJni_cleanPreview(JNIEnv *env, jobject th
     auto *editor = reinterpret_cast<text_engine *>(handle);
 
     editor->CleanPreview();
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textEngineMatrix(JNIEnv *env, jobject thiz,
+                                                             jlong handle, jfloat tx, jfloat ty,
+                                                             jfloat sc, jfloat r) {
+
+    if (handle <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+
+    editor->previewMatrix(tx,ty,sc,r);
 }

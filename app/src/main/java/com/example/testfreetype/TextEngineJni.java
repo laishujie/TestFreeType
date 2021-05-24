@@ -2,6 +2,7 @@ package com.example.testfreetype;
 
 import android.util.Log;
 
+import com.example.testfreetype.bean.MatrixInfo;
 import com.example.testfreetype.bean.TextInfo;
 import com.example.testfreetype.bean.TextLayer;
 
@@ -11,6 +12,10 @@ public class TextEngineJni {
 
     static {
         System.loadLibrary("myTest");
+    }
+
+    public void textMatrix(MatrixInfo matrixInfo) {
+        textEngineMatrix(TEXT_ENGINE_ID, matrixInfo.getTx(), matrixInfo.getTy(), matrixInfo.getScale(), matrixInfo.getRangle());
     }
 
     public interface TextAreaCallBack {
@@ -192,6 +197,10 @@ public class TextEngineJni {
     private native int addThePreviewLayerByJson2Map(long handle);
 
     private native void cleanPreview(long handle);
+
+
+    private native void textEngineMatrix(long handler, float tx, float ty, float sc, float r);
+
 
     private void onError(int code) {
         Log.e("11111", "code :  " + code);
