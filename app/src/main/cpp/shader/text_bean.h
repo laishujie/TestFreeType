@@ -112,21 +112,31 @@ typedef struct {
 class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false),
-                  isChangeTextArea(false),tx(0.f),ty(0.f),sc(1.f),r(0.f) {}
+                  isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
                                          isChangeTextArea(false),
-                                         textureId(fboInfo.frameBuffer), text_deque(), textArea() {}
+                                         textureId(fboInfo.frameBuffer), text_deque(), textArea(),
+                                         applyMatrix(false) {}
 
+    //层id
+    int id;
     //容器信息
     std::deque<TextInfo *> text_deque;
+    //层纹理
     GLuint textureId;
+    //当前层fbo
     GLuint frameBuffer;
+    //当前层大小
     TextArea textArea;
+    //是否模板
     bool isTemplate;
+    //是否改变文本区域
     bool isChangeTextArea;
-    int id;
+    //层平移信息
     float tx, ty, sc, r;
+    //是否应用变换信息
+    bool applyMatrix;
 
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);

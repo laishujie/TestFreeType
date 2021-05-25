@@ -18,15 +18,20 @@ public class TextEngineJni {
         textEngineMatrix(TEXT_ENGINE_ID, matrixInfo.getTx(), matrixInfo.getTy(), matrixInfo.getScale(), matrixInfo.getRangle());
     }
 
-    public interface TextAreaCallBack {
-        void onChangeArea(int layerId, float left, float top, float right, float bottom);
+    public void textMatrix(float tx, float ty, float s, float r) {
+        textEngineMatrix(TEXT_ENGINE_ID, tx, ty, s, r);
     }
 
-    public void registerTextAreaCallBack(TextAreaCallBack mTextAreaCallBack) {
-        this.mTextAreaCallBack = mTextAreaCallBack;
+
+    public interface TextEngineStatus {
+        void onTextLayerAreaChange(int layerId, float left, float top, float right, float bottom);
     }
 
-    private TextAreaCallBack mTextAreaCallBack;
+    public void registerTextEngineStatus(TextEngineStatus mTextEngineStatus) {
+        this.mTextEngineStatus = mTextEngineStatus;
+    }
+
+    private TextEngineStatus mTextEngineStatus;
 
 
     public TextEngineJni() {
@@ -66,6 +71,10 @@ public class TextEngineJni {
     //更新json模板预览层
     public void textEngineDrawPreViewByJson(String json, String fontFolder) {
         textEngineDrawPreViewByJson(TEXT_ENGINE_ID, json, fontFolder);
+    }
+
+    public void setPreViewLayer(TextLayer textLayer) {
+
     }
 
     public int addTextLayer(TextLayer textLayer) {
@@ -192,6 +201,8 @@ public class TextEngineJni {
 
     private native int addTextLayer(long handle, TextLayer textLayer);
 
+    private native int setPreViewLayer(long handle, TextLayer textLayer);
+
     private native int addThePreviewLayer2Map(long handle);
 
     private native int addThePreviewLayerByJson2Map(long handle);
@@ -206,10 +217,9 @@ public class TextEngineJni {
         Log.e("11111", "code :  " + code);
     }
 
-    private void onTextAreaChanged(float left, float top, float right, float bottom) {
-        //Log.e("11111", "onTextAreaChanged : left " + left + "top: " + top + " right:" + right + "bottom: " + bottom);
-        if (mTextAreaCallBack != null) {
-            mTextAreaCallBack.onChangeArea(0, left, top, right, bottom);
+    private void onTextLayerAreaChange(int layerId,float left, float top, float right, float bottom) {
+        if (mTextEngineStatus != null) {
+            mTextEngineStatus.onTextLayerAreaChange(layerId, left, top, right, bottom);
         }
     }
 }

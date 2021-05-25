@@ -26,10 +26,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Test"
-        android:visibility="gone"
+        android:visibility="visible"
+        android:translationY="12.599983px"
+        android:translationX="1.1999588px"
+        android:scaleX="1.2"
+        android:scaleY="1.2"
         android:background="@color/colorWhite"
         android:textColor="@color/font_red"
-        android:rotation="45"
         android:textSize="72px"
         app:layout_constraintBottom_toBottomOf="@id/surface_view"
         app:layout_constraintEnd_toEndOf="parent"
@@ -82,8 +85,9 @@
 
     <Button
         android:id="@+id/btn_matrix"
-        android:text="测试变换"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="测试变换"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

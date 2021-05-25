@@ -143,7 +143,7 @@ void text_control::HandleMessage(Message *msg) {
 
                 //获取信息
                 if (javaCallHelper != nullptr && previewLayer->isChangeTextArea) {
-                    javaCallHelper->onTextAreaChanged(previewLayer->textArea.left,
+                    javaCallHelper->onTextAreaChanged(previewLayer->id,previewLayer->textArea.left,
                                                       previewLayer->textArea.top,
                                                       previewLayer->textArea.right,
                                                       previewLayer->textArea.bottom);
@@ -392,7 +392,7 @@ int text_control::AddThePreviewLayer2Map() {
         previewLayer->text_deque.empty()) {
         return -1;
     }
-    TextInfo *&pInfo = previewLayer->text_deque[0];
+    /*TextInfo *&pInfo = previewLayer->text_deque[0];
     int layerID = AddTextLayer(pInfo->ttf_file.c_str(), pInfo->text.c_str(), pInfo->isHorizontal,
                                pInfo->spacing,
                                pInfo->lineSpacing, pInfo->fontSize,
@@ -405,9 +405,22 @@ int text_control::AddThePreviewLayer2Map() {
     layerMaps[layerID]->frameBuffer = previewLayer->frameBuffer;
 
     previewLayer->frameBuffer = 0;
-    previewLayer->textureId = 0;
+    previewLayer->textureId = 0;*/
 
-    return layerID;
+    selfIncreasingId++;
+
+    //直接把预览的指针赋值,地址添加到集合
+    auto *textLayer = previewLayer;
+    textLayer->id = selfIncreasingId;
+    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    layerMaps.insert(stl);
+
+    //置空，下次自动赋值
+    previewLayer = nullptr;
+
+
+
+    return selfIncreasingId;
 }
 
 int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFolder) {
@@ -569,6 +582,8 @@ int text_control::RestoreTmpLayer(bool isFromTemplate) {
     if (isFromTemplate) {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
+            selfIncreasingId++;
+            previewLayer->id = selfIncreasingId;
         } else {
             if (!previewLayer->text_deque.empty()) {
                 for (auto textInfo:previewLayer->text_deque) {
@@ -581,6 +596,8 @@ int text_control::RestoreTmpLayer(bool isFromTemplate) {
     } else {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
+            selfIncreasingId++;
+            previewLayer->id = selfIncreasingId;
             previewLayer->text_deque.push_back(new TextInfo());
         } else {
             //如果上次是模板预览
@@ -609,11 +626,21 @@ void text_control::CleanPreview() {
 }
 
 void text_control::previewMatrix(float tx, float ty, float sc, float r) {
+    if (previewLayer == nullptr) return;
+    previewLayer->applyMatrix = true;
     previewLayer->tx = tx;
     previewLayer->ty = ty;
     previewLayer->sc = sc;
     previewLayer->r = r;
     Display();
+}
+
+int text_control::copyTextLayer(TextLayer *&srcLayer, TextLayer *&desLayer) {
+
+    desLayer->textureId = srcLayer->textureId;
+
+
+    return 0;
 }
 
 

@@ -2,6 +2,7 @@
 // Created by admin on 2021/5/7.
 //
 
+#include <logUtil.h>
 #include "out_shader.h"
 
 void OutShader::onDestroy() {
@@ -13,38 +14,14 @@ void OutShader::Init() {
             "#version 300 es                          \n"
             "layout(location = 0) in vec4 vPosition;  \n"
             "layout(location = 1) in vec3 uvPos;\n"
-
-
             "uniform mat4 uMatrix;\n"
             "out vec3 outUvPos;\n"
-
-            "mat2 rotate2d(float _angle){\n"
-            "    return mat2(cos(_angle),-sin(_angle),\n"
-            "                sin(_angle),cos(_angle));\n"
-            "}"
-
-            "mat2 scale(vec2 _scale){\n"
-            "    return mat2(_scale.x,0.0,\n"
-            "                0.0,_scale.y);\n"
-            "}"
 
             "void main()                              \n"
             "{                                        \n"
 
             "vec2 position = vec2(vPosition.x,vPosition.y);"
-            //transform
-           // "position+=vec2(tx,ty);"
-            //            "float ratio = 0.9090909090909091;"
-
-            // "position -= vec2(0.5);"
-             //"position= scale(vec2(sc)) * position"
-            //            "position.x = position.x * ratio;"
-            //            "position = rotate2d(radians(float(45))) * position;"
-            //            "position.x = position.x / ratio;"
-           //"position += vec2(0.5);"
-
             " gl_Position =  vec4(position,0.,1.);              \n"
-
 
             " outUvPos = uvPos;              \n"
             "}                                        \n";
@@ -56,49 +33,11 @@ void OutShader::Init() {
             "uniform sampler2D textureMap;\n"
             "in vec3 outPos;\n"
             "in vec3 outUvPos;\n"
-            "uniform float sc;"
-
-
-            "mat2 rotate2d(float _angle){\n"
-            "    return mat2(cos(_angle),-sin(_angle),\n"
-            "                sin(_angle),cos(_angle));\n"
-            "}"
-
-            "mat2 scale(vec2 _scale){\n"
-            "    return mat2(_scale.x,0.0,\n"
-            "                0.0,_scale.y);\n"
-            "}"
-
-            "uniform float tx;"
-            "uniform float ty;"
 
             "void main()                                  \n"
             "{                                            \n"
             "vec2 uv = vec2(outUvPos.x,1.-outUvPos.y); \n"
-
-            "ivec2 size = textureSize(textureMap, 0);"
-
-            /* "float ratio = floatuv(size.x)/float(size.y);"
-             "uv -= vec2(0.5);"
-             "uv.x = uv.x * ratio;"
-            "uv = rotate2d(radians(float(-45))) * uv;"
-             "uv.x = uv.x / ratio;"
-             "uv += vec2(0.5);"*/
-            //"uv += vec2(-tx,-ty);"
-
-            "uv -= vec2(0.5);"
-            "float sw = float(size.x);"
-            "float sh = float(size.y);"
-            "vec2 readSc = vec2(sw/(sw*sc),sh/(sh*sc));"
-            "uv*=scale(readSc);"
-            "uv += vec2(0.5);"
-
-            "uv += vec2(-tx,-ty);"
-
             "vec4 textureMap = texture(textureMap,uv); \n"
-
-
-
             "fragColor = textureMap;\n"
             "}                                            \n";
 
@@ -138,7 +77,6 @@ void OutShader::OnSurfaceChanged(int width, int height) {
 void OutShader::draw() {
 
 }
-
 void OutShader::draw(GLuint textureId) {
     glProgram->useProgram();
 
@@ -157,34 +95,3 @@ void OutShader::draw(GLuint textureId) {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
-void OutShader::offsetWithMatrixValue(float &tx, float &ty) {
-    tx = (tx / float(surfaceWidth)) * 2.f;
-    ty = -(ty / float(surfaceHeight)) * 2.f;
-}
-
-void OutShader::draw(GLuint textureId, float tx, float ty, float sc, float r) {
-    glProgram->useProgram();
-
-    GLint textureIndex = glGetUniformLocation(glProgram->program, "textureMap");
-
-    glActiveTexture(GL_TEXTURE0);
-    //textureId 绑定到GL_TEXTURE0纹理单元上
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    //glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
-    glUniform1i(textureIndex, 0);
-
-    offsetWithMatrixValue(tx, ty);
-
-    GLint txIndex = glGetUniformLocation(glProgram->program, "tx");
-    glUniform1f(txIndex, tx);
-    GLint tyIndex = glGetUniformLocation(glProgram->program, "ty");
-    glUniform1f(tyIndex, ty);
-
-    GLint scIndex = glGetUniformLocation(glProgram->program, "sc");
-    //float readSc = float(surfaceWidth)/(float(surfaceWidth)*sc);
-    glUniform1f(scIndex, sc);
-
-    glvao->BindVAO();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-}

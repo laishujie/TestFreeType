@@ -10,11 +10,12 @@
 #include "string"
 */
 
-ShaderManager::ShaderManager() : textShader_(nullptr), outShader_(nullptr),
+ShaderManager::ShaderManager() : textShader_(nullptr),
                                  fontManager_(
-                                         nullptr), freeTypeShader(nullptr) {
+                                         nullptr), freeTypeShader(nullptr),outShader_(nullptr), matrixShader_(nullptr) {
     textShader_ = new TextShader();
-    outShader_ = new OutShader();
+    matrixShader_ = new MatrixShader();
+    outShader_= new OutShader();
     //freeTypeShader = new FreeTypeShader();
 }
 
@@ -23,10 +24,6 @@ ShaderManager::~ShaderManager() {
     if (textShader_ != nullptr) {
         delete textShader_;
         textShader_ = nullptr;
-    }
-    if (outShader_ != nullptr) {
-        delete outShader_;
-        outShader_ = nullptr;
     }
     if (fontManager_ != nullptr) {
         glDeleteTextures(1, &fontManager_->atlas->id);
@@ -37,16 +34,29 @@ ShaderManager::~ShaderManager() {
         delete freeTypeShader;
         freeTypeShader = nullptr;
     }
+    if (matrixShader_ != nullptr) {
+        delete matrixShader_;
+        matrixShader_ = nullptr;
+    }
+    if (outShader_ != nullptr) {
+        delete outShader_;
+        outShader_ = nullptr;
+    }
+
     LOGCATI("leave: %s", __func__)
 }
 
 void ShaderManager::InitShader(int width, int height) {
     LOGCATI("enter %s", __func__)
 
+    matrixShader_->Init();
+    matrixShader_->OnSurfaceChanged(width, height);
+
     outShader_->Init();
     outShader_->OnSurfaceChanged(width, height);
+
     textShader_->Init();
-    //freeTypeShader->Init();
+
     fontManager_ = ftgl::font_manager_new(width, height, 1);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -127,7 +137,7 @@ ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
 int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     LOGCATI("enter ShaderManager %s", __func__)
     if (textLayer == nullptr) return -1;
-
+    //层id为空时新建纹理
     if (textLayer->textureId == 0) {
         FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
                                               outShader_->getSurfaceHeight(), GL_RGBA);
@@ -140,6 +150,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    //区域重置
     textLayer->textArea.reset();
 
     //绘制文字层下的文字组
@@ -214,9 +225,12 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     fbo_util::UnBindFbo();
 
-    //LOGCATE("textLayer->textureId %d ", textLayer->textureId)
+    if(textLayer->applyMatrix){
+        matrixShader_->draw(textLayer->textureId, textLayer->tx, textLayer->ty, textLayer->sc,textLayer->r);
+    }else{
+        outShader_->draw(textLayer->textureId);
+    }
 
-    outShader_->draw(textLayer->textureId,textLayer->tx,textLayer->ty,textLayer->sc,textLayer->r);
 
     /*long long int i = GetSysCurrentTime();
     int width = outShader_->getSurfaceWidth();

@@ -52,12 +52,12 @@ void TextShader::Init() {
             "float mu = smoothstep(outline_center-width, outline_center+width, dist);"
             "vec3 rgb = mix(outline_color, glyph_color, mu);"
             "float finalA = max(alpha,mu);"
-            "if(finalA==0.){"
+           /* "if(finalA==0.){"
             " fragColor = vec4(0.,0.,1., 1.);"
             "}else{"
             "fragColor = vec4(rgb, finalA);"
-            "}"
-            //"fragColor = vec4(rgb, finalA);"
+            "}"*/
+            "fragColor = vec4(rgb, finalA);"
             "}";
     char ShadowShaderStr[] = "#version 300 es                              \n"
                              "precision mediump float;                     \n"
@@ -84,12 +84,6 @@ void TextShader::Init() {
     uvVbo = glvao->AddVertex2D(nullptr, 4, 1);
     glvao->setIndex(nullptr, 6);
 }
-
-/*
-void TextShader::OnSurfaceChanged(int width, int height) {
-    glViewport(0, 0, width, height);
-}
-*/
 
 
 PointF vertexWithPoint(float x, float y, int width, int height) {

@@ -34,7 +34,7 @@ private:
     int selfIncreasingId;
 
     int RestoreTmpLayer(bool isFromTemplate);
-
+    int copyTextLayer(TextLayer *&srcLayer,TextLayer *&desLayer);
 public:
     int Init(JavaCallHelper *callHelper);
 
@@ -114,7 +114,6 @@ public:
                      float outLineDistanceMark, int outLineColor, float shadowDistance,
                      float shadowAlpha,
                      int shadowColor, int shadowAngle);
-
     void Display();
 
     int AddThePreviewLayer2Map();

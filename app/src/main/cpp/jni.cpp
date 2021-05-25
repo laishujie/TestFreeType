@@ -578,5 +578,15 @@ Java_com_example_testfreetype_TextEngineJni_textEngineMatrix(JNIEnv *env, jobjec
     }
     auto *editor = reinterpret_cast<text_engine *>(handle);
 
-    editor->previewMatrix(tx,ty,sc,r);
+    editor->previewMatrix(tx, ty, sc, r);
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_testfreetype_TextEngineJni_setPreViewLayer(JNIEnv *env, jobject thiz, jlong handle,
+                                                            jobject text_layer) {
+    if (handle <= 0) {
+        return -1;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+
+    return 0;
 }

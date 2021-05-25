@@ -18,7 +18,7 @@ public:
 
     void onError(int code, int thread = THREAD_MAIN);
 
-    void onTextAreaChanged(float left, float top, float right, float bottom, int thread = THREAD_CHILD) const;
+    void onTextAreaChanged(int layerId,float left, float top, float right, float bottom, int thread = THREAD_CHILD) const;
 
 public:
     JavaVM *javaVM;

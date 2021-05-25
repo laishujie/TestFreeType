@@ -220,6 +220,8 @@ void text_engine::CleanPreview() {
 }
 
 void text_engine::previewMatrix(float tx, float ty, float sc, float r) {
+    pthread_mutex_lock(&queue_mutex_);
     textControl->previewMatrix(tx,ty,sc,r);
+    pthread_mutex_unlock(&queue_mutex_);
 }
 

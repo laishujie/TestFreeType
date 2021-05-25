@@ -12,7 +12,7 @@
 #include "../util/fbo_util.h"
 #include "text_bean.h"
 #include "FreeTypeShader.h"
-
+#include "matrix_shader.h"
 class ShaderManager {
 
 private:
@@ -20,6 +20,7 @@ private:
     OutShader *outShader_;
     FreeTypeShader *freeTypeShader;
     ftgl::font_manager_t *fontManager_;
+    MatrixShader *matrixShader_;
 
 public:
     int DrawTextLayer(TextLayer *textLayer);

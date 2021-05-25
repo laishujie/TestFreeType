@@ -28,6 +28,8 @@ class TextRectManagerView @JvmOverloads constructor(
 
     private var currMatrixInfo = MatrixInfo(0f, 0f, 1f, 0f)
 
+    var iIUpdatePosition: ((Float, Float, Float, Float) -> Unit?)? = null
+
 
     enum class TouchMode {
         NONE, DOWN, ICON, SOUTH
@@ -70,13 +72,16 @@ class TextRectManagerView @JvmOverloads constructor(
                 ) * (180 / Math.PI)
             ).toFloat()
             currMatrixInfo.rangle = rAngle
+
+
             currMatrixInfo.tx = tx
             currMatrixInfo.ty = ty
             currMatrixInfo.scale = rScale
         }
-        Log.e("11111","curcurrMatrixInfo $currMatrixInfo")
+        Log.e("11111", "curcurrMatrixInfo $currMatrixInfo")
         return currMatrixInfo
     }
+
 
     //临时预览层
     private val previewTextRect by lazy {
@@ -119,6 +124,16 @@ class TextRectManagerView @JvmOverloads constructor(
                 draw()?.let { bitmap ->
                     drawBitmap(bitmap, 0f, 0f, paint)
                 }
+            }
+        }
+    }
+
+    private fun updateMatrix() {
+        getMatrixInfo().apply {
+            mCurrTextRect?.let {
+                val rect = it.getRect()
+                iIUpdatePosition?.invoke(rect.centerX(), rect.centerY(), scale, rangle)
+                Log.e("11111","rect $rect")
             }
         }
     }
@@ -183,17 +198,24 @@ class TextRectManagerView @JvmOverloads constructor(
                         ) > this.mDensity * 1.0F)
                     ) {
                         this.mMoveMatrix.set(this.mDownMatrix)
+                        val dx = event.x - this.mDownX
+                        val dy = event.y - this.mDownY
                         this.mMoveMatrix.postTranslate(
-                            event.x - this.mDownX,
-                            event.y - this.mDownY
+                            dx,
+                            dy
                         )
+                        currMatrixInfo.tx = event.x - this.mDownX
+                        currMatrixInfo.ty = event.y - this.mDownY
+
                         this.previewTextRect.setMatrix(this.mMoveMatrix)
                         invalidate()
+                        updateMatrix()
                     }
                 }
             }
             TouchMode.ICON -> {
                 mCurrButtonMark?.onMove(mCurrTextRect, mMoveMatrix, event, this)
+                updateMatrix()
             }
             else -> {
 
@@ -230,7 +252,8 @@ class TextRect(private var layer: TextLayer?, context: Context) {
     private val canvas = Canvas()
 
     private val matrix: Matrix = Matrix()
-
+    var width = 0
+    var height = 0
     val scaleButton: BaseButtonMark = ButtonMark(context, R.drawable.overlay_transform_selector)
 
     fun getMatrix(): Matrix {
@@ -259,6 +282,8 @@ class TextRect(private var layer: TextLayer?, context: Context) {
 
     fun init(width: Int, height: Int) {
         cache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        this.width = width
+        this.height = height
         canvas.setBitmap(cache)
     }
 
@@ -268,6 +293,7 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                 canvas.save()
                 canvas.concat(matrix)
                 setPaddingRect(this)
+                linePaint.color = Color.WHITE
 
                 canvas.drawColor(0, PorterDuff.Mode.CLEAR)
 
@@ -275,9 +301,19 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                     paddingRect, linePaint
                 )
 
+                linePaint.color= Color.GRAY
+                canvas.drawRect(
+                    totalBorderRect, linePaint
+                )
+
                 scaleButton.draw(canvas, matrix, linePaint)
                 canvas.restore()
             }
+            linePaint.color = Color.RED
+
+            canvas.drawRect(
+                getRect(), linePaint
+            )
         }
         return cache
     }
@@ -313,7 +349,6 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                 rect.right + textPadding,
                 rect.bottom + textPadding
             )
-
             scaleButton.updateRect(paddingRect, matrix)
         }
     }
@@ -345,8 +380,6 @@ abstract class BaseButtonMark(context: Context, @DrawableRes iconRes: Int) {
 
     protected val iconRect = RectF()
     protected var storkRect = RectF()
-    private val mButtonMatrix = Matrix()
-
 
     protected val iconBitmap by lazy {
         getBitmap(context, iconRes)
@@ -375,7 +408,6 @@ abstract class BaseButtonMark(context: Context, @DrawableRes iconRes: Int) {
 
     abstract fun updateRect(paddingRect: RectF, matrix: Matrix)
 
-    var matrixValues = FloatArray(9)
 
     fun draw(canvas: Canvas, matrix: Matrix, paint: Paint) {
         canvas.drawRect(
@@ -405,9 +437,12 @@ abstract class BaseButtonMark(context: Context, @DrawableRes iconRes: Int) {
 
     abstract fun onDown(event: MotionEvent)
 
-    abstract fun onMove(rectF: TextRect?, matrix: Matrix, event: MotionEvent, view: View)
-
-    abstract fun applyMatrix(matrix: Matrix)
+    abstract fun onMove(
+        rectF: TextRect?,
+        matrix: Matrix,
+        event: MotionEvent,
+        view: TextRectManagerView
+    )
 }
 
 open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
@@ -440,7 +475,12 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
         previousLocationY = event.y
     }
 
-    override fun onMove(rectF: TextRect?, matrix: Matrix, event: MotionEvent, view: View) {
+    override fun onMove(
+        rectF: TextRect?,
+        matrix: Matrix,
+        event: MotionEvent,
+        view: TextRectManagerView
+    ) {
         rectF?.apply {
             val rect = getRect()
             val newMoveX = event.x.toInt()
@@ -461,13 +501,22 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
             )
 
             if (mMoveX != 0f && mMoveY != 0f) {
-                matrix.postRotate(degrees - oldDegrees, rect.centerX(), rect.centerY())
-                matrix.postScale(
-                    distance / oldDistance,
-                    distance / oldDistance,
-                    rect.centerX(),
+                /* matrix.postTranslate(
+                     -rect.centerX(),
+                     -rect.centerY()
+                 )*/// 左乘平移变换矩阵，坐标原点平移到中心点
+
+                matrix.postRotate(
+                    degrees - oldDegrees, rect.centerX(),
                     rect.centerY()
                 )
+                matrix.postScale(
+                    distance / oldDistance,
+                    distance / oldDistance, rect.centerX(),
+                    rect.centerY()
+                )
+
+                // matrix.postTranslate(rect.centerX(), rect.centerY())
                 setMatrix(matrix)
                 view.invalidate()
             }
@@ -484,7 +533,7 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
     }
 
 
-    protected fun calculateRotation(
+    private fun calculateRotation(
         x1: Float,
         y1: Float,
         x2: Int,
@@ -496,7 +545,7 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
         return Math.toDegrees(radians).toFloat()
     }
 
-    protected fun calculateDistance(
+    private fun calculateDistance(
         x1: Float,
         y1: Float,
         x2: Int,
@@ -506,48 +555,5 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
         val y = y1 - y2.toDouble()
         return Math.sqrt(x * x + y * y).toFloat()
     }
-
-
-    fun angle(cen: PointF, first: PointF, second: PointF): Float {
-        val dx1: Float = (first.x - cen.x)
-        val dy1: Float = (first.y - cen.y)
-        val dx2: Float = (second.x - cen.x)
-        val dy2: Float = (second.y - cen.y)
-
-        // 计算三边的平方
-        val ab2 =
-            ((second.x - first.x) * (second.x - first.x) + (second.y - first.y) * (second.y - first.y))
-        val oa2 = dx1 * dx1 + dy1 * dy1
-        val ob2 = dx2 * dx2 + dy2 * dy2
-
-        // 根据两向量的叉乘来判断顺逆时针
-        val isClockwise =
-            (first.x - cen.x) * (second.y - cen.y) - (first.y - cen.y) * (second.x - cen.x) > 0
-
-        // 根据余弦定理计算旋转角的余弦值
-        var cosDegree =
-            (oa2 + ob2 - ab2) / (2 * Math.sqrt(oa2.toDouble()) * Math.sqrt(ob2.toDouble()))
-
-        // 异常处理，因为算出来会有误差绝对值可能会超过一，所以需要处理一下
-        if (cosDegree > 1) {
-            cosDegree = 1.0
-        } else if (cosDegree < -1) {
-            cosDegree = -1.0
-        }
-
-        // 计算弧度
-        val radian = Math.acos(cosDegree)
-
-        // 计算旋转过的角度，顺时针为正，逆时针为负
-        return (if (isClockwise) Math.toDegrees(radian) else -Math.toDegrees(
-            radian
-        )).toFloat()
-    }
-
-
-    override fun applyMatrix(matrix: Matrix) {
-
-    }
-
 
 }

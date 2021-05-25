@@ -2,6 +2,7 @@ package com.example.testfreetype
 
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.testfreetype.databinding.ActivityTextEditBinding
@@ -20,7 +21,6 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     private val preViewTextInfo by lazy {
         //获取内置的普通文本预览层
         viewBinding.textRectManager.getDefaultPreviewTextInfo()
-
     }
 
     val ttfPath by lazy {
@@ -209,6 +209,8 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         viewBinding.tvTest.typeface = typeface
         viewBinding.tvTest.text = "Test"
 
+        //TextEngineHelper.getTextEngine().setPreViewLayer()
+
         viewBinding.btnText.setOnClickListener {
             /*editSurfaceManager.addTextLayer(
                 TextLayer(
@@ -224,27 +226,28 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
         //注册层次移动回调
         TextEngineHelper.getTextEngine()
-            .registerTextAreaCallBack { layerId, left, top, right, bottom ->
+            .registerTextEngineStatus { layerId, left, top, right, bottom ->
                 runOnUiThread {
+                    Log.e(
+                        "11111",
+                        "onTextLayerAreaChange : left layerId $layerId " + left + "top: " + top + " right:" + right + "bottom: " + bottom
+                    )
                     viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
                 }
             }
 
 
-
         viewBinding.btnMatrix.setOnClickListener {
+            //viewBinding.textRectManager.updateMatrix()
             viewBinding.textRectManager.getMatrixInfo().apply {
-                var currentMatrix = FloatArray(16)
-                currentMatrix = floatArrayOf(
-                    1F, 0F, 0F, 0F,
-                    0F, 1F, 0F, 0F,
-                    0F, 0F, 1F, 0F,
-                    0F, 0F, 0F, 1F
-                )
-                android.opengl.Matrix.scaleM(currentMatrix, 0, scale, scale, scale)
+                Log.e("11111", "TextEngineHelper.getTextEngine ${this}")
 
                 TextEngineHelper.getTextEngine().textMatrix(this)
             }
+        }
+
+        viewBinding.textRectManager.iIUpdatePosition = { tx, ty, s, r ->
+            TextEngineHelper.getTextEngine().textMatrix(tx, ty, s, r)
         }
     }
 
