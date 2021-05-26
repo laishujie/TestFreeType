@@ -2,7 +2,6 @@ package com.example.testfreetype;
 
 import android.util.Log;
 
-import com.example.testfreetype.bean.MatrixInfo;
 import com.example.testfreetype.bean.TextInfo;
 import com.example.testfreetype.bean.TextLayer;
 
@@ -14,17 +13,21 @@ public class TextEngineJni {
         System.loadLibrary("myTest");
     }
 
-    public void textMatrix(MatrixInfo matrixInfo) {
-        textEngineMatrix(TEXT_ENGINE_ID, matrixInfo.getTx(), matrixInfo.getTy(), matrixInfo.getScale(), matrixInfo.getRangle());
-    }
+    /*public void textMatrix(MatrixInfo matrixInfo) {
+        textLayerTransform(TEXT_ENGINE_ID, , matrixInfo.getTx(), matrixInfo.getTy(), matrixInfo.getScale(), matrixInfo.getRangle());
+    }*/
 
-    public void textMatrix(float tx, float ty, float s, float r) {
-        textEngineMatrix(TEXT_ENGINE_ID, tx, ty, s, r);
+    public void textLayerTransform(int layerId, float tx, float ty, float s, float r) {
+        textLayerTransform(TEXT_ENGINE_ID, layerId, tx, ty, s, r);
     }
 
 
     public interface TextEngineStatus {
         void onTextLayerAreaChange(int layerId, float left, float top, float right, float bottom);
+
+        void onPreviewInit(int layerId);
+
+        void onTextLevelChange(boolean isAdd, int layerId, int subTextId);
     }
 
     public void registerTextEngineStatus(TextEngineStatus mTextEngineStatus) {
@@ -74,11 +77,19 @@ public class TextEngineJni {
     }
 
     public void setPreViewLayer(TextLayer textLayer) {
-
+        setPreViewLayer(TEXT_ENGINE_ID, textLayer);
     }
 
     public int addTextLayer(TextLayer textLayer) {
         return addTextLayer(TEXT_ENGINE_ID, textLayer);
+    }
+
+    public void removeTextLayer(int layerId) {
+        removeTextLayer(TEXT_ENGINE_ID, layerId);
+    }
+
+    public void addSimpleSubText(int layerId, String ttfPath, String text, int fontSize, int fonColor) {
+        addSimpleSubText(TEXT_ENGINE_ID, layerId, ttfPath, text, fontSize, fonColor);
     }
 
     public int addThePreviewLayer2Map() {
@@ -201,6 +212,10 @@ public class TextEngineJni {
 
     private native int addTextLayer(long handle, TextLayer textLayer);
 
+    //添加一个普通文字层
+    private native void addSimpleSubText(long handle, int layerId, String ttfPath, String text, int fontSize, int fonColor);
+
+
     private native int setPreViewLayer(long handle, TextLayer textLayer);
 
     private native int addThePreviewLayer2Map(long handle);
@@ -209,17 +224,30 @@ public class TextEngineJni {
 
     private native void cleanPreview(long handle);
 
+    private native void textLayerTransform(long handler, int layerId, float tx, float ty, float sc, float r);
 
-    private native void textEngineMatrix(long handler, float tx, float ty, float sc, float r);
-
+    private native void removeTextLayer(long handle, int layerId);
 
     private void onError(int code) {
         Log.e("11111", "code :  " + code);
     }
 
-    private void onTextLayerAreaChange(int layerId,float left, float top, float right, float bottom) {
+    private void onTextLayerAreaChange(int layerId, float left, float top, float right, float bottom) {
         if (mTextEngineStatus != null) {
             mTextEngineStatus.onTextLayerAreaChange(layerId, left, top, right, bottom);
+        }
+    }
+
+    private void onPreviewInit(int layerId) {
+        if (mTextEngineStatus != null) {
+            mTextEngineStatus.onPreviewInit(layerId);
+        }
+    }
+
+    private void onTextLevelChange(boolean isAdd, int layerId, int subTextId) {
+        Log.e("11111", "isAdd " + isAdd + " layerId  " + layerId + " subTextId  " + subTextId + "");
+        if (mTextEngineStatus != null) {
+            mTextEngineStatus.onTextLevelChange(isAdd, layerId, subTextId);
         }
     }
 }

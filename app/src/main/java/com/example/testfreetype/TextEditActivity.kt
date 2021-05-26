@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.example.testfreetype.bean.TextLayer
+import com.example.testfreetype.bean.TextLayerManager
+import com.example.testfreetype.bean.deepCopy
 import com.example.testfreetype.databinding.ActivityTextEditBinding
 import com.example.testfreetype.util.*
 import com.example.testfreetype.widget.TemplateFragment
@@ -13,15 +16,11 @@ import java.io.File
 
 
 class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
-
-
+    //文本管理器
     private val editSurfaceManager = TextEditSurfaceManager()
 
-    //当前预览的textInfo
-    private val preViewTextInfo by lazy {
-        //获取内置的普通文本预览层
-        viewBinding.textRectManager.getDefaultPreviewTextInfo()
-    }
+    //当前操作的层
+    private var tmpTextLayer: TextLayer? = null
 
     val ttfPath by lazy {
         intent.getStringExtra("path").toString()
@@ -62,129 +61,141 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
 
     private val textStyleBottomSheetFragment by lazy {
+        FragmentHelp.restoreFragment(
+            this,
+            TextStyleFragment::class.simpleName
+        ) as TextStyleFragment
+    }
+
+    private fun InitTextStyleFragment() {
         var fragment = FragmentHelp.restoreFragment(
             this,
             TextStyleFragment::class.simpleName
         ) as? TextStyleFragment
         if (fragment == null) {
             fragment = TextStyleFragment()
-            fragment?.styleCallBack = textStyleCallBack
+            fragment.styleCallBack = textStyleCallBack
             FragmentHelp.initFragment(
                 this,
-                fragment!!,
+                fragment,
                 R.id.frame_menu,
                 TextStyleFragment::class.simpleName,
                 false
             )
         }
-        fragment!!
     }
 
+
     private val textStyleCallBack = object : TextStyleFragment.OnStyleChange {
+
+        override fun exit() {
+            tmpTextLayer?.apply {
+                TextEngineHelper.getTextEngine().removeTextLayer(layerId)
+            }
+        }
+
         override fun changeText(text: String) {
-            editSurfaceManager
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 char = text
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeHorizontal(horizontal: Boolean) {
-            preViewTextInfo.apply {
-                this.horizontal = horizontal
-                editSurfaceManager.drawPreViewLayer(this)
-            }
+            /* preViewTextInfo.apply {
+                 this.horizontal = horizontal
+                 editSurfaceManager.drawPreViewLayer(this)
+             }*/
         }
 
         override fun changeWordSpacing(spacing: Int) {
-            preViewTextInfo.apply {
-                this.spacing = spacing
-                editSurfaceManager.drawPreViewLayer(this)
-            }
+            /*  preViewTextInfo.apply {
+                  this.spacing = spacing
+                  editSurfaceManager.drawPreViewLayer(this)
+              }*/
         }
 
         override fun changeLineWordSpacing(spacing: Int) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.lineSpacing = spacing
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeFont(fontPath: String) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.ttfPath = fontPath
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeFontSize(pixie: Int) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.size = if (pixie == 0) 1 else pixie
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeFontColor(color: Int) {
-            preViewTextInfo.apply {
-                this.fontColor = color
-                editSurfaceManager.drawPreViewLayer(this)
-            }
+            /* preViewTextInfo.apply {
+                 this.fontColor = color
+                 editSurfaceManager.drawPreViewLayer(this)
+             }*/
         }
 
         override fun changeDistance(distanceMark: Float) {
-            preViewTextInfo.apply {
-                this.distanceMark = distanceMark
-                editSurfaceManager.drawPreViewLayer(this)
-            }
+            /* preViewTextInfo.apply {
+                 this.distanceMark = distanceMark
+                 editSurfaceManager.drawPreViewLayer(this)
+             }*/
         }
 
         override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.outLineDistanceMark = outLineDistanceMark
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeOutlineColor(color: Int) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.outLineColor = color
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeShadowDistance(shadowDistance: Float) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.shadowDistance = shadowDistance
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeShadowAlpha(shadowAlpha: Float) {
-            preViewTextInfo.apply {
-                this.shadowAlpha = shadowAlpha
-                editSurfaceManager.drawPreViewLayer(this)
-            }
+            /* preViewTextInfo.apply {
+                 this.shadowAlpha = shadowAlpha
+                 editSurfaceManager.drawPreViewLayer(this)
+             }*/
         }
 
         override fun changeShadowColor(shadowColor: Int) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.shadowColor = shadowColor
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun changeShadowAngle(shadowAngle: Int) {
-            preViewTextInfo.apply {
+            /*preViewTextInfo.apply {
                 this.shadowAngle = shadowAngle
                 editSurfaceManager.drawPreViewLayer(this)
-            }
+            }*/
         }
 
         override fun onCreateLayer() {
             //TODO 这里应该需要重新复制临时配置
-            preViewTextInfo.char = null
-            editSurfaceManager.addThePreviewLayer2Map()
-
+            //preViewTextInfo.char = null
+            // editSurfaceManager.addThePreviewLayer2Map()
         }
     }
 
@@ -193,12 +204,11 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //android.opengl.Matrix.scaleM();
-
         //AndroidBug5497Workaround.assistActivity(this)
         TextEngineHelper.init()
-
+        InitTextStyleFragment()
         viewBinding.surfaceView.surfaceTextureListener = editSurfaceManager
+
         val typeface = Typeface.createFromFile(
             File(
                 StorageHelper.getInternalFilesDir(this),
@@ -209,15 +219,9 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         viewBinding.tvTest.typeface = typeface
         viewBinding.tvTest.text = "Test"
 
-        //TextEngineHelper.getTextEngine().setPreViewLayer()
-
         viewBinding.btnText.setOnClickListener {
-            /*editSurfaceManager.addTextLayer(
-                TextLayer(
-                    TextInfo(-1, "你好呀", ttfPath)
-                )
-            )*/
-            FragmentHelp.showOrHideFragment(this, textStyleBottomSheetFragment)
+            //TODO 记得添加Loading
+            addSimpleText()
         }
 
         viewBinding.tvTemplate.setOnClickListener {
@@ -226,15 +230,50 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
         //注册层次移动回调
         TextEngineHelper.getTextEngine()
-            .registerTextEngineStatus { layerId, left, top, right, bottom ->
-                runOnUiThread {
-                    Log.e(
-                        "11111",
-                        "onTextLayerAreaChange : left layerId $layerId " + left + "top: " + top + " right:" + right + "bottom: " + bottom
-                    )
-                    viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
+            .registerTextEngineStatus(object : TextEngineJni.TextEngineStatus {
+                override fun onPreviewInit(layerId: Int) {
+                    Log.e("11111", "onPreviewInit :  layerId $layerId ")
                 }
-            }
+
+                override fun onTextLevelChange(isAdd: Boolean, layerId: Int, subTextId: Int) {
+                    if (isAdd) {
+                        tmpTextLayer?.apply {
+                            this.layerId = layerId
+                            this.textInfo?.id = subTextId
+                            runOnUiThread {
+                                endTime = System.currentTimeMillis()
+                                Log.e("11111", "cost :   ${endTime - time} ms")
+
+                                FragmentHelp.showOrHideFragment(
+                                    this@TextEditActivity,
+                                    textStyleBottomSheetFragment
+                                )
+
+                                textStyleBottomSheetFragment.setLayer(layerId, subTextId)
+                                viewBinding.textRectManager.addRect(this.deepCopy())
+                            }
+                        }
+                    } else {
+                        viewBinding.textRectManager.removeRect(layerId)
+                    }
+                }
+
+                override fun onTextLayerAreaChange(
+                    layerId: Int,
+                    left: Float,
+                    top: Float,
+                    right: Float,
+                    bottom: Float
+                ) {
+                    runOnUiThread {
+                        Log.e(
+                            "11111",
+                            "onTextLayerAreaChange : left layerId $layerId " + left + "top: " + top + " right:" + right + "bottom: " + bottom
+                        )
+                        viewBinding.textRectManager.onChangeArea(layerId, left, top, right, bottom)
+                    }
+                }
+            })
 
 
         viewBinding.btnMatrix.setOnClickListener {
@@ -242,14 +281,36 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             viewBinding.textRectManager.getMatrixInfo().apply {
                 Log.e("11111", "TextEngineHelper.getTextEngine ${this}")
 
-                TextEngineHelper.getTextEngine().textMatrix(this)
+                //TextEngineHelper.getTextEngine().textMatrix(this)
             }
         }
 
-        viewBinding.textRectManager.iIUpdatePosition = { tx, ty, s, r ->
-            TextEngineHelper.getTextEngine().textMatrix(tx, ty, s, r)
+        viewBinding.textRectManager.iIUpdatePosition = { id,tx, ty, s, r ->
+            TextEngineHelper.getTextEngine().textLayerTransform(id,tx, ty, s, r)
         }
     }
 
+    var time = 0L
+    var endTime = 0L
+
+    private fun addSimpleText() {
+
+        time = System.currentTimeMillis()
+
+        tmpTextLayer = null
+        tmpTextLayer = TextLayerManager.createTextLayer(this)
+        tmpTextLayer?.apply {
+            textInfo?.let {
+                TextEngineHelper.getTextEngine()
+                    .addSimpleSubText(layerId,it.ttfPath, it.char, it.size, it.fontColor)
+            }
+        }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        TextLayerManager.clear()
+    }
 
 }

@@ -37,6 +37,7 @@ private:
     std::string last_ttf_file;
 
 public:
+    int id;
     std::string ttf_file;
     std::string text;
     char *outPath;
@@ -78,7 +79,7 @@ public:
     }
 
 
-    TextInfo() : area(), ttf_file(), text(), outPath(nullptr),
+    TextInfo() : id(0), area(), ttf_file(), text(), outPath(nullptr),
                  surfaceWidth(0), surfaceHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
                  fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
@@ -111,13 +112,14 @@ typedef struct {
 
 class TextLayer {
 public:
-    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false),
-                  isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f) {}
+    TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false), textArea(),
+                  isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f), applyMatrix(false),
+                  isFristCreate(true) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
-                                         isChangeTextArea(false),
+                                         isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f),
                                          textureId(fboInfo.frameBuffer), text_deque(), textArea(),
-                                         applyMatrix(false) {}
+                                         applyMatrix(false), isFristCreate(true) {}
 
     //层id
     int id;
@@ -137,6 +139,8 @@ public:
     float tx, ty, sc, r;
     //是否应用变换信息
     bool applyMatrix;
+    //是否第一次被创建
+    bool isFristCreate;
 
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);

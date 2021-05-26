@@ -19,6 +19,9 @@ public:
     void onError(int code, int thread = THREAD_MAIN);
 
     void onTextAreaChanged(int layerId,float left, float top, float right, float bottom, int thread = THREAD_CHILD) const;
+    void onPreviewLayerInitSuccess(int layerId, int thread = THREAD_MAIN);
+    void onTextLevelChange(bool isAdd,int layerId,int subTextId,int thread = THREAD_CHILD);
+    void onInitSuccess(int thread = THREAD_MAIN);
 
 public:
     JavaVM *javaVM;
@@ -28,6 +31,10 @@ public:
 
     jmethodID jmid_error;
     jmethodID jmid_text_changed;
+    jmethodID jmid_previewInit;
+    jmethodID jmid_initSuccess;
+    jmethodID jmid_textLevelChange;
+
 };
 
 

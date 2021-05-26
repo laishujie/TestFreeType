@@ -1,15 +1,14 @@
 package com.example.testfreetype.util
 
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
-import com.example.testfreetype.bean.LayerManager
 import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.bean.TextLayer
+import java.io.File
 
 class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
-    private var currLayerId: Int = 0
-
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         TextEngineHelper.getTextEngine().textEngineSurfaceDestroyed()
@@ -28,18 +27,6 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
     }
 
-    fun addTextLayer(textLayer: TextLayer) {
-        val addTextLayer = TextEngineHelper.getTextEngine().addTextLayer(textLayer)
-        if (addTextLayer != -1) {
-            textLayer.layerId = addTextLayer
-            LayerManager.addLayer(addTextLayer, textLayer)
-        }
-    }
-
-
-    fun drawText(ttfPath: String?, text: String?, outPath: String?) {
-        TextEngineHelper.getTextEngine().textEngineDraw(ttfPath, text, outPath)
-    }
 
     fun drawPreViewLayer(textInfo: TextInfo) {
         TextEngineHelper.getTextEngine().textEngineDrawPreView(textInfo)
@@ -56,6 +43,4 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
     fun drawPreViewLayerByJson(json: String, fontFolder: String) {
         TextEngineHelper.getTextEngine().textEngineDrawPreViewByJson(json, fontFolder)
     }
-
-
 }

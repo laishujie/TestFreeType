@@ -1,14 +1,21 @@
 package com.example.testfreetype.bean
 
+import kotlin.reflect.KClass
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.primaryConstructor
+
+import android.content.Context
 import android.graphics.Color
 import android.graphics.RectF
 import android.util.SparseArray
+import com.example.testfreetype.util.PathHelp
 import com.google.gson.annotations.SerializedName
+import java.io.File
 
 data class TextInfo(
     var id: Int,
-    var char: String?,
-    var ttfPath: String?,
+    var char: String,
+    var ttfPath: String,
     var fontColor: Int = Color.WHITE,
     var outLineColor: Int = Color.YELLOW,
     var shadowColor: Int = Color.GRAY,
@@ -23,8 +30,32 @@ data class TextInfo(
     var horizontal: Boolean = true
 )
 
+
+fun <T : Any> T.deepCopy(): T {
+    if (!this::class.isData) {
+        return this
+    }
+
+    return this::class.primaryConstructor!!.let { primaryConstructor ->
+        primaryConstructor.parameters
+            .map { parameter ->
+                val value =
+                    (this::class as KClass<T>).declaredMemberProperties.first { it.name == parameter.name }
+                        .get(this)
+                if ((parameter.type.classifier as? KClass<*>)?.isData == true) {
+                    parameter to value?.deepCopy()
+                } else {
+                    parameter to value
+                }
+            }
+            .toMap()
+            .let(primaryConstructor::callBy)
+    }
+}
+
+
 data class TextLayer(
-    var textInfo: TextInfo,
+    var textInfo: TextInfo?,
     //层id
     var layerId: Int = -1,
     var isTemplate: Boolean = false,
@@ -52,28 +83,42 @@ data class ImgItem(
 )
 
 
-object LayerManager {
+object TextLayerManager {
 
     var currLayerId = -1
-    var layers = SparseArray<TextLayer>()
 
+    var layers = SparseArray<TextLayer?>()
 
-    fun getPreViewTextInfo() {
+    var layerIds = 0
 
+    fun addSimpleText(textLayer: TextLayer, layerId: Int, subId: Int) {
+        textLayer.layerId = layerId
+        textLayer.textInfo?.id = subId
+        layers.put(layerId, textLayer)
     }
 
-    fun getLayer(id: Int): TextLayer? {
-        return layers[id]
+
+    fun getTextLayer(layerId: Int): TextLayer? {
+        return layers[layerId]
     }
 
-    fun addLayer(id: Int, textInfo: TextLayer) {
-        layers.append(id, textInfo)
-        currLayerId = id
+    fun createTextLayer(context: Context): TextLayer {
+        layerIds++
+        val textLayer = TextLayer(createSubText(context))
+        textLayer.layerId = layerIds
+        return textLayer
     }
 
-    fun getStringSame(src: String?, des: String?): String? {
-        if (src == des) return null
-        return des
+    fun createTextLayer(textInfo: TextInfo): TextLayer {
+        return TextLayer(textInfo)
+    }
+
+    fun createSubText(context: Context): TextInfo {
+        return TextInfo(
+            0,
+            "输入文字",
+            PathHelp.getFontsPath(context) + File.separator + "DroidSansFallback.ttf"
+        )
     }
 
 

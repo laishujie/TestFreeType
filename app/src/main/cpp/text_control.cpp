@@ -13,9 +13,13 @@ enum RenderMessage {
     kEGLWindowCreate,
     kEGLWindowDestroy,
     kDRAW,
-    kPreviewClean
+    kPreviewClean,
+    kCallBack,
 };
 
+#define ADD_CALLBACK 1
+#define REMOVE_CALLBACK 1
+#define TEXT_AEAR_CALLBACK 1
 
 text_control::text_control() : Handler(),
                                window_(nullptr),
@@ -25,7 +29,7 @@ text_control::text_control() : Handler(),
                                surface_width_(0), message_queue_(nullptr), message_queue_thread_(),
                                shaderManager_(nullptr),
                                previewLayer(nullptr), previewTemplateLayer(nullptr), layerMaps(),
-                               selfIncreasingId(0), javaCallHelper(nullptr) {
+                               LayerSelfIdIncreasing(0), javaCallHelper(nullptr) {
     buffer_pool_ = new BufferPool(sizeof(Message));
     message_queue_ = new MessageQueue("text_control Message Queue");
     InitMessageQueue(message_queue_);
@@ -132,31 +136,58 @@ void text_control::HandleMessage(Message *msg) {
             //绘制层
             if (!layerMaps.empty()) {
                 for (auto &textInfo : layerMaps) {
-                    TextLayer *pLayer = textInfo.second;
+                    TextLayer *&pLayer = textInfo.second;
+
                     shaderManager_->DrawTextLayer(pLayer);
+
+                    if (pLayer->isFristCreate) {
+                        //TODO 先文字一层看看效果
+                        javaCallHelper->onTextLevelChange(true, pLayer->id,
+                                                          pLayer->text_deque[0]->id);
+                        pLayer->isFristCreate = false;
+                    }
+                    if (javaCallHelper != nullptr && pLayer->isChangeTextArea) {
+                        javaCallHelper->onTextAreaChanged(pLayer->id, pLayer->textArea.left,
+                                                          pLayer->textArea.top,
+                                                          pLayer->textArea.right,
+                                                          pLayer->textArea.bottom);
+                    }
                 }
             }
 
             //绘制内置临时预览层数据
-            if (previewLayer != nullptr) {
-                shaderManager_->DrawTextLayer(previewLayer);
+            /* if (previewLayer != nullptr) {
+                 shaderManager_->DrawTextLayer(previewLayer);
 
-                //获取信息
-                if (javaCallHelper != nullptr && previewLayer->isChangeTextArea) {
-                    javaCallHelper->onTextAreaChanged(previewLayer->id,previewLayer->textArea.left,
-                                                      previewLayer->textArea.top,
-                                                      previewLayer->textArea.right,
-                                                      previewLayer->textArea.bottom);
-                }
-            }
+                 //获取信息
+                 if (javaCallHelper != nullptr && previewLayer->isChangeTextArea) {
+                     javaCallHelper->onTextAreaChanged(previewLayer->id, previewLayer->textArea.left,
+                                                       previewLayer->textArea.top,
+                                                       previewLayer->textArea.right,
+                                                       previewLayer->textArea.bottom);
+                 }
+             }*/
 
             if (!core_->SwapBuffers(render_surface_)) {
                 LOGCATE("eglSwapBuffers error: %d", eglGetError())
             }
 
+
             LOGCATI(" leave kDRAW %s", __func__)
         }
             break;
+        case kCallBack: {
+            LOGCATI("enter kCallBack %s", __func__)
+            if (msg->arg1 == ADD_CALLBACK) {
+                if (javaCallHelper != nullptr) {
+                    javaCallHelper->onTextLevelChange(true, LayerSelfIdIncreasing,
+                                                      SubtextSelfIdIncreasing);
+                }
+            }
+
+            LOGCATI("leave kCallBack %s", __func__)
+
+        }
         case kPreviewClean: {
             delete previewLayer;
             previewLayer = nullptr;
@@ -290,11 +321,12 @@ void text_control::UpdatePreViewTextInfo(const char *ttfPath, const char *text,
                                          float shadowAlpha,
                                          int shadowColor, int shadowAngle) {
     LOGCATI("enter %s", __func__)
-    TextInfo *current_text_;
     //重置层信息
     RestoreTmpLayer(false);
     //TODO 有风险
-    current_text_ = previewLayer->text_deque[0];
+    TextInfo *&current_text_ = previewLayer->text_deque[0];
+
+    if (current_text_ == nullptr) return;
 
     if (ttfPath != nullptr) {
         current_text_->ttf_file = ttfPath;
@@ -407,20 +439,19 @@ int text_control::AddThePreviewLayer2Map() {
     previewLayer->frameBuffer = 0;
     previewLayer->textureId = 0;*/
 
-    selfIncreasingId++;
+    LayerSelfIdIncreasing++;
 
     //直接把预览的指针赋值,地址添加到集合
     auto *textLayer = previewLayer;
-    textLayer->id = selfIncreasingId;
-    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    textLayer->id = LayerSelfIdIncreasing;
+    std::pair<int, TextLayer *> stl = {LayerSelfIdIncreasing, textLayer};
     layerMaps.insert(stl);
 
     //置空，下次自动赋值
     previewLayer = nullptr;
 
 
-
-    return selfIncreasingId;
+    return LayerSelfIdIncreasing;
 }
 
 int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFolder) {
@@ -448,9 +479,9 @@ int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFo
     cJSON *layers = cJSON_GetObjectItem(pJson, "ts");
 
     if (nullptr != layers) {
-        selfIncreasingId++;
+        LayerSelfIdIncreasing++;
         auto *textLayer = new TextLayer();
-        textLayer->id = selfIncreasingId;
+        textLayer->id = LayerSelfIdIncreasing;
 
         int filter_size = cJSON_GetArraySize(layers);
         for (int i = 0; i < filter_size; i++) {
@@ -478,12 +509,12 @@ int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFo
             textLayer->text_deque.push_back(textInfo);
         }
 
-        std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+        std::pair<int, TextLayer *> stl = {LayerSelfIdIncreasing, textLayer};
 
         layerMaps.insert(stl);
 
         cJSON_Delete(pJson);
-        return selfIncreasingId;
+        return LayerSelfIdIncreasing;
     }
     return -1;
 }
@@ -521,9 +552,9 @@ text_control::AddTextLayer(const char *ttfPath, const char *text, bool isHorizon
                            int lineSpacing, int fontSize, int fontColor, float distanceMark,
                            float outLineDistanceMark, int outLineColor, float shadowDistance,
                            float shadowAlpha, int shadowColor, int shadowAngle) {
-    selfIncreasingId++;
+    LayerSelfIdIncreasing++;
     auto *textLayer = new TextLayer();
-    textLayer->id = selfIncreasingId;
+    textLayer->id = LayerSelfIdIncreasing;
     auto *textInfo = new TextInfo();
     textInfo->ttf_file = ttfPath;
     textInfo->text = text;
@@ -544,9 +575,9 @@ text_control::AddTextLayer(const char *ttfPath, const char *text, bool isHorizon
     textLayer->text_deque.push_back(textInfo);
 
     //添加对应关系
-    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    std::pair<int, TextLayer *> stl = {LayerSelfIdIncreasing, textLayer};
     layerMaps.insert(stl);
-    return selfIncreasingId;
+    return LayerSelfIdIncreasing;
 }
 
 int text_control::AddThePreviewLayer2MapByJson() {
@@ -555,16 +586,16 @@ int text_control::AddThePreviewLayer2MapByJson() {
         return -1;
     }
 
-    selfIncreasingId++;
+    LayerSelfIdIncreasing++;
 
     auto *textLayer = new TextLayer();
-    textLayer->id = selfIncreasingId;
+    textLayer->id = LayerSelfIdIncreasing;
     textLayer->textureId = previewLayer->textureId;
     textLayer->frameBuffer = previewLayer->frameBuffer;
     textLayer->text_deque.swap(previewLayer->text_deque);
 
 
-    std::pair<int, TextLayer *> stl = {selfIncreasingId, textLayer};
+    std::pair<int, TextLayer *> stl = {LayerSelfIdIncreasing, textLayer};
     layerMaps.insert(stl);
     previewLayer->id = -1;
     previewLayer->frameBuffer = 0;
@@ -574,7 +605,7 @@ int text_control::AddThePreviewLayer2MapByJson() {
      }*/
     //previewLayer->text_deque.clear();
 
-    return selfIncreasingId;
+    return LayerSelfIdIncreasing;
 }
 
 
@@ -582,8 +613,7 @@ int text_control::RestoreTmpLayer(bool isFromTemplate) {
     if (isFromTemplate) {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
-            selfIncreasingId++;
-            previewLayer->id = selfIncreasingId;
+            previewLayer->id = PREVIEW_ID;
         } else {
             if (!previewLayer->text_deque.empty()) {
                 for (auto textInfo:previewLayer->text_deque) {
@@ -596,8 +626,7 @@ int text_control::RestoreTmpLayer(bool isFromTemplate) {
     } else {
         if (previewLayer == nullptr) {
             previewLayer = new TextLayer();
-            selfIncreasingId++;
-            previewLayer->id = selfIncreasingId;
+            previewLayer->id = PREVIEW_ID;
             previewLayer->text_deque.push_back(new TextInfo());
         } else {
             //如果上次是模板预览
@@ -625,23 +654,90 @@ void text_control::CleanPreview() {
     PostMessage(message);
 }
 
-void text_control::previewMatrix(float tx, float ty, float sc, float r) {
-    if (previewLayer == nullptr) return;
-    previewLayer->applyMatrix = true;
-    previewLayer->tx = tx;
-    previewLayer->ty = ty;
-    previewLayer->sc = sc;
-    previewLayer->r = r;
-    Display();
+void text_control::TextLayerTransform(int layerId, float tx, float ty, float sc, float r) {
+
+    const std::map<int, TextLayer *>::iterator &iterator = layerMaps.find(layerId);
+
+    if (iterator != layerMaps.end()) {
+        TextLayer *pLayer = iterator->second;
+        pLayer->applyMatrix = true;
+        pLayer->tx = tx;
+        pLayer->ty = ty;
+        pLayer->sc = sc;
+        pLayer->r = r;
+        Display();
+    }
 }
 
-int text_control::copyTextLayer(TextLayer *&srcLayer, TextLayer *&desLayer) {
 
-    desLayer->textureId = srcLayer->textureId;
+int text_control::AddSimpleSubtext(int layerId, const char *ttfPath, const char *text, int fonSize,
+                                   int fontColor) {
+    SubtextSelfIdIncreasing++;
+    auto *textLayer = new TextLayer();
+    textLayer->id = layerId;
+    auto *textInfo = new TextInfo();
+    textInfo->id = SubtextSelfIdIncreasing;
+    textInfo->ttf_file = ttfPath;
+    textInfo->text = text;
+    textInfo->fontSize = fonSize;
+    textInfo->fontColor = fontColor;
+
+    //层添加关系
+    textLayer->text_deque.push_back(textInfo);
+
+    //添加对应关系
+    std::pair<int, TextLayer *> stl = {layerId, textLayer};
+    layerMaps.insert(stl);
 
 
+    /*auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kCallBack;
+    message->arg1 = ADD_CALLBACK;
+    PostMessage(message);*/
+
+    Display();
     return 0;
 }
+
+
+int text_control::RemoveLayer(int layerId) {
+    const std::map<int, TextLayer *>::iterator &iterator = layerMaps.find(layerId);
+
+    if (iterator != layerMaps.end()) {
+
+        delete iterator->second;                  // 释放指针
+        iterator->second = NULL;
+
+        layerMaps.erase(iterator);
+
+        Display();
+
+        if (javaCallHelper != nullptr) {
+            javaCallHelper->onTextLevelChange(false, layerId, 0, 1);
+        }
+    } else {
+        return -1;
+    }
+    return 0;
+}
+
+
+void text_control::InitPreviewLayer(const char *ttfPath, const char *text, int fontSize) {
+
+    RestoreTmpLayer(false);
+
+    TextInfo *&pInfo = previewLayer->text_deque[0];
+    if (pInfo != nullptr) {
+        pInfo->text = text;
+        pInfo->fontSize = fontSize;
+        pInfo->ttf_file = ttfPath;
+    }
+
+    if (javaCallHelper != nullptr) {
+        javaCallHelper->onPreviewLayerInitSuccess(PREVIEW_ID);
+    }
+}
+
 
 
 

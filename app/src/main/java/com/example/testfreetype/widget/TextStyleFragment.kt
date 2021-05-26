@@ -3,6 +3,7 @@ package com.example.testfreetype.widget
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.SeekBar
 import androidx.fragment.app.Fragment
@@ -23,6 +24,10 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
     private val viewBinding by viewBinding(DialogTextBinding::bind)
 
     var styleCallBack: TextStyleFragment.OnStyleChange? = null
+
+    var layerId: Int = 0
+
+    var subTextId: Int = 0
 
     private val mFontList: List<FontItem> by lazy {
         val fontList =
@@ -264,11 +269,23 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
             if (FragmentHelp.isFragmentShowing(this)) {
                 FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
                 TextEngineHelper.getTextEngine().cleanPreview()
+                styleCallBack?.exit()
             }
-
-
             return@addOnBackPressed true
         }
+
+        Log.e("11111", "oncreateview")
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        Log.e("11111", "onHiddenChanged $hidden")
+    }
+
+
+    fun setLayer(layerId: Int, subTextId: Int) {
+        this.layerId = layerId
+        this.subTextId = subTextId
     }
 
 
@@ -288,5 +305,6 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
         fun changeShadowColor(shadowColor: Int)
         fun changeShadowAngle(shadowAngle: Int)
         fun onCreateLayer()
+        fun exit()
     }
 }

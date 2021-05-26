@@ -219,9 +219,31 @@ void text_engine::CleanPreview() {
     pthread_mutex_unlock(&queue_mutex_);
 }
 
-void text_engine::previewMatrix(float tx, float ty, float sc, float r) {
+void text_engine::TextLayerTransform(int layerId, float tx, float ty, float sc, float r) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->previewMatrix(tx,ty,sc,r);
+    textControl->TextLayerTransform(layerId, tx, ty, sc, r);
+    pthread_mutex_unlock(&queue_mutex_);
+}
+
+void text_engine::InitPreviewLayer(const char *ttfPath, const char *text, int fontSize) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->InitPreviewLayer(ttfPath, text, fontSize);
+    textControl->Display();
+    pthread_mutex_unlock(&queue_mutex_);
+}
+
+int
+text_engine::AddSimpleSubtext(int layerId, const char *ttfPath, const char *text, int fonSize,
+                              int fontColor) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->AddSimpleSubtext(layerId, ttfPath, text, fonSize, fontColor);
+    pthread_mutex_unlock(&queue_mutex_);
+    return 0;
+}
+
+void text_engine::RemoveTextLayer(int layerId) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->RemoveLayer(layerId);
     pthread_mutex_unlock(&queue_mutex_);
 }
 

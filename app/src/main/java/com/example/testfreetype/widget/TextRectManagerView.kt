@@ -5,17 +5,16 @@ import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
+import android.util.SparseArray
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import androidx.core.util.forEach
 import com.example.testfreetype.R
 import com.example.testfreetype.bean.MatrixInfo
-import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.bean.TextLayer
-import com.example.testfreetype.util.PathHelp
 import com.example.testfreetype.util.SizeUtils
-import java.io.File
 
 class TextRectManagerView @JvmOverloads constructor(
     context: Context,
@@ -24,15 +23,28 @@ class TextRectManagerView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     //已经确定的层边框
-    private var textRectAll = ArrayList<TextRect>()
+    private var textRectAll = SparseArray<TextRect>()
 
     private var currMatrixInfo = MatrixInfo(0f, 0f, 1f, 0f)
 
-    var iIUpdatePosition: ((Float, Float, Float, Float) -> Unit?)? = null
+    var iIUpdatePosition: ((Int, Float, Float, Float, Float) -> Unit?)? = null
+
+
+    /*fun createTextLayer(): TextLayer {
+        val textInfo = TextInfo(
+            0,
+            "输入文字",
+            PathHelp.getFontsPath(context) + File.separator + "DroidSansFallback.ttf"
+        )
+        val textLayer = TextLayer(textInfo)
+        val textRect = TextRect(textLayer, context)
+        textRect.init(viewWidth, viewHeight)
+        return textLayer
+    }*/
 
 
     enum class TouchMode {
-        NONE, DOWN, ICON, SOUTH
+        NONE, DOWN, ICON
     }
 
     private val mDensity by lazy {
@@ -51,8 +63,8 @@ class TextRectManagerView @JvmOverloads constructor(
     private var mCurrTextRect: TextRect? = null
     private var mCurrButtonMark: BaseButtonMark? = null
 
-    private val first = PointF()
-    private val second = PointF()
+    private var viewWidth = 0
+    private var viewHeight = 0
 
     fun getMatrixInfo(): MatrixInfo {
         mCurrTextRect?.apply {
@@ -84,11 +96,11 @@ class TextRectManagerView @JvmOverloads constructor(
 
 
     //临时预览层
-    private val previewTextRect by lazy {
+    /*private val previewTextRect by lazy {
         val textRect = TextRect(TextLayer(tmpTextInfo), this.context)
         textRect.init(width, height)
         textRect
-    }
+    }*/
 
     private val paint by lazy {
         val mPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -97,22 +109,41 @@ class TextRectManagerView @JvmOverloads constructor(
     }
 
     //当前预览的默认内置textInfo
-    private val tmpTextInfo by lazy {
+    /*private val tmpTextInfo by lazy {
         TextInfo(
             0,
             "输入文字",
             PathHelp.getFontsPath(getContext()) + File.separator + "DroidSansFallback.ttf"
         )
+    }*/
+
+    fun addRect(textLayer: TextLayer) {
+        val textRect = TextRect(textLayer, context)
+        textRect.init(viewWidth, viewHeight)
+        textRectAll.put(textLayer.layerId, textRect)
     }
 
 
-    fun onChangeArea(layerId: Int, left: Float, top: Float, right: Float, bottom: Float) {
-        previewTextRect.onChangeArea(left, top, right, bottom)
+    fun removeRect(layerId: Int) {
+        textRectAll.remove(layerId)
+        notifity(layerId)
+    }
+
+    fun notifity(layerId: Int) {
+        mCurrTextRect = textRectAll[layerId]
         invalidate()
     }
 
-    fun getDefaultPreviewTextInfo(): TextInfo {
-        return tmpTextInfo
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        viewWidth = measuredWidth
+        viewHeight = measuredHeight
+    }
+
+    fun onChangeArea(layerId: Int, left: Float, top: Float, right: Float, bottom: Float) {
+        mCurrTextRect = textRectAll[layerId]
+        mCurrTextRect?.onChangeArea(left, top, right, bottom)
+        invalidate()
     }
 
 
@@ -132,8 +163,14 @@ class TextRectManagerView @JvmOverloads constructor(
         getMatrixInfo().apply {
             mCurrTextRect?.let {
                 val rect = it.getRect()
-                iIUpdatePosition?.invoke(rect.centerX(), rect.centerY(), scale, rangle)
-                Log.e("11111","rect $rect")
+                iIUpdatePosition?.invoke(
+                    it.getLayerId()!!,
+                    rect.centerX(),
+                    rect.centerY(),
+                    scale,
+                    rangle
+                )
+                Log.e("11111", "rect $rect")
             }
         }
     }
@@ -171,9 +208,12 @@ class TextRectManagerView @JvmOverloads constructor(
         this.currMode = TouchMode.DOWN
         mDownX = event.x
         mDownY = event.y
-        first.set(event.x, event.y)
-        second.set(event.x, event.y)
-        mCurrTextRect = findHandlingTextRect(event)
+        mCurrTextRect = null
+        textRectAll.forEach { key, value ->
+            if (value.contain(event.x, event.y)) {
+                mCurrTextRect = value
+            }
+        }
 
         mCurrTextRect?.let {
             val findHandlingTextRectButton = findHandlingTextRectButton(event)
@@ -207,7 +247,7 @@ class TextRectManagerView @JvmOverloads constructor(
                         currMatrixInfo.tx = event.x - this.mDownX
                         currMatrixInfo.ty = event.y - this.mDownY
 
-                        this.previewTextRect.setMatrix(this.mMoveMatrix)
+                        mCurrTextRect?.setMatrix(this.mMoveMatrix)
                         invalidate()
                         updateMatrix()
                     }
@@ -225,10 +265,10 @@ class TextRectManagerView @JvmOverloads constructor(
 
 
     private fun findHandlingTextRect(event: MotionEvent): TextRect? {
-        val contain = previewTextRect.contain(event.x, event.y)
-        if (contain) {
+        val contain = mCurrTextRect?.contain(event.x, event.y)
+        if (contain != null && contain) {
             Log.e("11111", "选中框")
-            return previewTextRect
+            return mCurrTextRect
         }
         return null
     }
@@ -241,8 +281,6 @@ class TextRectManagerView @JvmOverloads constructor(
         }
         return null
     }
-
-
 }
 
 
@@ -271,6 +309,9 @@ class TextRect(private var layer: TextLayer?, context: Context) {
     private val tmpRect = RectF()
     var mInverseMatrix: Matrix = Matrix()
 
+    fun getLayerId(): Int? {
+        return layer?.layerId
+    }
 
     private val linePaint by lazy {
         val mPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -301,7 +342,7 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                     paddingRect, linePaint
                 )
 
-                linePaint.color= Color.GRAY
+                linePaint.color = Color.GRAY
                 canvas.drawRect(
                     totalBorderRect, linePaint
                 )

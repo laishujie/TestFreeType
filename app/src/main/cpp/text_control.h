@@ -12,6 +12,8 @@
 #include "cJSON.h"
 #include "java_call_util.h"
 
+#define PREVIEW_ID  1000
+
 class text_control : public Handler {
 private:
     BufferPool *buffer_pool_;
@@ -31,10 +33,13 @@ private:
     JavaCallHelper *javaCallHelper;
 
     std::map<int, TextLayer *> layerMaps;
-    int selfIncreasingId;
+    //Id 自增
+    int LayerSelfIdIncreasing;
+    int SubtextSelfIdIncreasing;
 
     int RestoreTmpLayer(bool isFromTemplate);
-    int copyTextLayer(TextLayer *&srcLayer,TextLayer *&desLayer);
+
+
 public:
     int Init(JavaCallHelper *callHelper);
 
@@ -114,6 +119,7 @@ public:
                      float outLineDistanceMark, int outLineColor, float shadowDistance,
                      float shadowAlpha,
                      int shadowColor, int shadowAngle);
+
     void Display();
 
     int AddThePreviewLayer2Map();
@@ -132,7 +138,13 @@ public:
 
     void CleanPreview();
 
-    void previewMatrix(float tx, float ty, float sc, float r);
+    void TextLayerTransform(int layerId, float tx, float ty, float sc, float r);
+
+    void InitPreviewLayer(const char *ttfPath, const char *text, int fontSize);
+
+    int AddSimpleSubtext(int layerId,const char *ttfPath, const char *text, int fonSize, int fontColor);
+
+    int RemoveLayer(int layerId);
 };
 
 

@@ -16,7 +16,7 @@ class text_engine {
     void OnSurfaceChanged(int width, int height);
 
 public:
-    text_engine(JNIEnv *env,JavaCallHelper *javaCallHelper);
+    text_engine(JNIEnv *env, JavaCallHelper *javaCallHelper);
 
     /**
      * surfaceView 创建
@@ -64,6 +64,7 @@ public:
                      float outLineDistanceMark, int outLineColor, float shadowDistance,
                      float shadowAlpha,
                      int shadowColor, int shadowAngle);
+
 
     int UpdateTextInfo(int layerId, const char *ttfPath, const char *text, char *outPath,
                        bool isHorizontal, int spacing,
@@ -123,8 +124,13 @@ public:
 
     void CleanPreview();
 
-    void previewMatrix(float tx, float ty, float sc, float r);
+    void TextLayerTransform(int layerId,float tx, float ty, float sc, float r);
 
+    int AddSimpleSubtext(int layerId,const char *ttfPath, const char *text, int fonSize, int fontColor);
+
+    void InitPreviewLayer(const char *ttfPath, const char *text, int fontSize);
+
+    void RemoveTextLayer(int layerId);
 private:
     ANativeWindow *window_;
     JavaVM *vm_;

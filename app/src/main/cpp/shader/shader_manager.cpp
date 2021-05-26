@@ -12,10 +12,11 @@
 
 ShaderManager::ShaderManager() : textShader_(nullptr),
                                  fontManager_(
-                                         nullptr), freeTypeShader(nullptr),outShader_(nullptr), matrixShader_(nullptr) {
+                                         nullptr), freeTypeShader(nullptr), outShader_(nullptr),
+                                 matrixShader_(nullptr) {
     textShader_ = new TextShader();
     matrixShader_ = new MatrixShader();
-    outShader_= new OutShader();
+    outShader_ = new OutShader();
     //freeTypeShader = new FreeTypeShader();
 }
 
@@ -64,14 +65,6 @@ void ShaderManager::InitShader(int width, int height) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
 
-    LOGCATI("leave: %s", __func__)
-}
-
-
-ftgl::texture_font_t *
-ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
-    LOGCATI("enter %s", __func__)
-
     if (fontManager_->atlas->id == 0) {
         glGenTextures(1, &fontManager_->atlas->id);
         glBindTexture(GL_TEXTURE_2D, fontManager_->atlas->id);
@@ -86,6 +79,25 @@ ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
         glBindTexture(GL_TEXTURE_2D, GL_NONE);
         LOGCATI("create %d ", fontManager_->atlas->id)
     }
+
+    //TODO 这里重新设计
+    ftgl::texture_font_t *pFont = ftgl::font_manager_get_from_filename(fontManager_,
+                                                                       "/data/user/0/com.example.testfreetype/files/fonts/DroidSansFallback.ttf",
+                                                                       float(72));
+    pFont->rendermode = ftgl::RENDER_SIGNED_DISTANCE_FIELD;
+    pFont->padding = 10;
+    //获取对应得文本
+
+    ftgl::texture_font_load_glyphs(pFont, "输入文字");
+
+
+    LOGCATI("leave: %s", __func__)
+}
+
+
+ftgl::texture_font_t *
+ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
+    LOGCATI("enter %s", __func__)
 
     const char *path = textInfo->ttf_file.c_str();
     const char *text = textInfo->text.c_str();
@@ -225,9 +237,10 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
     fbo_util::UnBindFbo();
 
-    if(textLayer->applyMatrix){
-        matrixShader_->draw(textLayer->textureId, textLayer->tx, textLayer->ty, textLayer->sc,textLayer->r);
-    }else{
+    if (textLayer->applyMatrix) {
+        matrixShader_->draw(textLayer->textureId, textLayer->tx, textLayer->ty, textLayer->sc,
+                            textLayer->r);
+    } else {
         outShader_->draw(textLayer->textureId);
     }
 
