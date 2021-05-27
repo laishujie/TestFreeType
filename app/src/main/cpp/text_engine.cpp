@@ -225,18 +225,13 @@ void text_engine::TextLayerTransform(int layerId, float tx, float ty, float sc, 
     pthread_mutex_unlock(&queue_mutex_);
 }
 
-void text_engine::InitPreviewLayer(const char *ttfPath, const char *text, int fontSize) {
-    pthread_mutex_lock(&queue_mutex_);
-    textControl->InitPreviewLayer(ttfPath, text, fontSize);
-    textControl->Display();
-    pthread_mutex_unlock(&queue_mutex_);
-}
 
 int
-text_engine::AddSimpleSubtext(int layerId, const char *ttfPath, const char *text, int fonSize,
+text_engine::AddSimpleSubtext(int layerId, int subTextId, const char *ttfPath, const char *text,
+                              int fonSize,
                               int fontColor) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->AddSimpleSubtext(layerId, ttfPath, text, fonSize, fontColor);
+    textControl->AddSimpleSubtext(layerId, subTextId, ttfPath, text, fonSize, fontColor);
     pthread_mutex_unlock(&queue_mutex_);
     return 0;
 }
@@ -245,5 +240,25 @@ void text_engine::RemoveTextLayer(int layerId) {
     pthread_mutex_lock(&queue_mutex_);
     textControl->RemoveLayer(layerId);
     pthread_mutex_unlock(&queue_mutex_);
+}
+
+void
+text_engine::SetBasicTextAttributes(int layerId, int subId, const char *text, const char *ttfPath,
+                                    int fonSize, int fontColor) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->SetBasicTextAttributes(layerId, subId, text, ttfPath, fonSize, fontColor);
+    pthread_mutex_unlock(&queue_mutex_);
+}
+
+void text_engine::printAll() {
+    textControl->printAll();
+}
+
+int text_engine::AddTextLayer(TextLayer *&textLayer) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->AddTextLayer(textLayer);
+    Display();
+    pthread_mutex_unlock(&queue_mutex_);
+    return 0;
 }
 

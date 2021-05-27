@@ -151,6 +151,7 @@ void text_control::HandleMessage(Message *msg) {
                                                           pLayer->textArea.top,
                                                           pLayer->textArea.right,
                                                           pLayer->textArea.bottom);
+                        pLayer->isChangeTextArea = false;
                     }
                 }
             }
@@ -670,13 +671,16 @@ void text_control::TextLayerTransform(int layerId, float tx, float ty, float sc,
 }
 
 
-int text_control::AddSimpleSubtext(int layerId, const char *ttfPath, const char *text, int fonSize,
-                                   int fontColor) {
-    SubtextSelfIdIncreasing++;
+int
+text_control::AddSimpleSubtext(int layerId, int subTextId, const char *ttfPath, const char *text,
+                               int fonSize,
+                               int fontColor) {
+
     auto *textLayer = new TextLayer();
+    textLayer->isFristCreate = true;
     textLayer->id = layerId;
     auto *textInfo = new TextInfo();
-    textInfo->id = SubtextSelfIdIncreasing;
+    textInfo->id = subTextId;
     textInfo->ttf_file = ttfPath;
     textInfo->text = text;
     textInfo->fontSize = fonSize;
@@ -689,25 +693,19 @@ int text_control::AddSimpleSubtext(int layerId, const char *ttfPath, const char 
     std::pair<int, TextLayer *> stl = {layerId, textLayer};
     layerMaps.insert(stl);
 
-
-    /*auto message = buffer_pool_->GetBuffer<Message>();
-    message->what = kCallBack;
-    message->arg1 = ADD_CALLBACK;
-    PostMessage(message);*/
-
     Display();
     return 0;
 }
+
 
 
 int text_control::RemoveLayer(int layerId) {
     const std::map<int, TextLayer *>::iterator &iterator = layerMaps.find(layerId);
 
     if (iterator != layerMaps.end()) {
-
-        delete iterator->second;                  // 释放指针
-        iterator->second = NULL;
-
+        // 释放指针
+        delete iterator->second;
+        iterator->second = nullptr;
         layerMaps.erase(iterator);
 
         Display();
@@ -722,21 +720,69 @@ int text_control::RemoveLayer(int layerId) {
 }
 
 
-void text_control::InitPreviewLayer(const char *ttfPath, const char *text, int fontSize) {
+void
+text_control::SetBasicTextAttributes(int layerId, int subId, const char *text, const char *ttfPath,
+                                     int fonSize, int fontColor) {
+    TextInfo *pInfo = nullptr;
+    TextLayer *pLayer = nullptr;
 
-    RestoreTmpLayer(false);
-
-    TextInfo *&pInfo = previewLayer->text_deque[0];
-    if (pInfo != nullptr) {
+    int i = findTextInfo(layerId, subId, pLayer, pInfo);
+    if (i == 0) {
+        pLayer->isDraw = true;
         pInfo->text = text;
-        pInfo->fontSize = fontSize;
         pInfo->ttf_file = ttfPath;
-    }
+        pInfo->fontSize = fonSize;
+        pInfo->fontColor = fontColor;
 
-    if (javaCallHelper != nullptr) {
-        javaCallHelper->onPreviewLayerInitSuccess(PREVIEW_ID);
+        Display();
     }
 }
+
+int text_control::FindTextLayer(int layerId, TextLayer *&textLayer) {
+    const std::map<int, TextLayer *>::iterator &iterator = layerMaps.find(layerId);
+    if (iterator != layerMaps.end()) {
+        TextLayer *pLayer = iterator->second;
+        if (pLayer->id == layerId) {
+            textLayer = pLayer;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+
+int
+text_control::findTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo) {
+    int i = FindTextLayer(layerId, textLayer);
+    if (i == 0) {
+        std::deque<TextInfo *> &deque = textLayer->text_deque;
+        for (auto &pInfo : deque) {
+            if (pInfo->id == subId) {
+                pTextInfo = pInfo;
+                return 0;
+            }
+        }
+    }
+
+    return -1;
+}
+
+void text_control::printAll() {
+    const std::map<int, TextLayer *>::iterator &iterator = layerMaps.begin();
+    for (auto &it : layerMaps) {
+        for (auto textInfo:it.second->text_deque) {
+            LOGCATE("JNI layerId %d subId %d text %s", it.first, textInfo->id,
+                    textInfo->text.c_str())
+        }
+    }
+}
+
+int text_control::AddTextLayer(TextLayer *&textLayer) {
+    std::pair<int, TextLayer *> stl = {textLayer->id, textLayer};
+    layerMaps.insert(stl);
+    return 0;
+}
+
 
 
 

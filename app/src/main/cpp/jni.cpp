@@ -356,6 +356,68 @@ Java_com_example_testfreetype_TextEngineJni_textEngineDraw(JNIEnv *env, jobject 
 }
 
 
+void getTextInfo(JNIEnv *env, jclass textInfoClazz, jobject textInfoJobject, TextInfo *&textInfo) {
+    jfieldID text_file_id = env->GetFieldID(textInfoClazz, "char", "Ljava/lang/String;");
+    jfieldID ttf_file_id = env->GetFieldID(textInfoClazz, "ttfPath", "Ljava/lang/String;");
+
+    auto j_text = (jstring) (env->GetObjectField(textInfoClazz, text_file_id));
+    auto j_ttf = (jstring) (env->GetObjectField(textInfoClazz, ttf_file_id));
+
+    jfieldID horizontal_file_id = env->GetFieldID(textInfoClazz, "horizontal", "Z");
+    jfieldID spacing_file_id = env->GetFieldID(textInfoClazz, "spacing", "I");
+    jfieldID lineSpacing_file_id = env->GetFieldID(textInfoClazz, "lineSpacing", "I");
+    jfieldID size_file_id = env->GetFieldID(textInfoClazz, "size", "I");
+    jfieldID color_file_id = env->GetFieldID(textInfoClazz, "fontColor", "I");
+    jfieldID distanceMark_file_id = env->GetFieldID(textInfoClazz, "distanceMark", "F");
+    jfieldID outLineDistanceMark_file_id = env->GetFieldID(textInfoClazz,
+                                                           "outLineDistanceMark", "F");
+    jfieldID outLineColor_file_id = env->GetFieldID(textInfoClazz, "outLineColor", "I");
+
+    jfieldID shadowDistance_file_id = env->GetFieldID(textInfoClazz, "shadowDistance", "F");
+    jfieldID shadowAlpha_file_id = env->GetFieldID(textInfoClazz, "shadowAlpha", "F");
+    jfieldID shadowColor_file_id = env->GetFieldID(textInfoClazz, "shadowColor", "I");
+    jfieldID shadowAngle_file_id = env->GetFieldID(textInfoClazz, "shadowAngle", "I");
+
+    jboolean isHorizontal = env->GetBooleanField(textInfoJobject, horizontal_file_id);
+    jint spacing = env->GetIntField(textInfoJobject, spacing_file_id);
+    jint lineSpacing = env->GetIntField(textInfoJobject, lineSpacing_file_id);
+    jint fontSize = env->GetIntField(textInfoJobject, size_file_id);
+    jint fontColor = env->GetIntField(textInfoJobject, color_file_id);
+    jfloat distanceMark = env->GetFloatField(textInfoJobject, distanceMark_file_id);
+    jfloat outLineDistanceMark = env->GetFloatField(textInfoJobject,
+                                                    outLineDistanceMark_file_id);
+
+    jint outlineColor = env->GetIntField(textInfoJobject, outLineColor_file_id);
+
+    jfloat shadowDistance = env->GetFloatField(textInfoJobject, shadowDistance_file_id);
+    jfloat shadowAlpha = env->GetFloatField(textInfoJobject, shadowAlpha_file_id);
+
+    jint shadowColor = env->GetIntField(textInfoJobject, shadowColor_file_id);
+    jint shadowAngle = env->GetIntField(textInfoJobject, shadowAngle_file_id);
+
+
+    const char *text = env->GetStringUTFChars(j_text, nullptr);
+    const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
+
+    textInfo->ttf_file = ttf_path;
+    textInfo->isHorizontal = isHorizontal;
+    textInfo->spacing = spacing;
+    textInfo->lineSpacing = lineSpacing;
+    textInfo->fontSize = fontSize;
+    textInfo->fontColor = fontColor;
+    textInfo->distanceMark = distanceMark;
+    textInfo->outlineDistanceMark = outLineDistanceMark;
+    textInfo->outLineColor = outlineColor;
+    textInfo->shadowDistance = shadowDistance;
+    textInfo->shadowAlpha = shadowAlpha;
+    textInfo->shadowColor = shadowColor;
+    textInfo->shadowAngle = shadowAngle;
+
+    env->ReleaseStringUTFChars(j_ttf, ttf_path);
+    env->ReleaseStringUTFChars(j_text, text);
+
+    env->DeleteLocalRef(textInfoClazz);
+}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -453,73 +515,80 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
     auto *editor = reinterpret_cast<text_engine *>(handler);
 
     jclass textLayerClazz = env->GetObjectClass(text_layer);
+    jfieldID textList_fileId = env->GetFieldID(textLayerClazz, "textList", "Ljava/util/ArrayList;");
 
-    jfieldID text_info_field = env->GetFieldID(textLayerClazz, "textInfo",
-                                               "Lcom/example/testfreetype/bean/TextInfo;");
+    jint textLayerId = env->GetIntField(text_layer,
+                                        env->GetFieldID(textLayerClazz, "layerId", "I"));
+    auto *textLayer = new TextLayer();
+
+    textLayer->id = textLayerId;
+    textLayer->isDraw = true;
+    textLayer->isFristCreate = true;
+    textLayer->isTemplate = true;
+
+    //找到textList对象
+    jobject textListObj = env->GetObjectField(text_layer, textList_fileId);
+
+    if (textListObj != nullptr) {
+        int i;
+        jclass cls_arraylist = env->GetObjectClass(textListObj);
+
+        jmethodID arraylist_get = env->GetMethodID(cls_arraylist, "get", "(I)Ljava/lang/Object;");
+        jmethodID arraylist_size = env->GetMethodID(cls_arraylist, "size", "()I");
+        jint len = env->CallIntMethod(textListObj, arraylist_size);
+
+        for (i = 0; i < len; i++) {
+            jobject obj_textInfo = env->CallObjectMethod(textListObj, arraylist_get, i);
+            jclass clip_clazz = env->GetObjectClass(obj_textInfo);
+            auto *info = new TextInfo();
+
+            jfieldID id_file_id = env->GetFieldID(clip_clazz, "id", "I");
+            jint id = env->GetIntField(obj_textInfo, id_file_id);
 
 
-    if (text_info_field != nullptr) {
-        jobject text_object = env->GetObjectField(text_layer, text_info_field);
-        if (text_object != nullptr) {
-            jclass clip_clazz = env->GetObjectClass(text_object);
             jfieldID text_file_id = env->GetFieldID(clip_clazz, "char", "Ljava/lang/String;");
+            auto pJobject = (jstring) env->GetObjectField(obj_textInfo, text_file_id);
+            const char *text = env->GetStringUTFChars(pJobject, nullptr);
+
             jfieldID ttf_file_id = env->GetFieldID(clip_clazz, "ttfPath", "Ljava/lang/String;");
+            auto tJobject = (jstring) env->GetObjectField(obj_textInfo, ttf_file_id);
+            const char *ttfPath = env->GetStringUTFChars(tJobject, nullptr);
 
-            auto j_text = static_cast<jstring>(env->GetObjectField(text_object, text_file_id));
-            auto j_ttf = static_cast<jstring>(env->GetObjectField(text_object, ttf_file_id));
 
-            jfieldID horizontal_file_id = env->GetFieldID(clip_clazz, "horizontal", "Z");
-            jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing", "I");
-            jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing", "I");
             jfieldID size_file_id = env->GetFieldID(clip_clazz, "size", "I");
+            jint fontSize = env->GetIntField(obj_textInfo, size_file_id);
+
             jfieldID color_file_id = env->GetFieldID(clip_clazz, "fontColor", "I");
-            jfieldID distanceMark_file_id = env->GetFieldID(clip_clazz, "distanceMark", "F");
-            jfieldID outLineDistanceMark_file_id = env->GetFieldID(clip_clazz,
-                                                                   "outLineDistanceMark", "F");
-            jfieldID outLineColor_file_id = env->GetFieldID(clip_clazz, "outLineColor", "I");
-
-            jfieldID shadowDistance_file_id = env->GetFieldID(clip_clazz, "shadowDistance", "F");
-            jfieldID shadowAlpha_file_id = env->GetFieldID(clip_clazz, "shadowAlpha", "F");
-            jfieldID shadowColor_file_id = env->GetFieldID(clip_clazz, "shadowColor", "I");
-            jfieldID shadowAngle_file_id = env->GetFieldID(clip_clazz, "shadowAngle", "I");
-
-            jboolean isHorizontal = env->GetBooleanField(text_object, horizontal_file_id);
-            jint spacing = env->GetIntField(text_object, spacing_file_id);
-            jint lineSpacing = env->GetIntField(text_object, lineSpacing_file_id);
-            jint fontSize = env->GetIntField(text_object, size_file_id);
-            jint fontColor = env->GetIntField(text_object, color_file_id);
-            jfloat distanceMark = env->GetFloatField(text_object, distanceMark_file_id);
-            jfloat outLineDistanceMark = env->GetFloatField(text_object,
-                                                            outLineDistanceMark_file_id);
-
-            jint outlineColor = env->GetIntField(text_object, outLineColor_file_id);
-
-            jfloat shadowDistance = env->GetFloatField(text_object, shadowDistance_file_id);
-            jfloat shadowAlpha = env->GetFloatField(text_object, shadowAlpha_file_id);
-
-            jint shadowColor = env->GetIntField(text_object, shadowColor_file_id);
-            jint shadowAngle = env->GetIntField(text_object, shadowAngle_file_id);
+            jint fontColor = env->GetIntField(obj_textInfo, color_file_id);
 
 
-            const char *text = env->GetStringUTFChars(j_text, nullptr);
-            const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
+            jfieldID offsetX_file_id = env->GetFieldID(clip_clazz, "offsetX", "F");
+            jint offsetX = env->GetFloatField(obj_textInfo, offsetX_file_id);
 
-            layerId = editor->AddTextLayer(ttf_path, text, isHorizontal, spacing,
-                                           lineSpacing,
-                                           fontSize, fontColor, distanceMark,
-                                           outLineDistanceMark,
-                                           outlineColor, shadowDistance, shadowAlpha,
-                                           shadowColor,
-                                           shadowAngle);
+            jfieldID offsetY_file_id = env->GetFieldID(clip_clazz, "offsetY", "F");
+            jint offsetY = env->GetFloatField(obj_textInfo, offsetY_file_id);
 
 
-            env->ReleaseStringUTFChars(j_ttf, ttf_path);
-            env->ReleaseStringUTFChars(j_text, text);
+            info->id = id;
+            info->text = text;
+            info->ttf_file = ttfPath;
+            info->fontColor = fontColor;
+            info->fontSize = fontSize;
+            info->offset_x = offsetX;
+            info->offset_y = offsetY;
+            info->isFromTemplate = true;
+            textLayer->text_deque.push_back(info);
 
-            env->DeleteLocalRef(clip_clazz);
+            env->DeleteLocalRef(obj_textInfo);
+            env->ReleaseStringUTFChars(pJobject, text);
+            env->ReleaseStringUTFChars(tJobject, ttfPath);
         }
+        editor->AddTextLayer(textLayer);
+    } else {
+        delete textLayer;
+        textLayer = nullptr;
     }
-    env->DeleteLocalRef(textLayerClazz);
+
 
     return layerId;
 }extern "C"
@@ -572,95 +641,8 @@ Java_com_example_testfreetype_TextEngineJni_cleanPreview(JNIEnv *env, jobject th
 }
 
 
-void getTextInfo(JNIEnv *env, jobject text_layer, TextInfo &textInfo) {
-    jclass textLayerClazz = env->GetObjectClass(text_layer);
-    jfieldID text_info_field = env->GetFieldID(textLayerClazz, "textInfo",
-                                               "Lcom/example/testfreetype/bean/TextInfo;");
-    if (text_info_field != nullptr) {
-        jobject text_object = env->GetObjectField(text_layer, text_info_field);
-        if (text_object != nullptr) {
-            jclass clip_clazz = env->GetObjectClass(text_object);
-            jfieldID text_file_id = env->GetFieldID(clip_clazz, "char", "Ljava/lang/String;");
-            jfieldID ttf_file_id = env->GetFieldID(clip_clazz, "ttfPath", "Ljava/lang/String;");
-
-            auto j_text = static_cast<jstring>(env->GetObjectField(text_object, text_file_id));
-            auto j_ttf = static_cast<jstring>(env->GetObjectField(text_object, ttf_file_id));
-
-            jfieldID horizontal_file_id = env->GetFieldID(clip_clazz, "horizontal", "Z");
-            jfieldID spacing_file_id = env->GetFieldID(clip_clazz, "spacing", "I");
-            jfieldID lineSpacing_file_id = env->GetFieldID(clip_clazz, "lineSpacing", "I");
-            jfieldID size_file_id = env->GetFieldID(clip_clazz, "size", "I");
-            jfieldID color_file_id = env->GetFieldID(clip_clazz, "fontColor", "I");
-            jfieldID distanceMark_file_id = env->GetFieldID(clip_clazz, "distanceMark", "F");
-            jfieldID outLineDistanceMark_file_id = env->GetFieldID(clip_clazz,
-                                                                   "outLineDistanceMark", "F");
-            jfieldID outLineColor_file_id = env->GetFieldID(clip_clazz, "outLineColor", "I");
-
-            jfieldID shadowDistance_file_id = env->GetFieldID(clip_clazz, "shadowDistance", "F");
-            jfieldID shadowAlpha_file_id = env->GetFieldID(clip_clazz, "shadowAlpha", "F");
-            jfieldID shadowColor_file_id = env->GetFieldID(clip_clazz, "shadowColor", "I");
-            jfieldID shadowAngle_file_id = env->GetFieldID(clip_clazz, "shadowAngle", "I");
-
-            jboolean isHorizontal = env->GetBooleanField(text_object, horizontal_file_id);
-            jint spacing = env->GetIntField(text_object, spacing_file_id);
-            jint lineSpacing = env->GetIntField(text_object, lineSpacing_file_id);
-            jint fontSize = env->GetIntField(text_object, size_file_id);
-            jint fontColor = env->GetIntField(text_object, color_file_id);
-            jfloat distanceMark = env->GetFloatField(text_object, distanceMark_file_id);
-            jfloat outLineDistanceMark = env->GetFloatField(text_object,
-                                                            outLineDistanceMark_file_id);
-
-            jint outlineColor = env->GetIntField(text_object, outLineColor_file_id);
-
-            jfloat shadowDistance = env->GetFloatField(text_object, shadowDistance_file_id);
-            jfloat shadowAlpha = env->GetFloatField(text_object, shadowAlpha_file_id);
-
-            jint shadowColor = env->GetIntField(text_object, shadowColor_file_id);
-            jint shadowAngle = env->GetIntField(text_object, shadowAngle_file_id);
-
-
-            const char *text = env->GetStringUTFChars(j_text, nullptr);
-            const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
-
-            textInfo.ttf_file = ttf_path;
-            textInfo.isHorizontal = isHorizontal;
-            textInfo.spacing = spacing;
-            textInfo.lineSpacing = lineSpacing;
-            textInfo.fontSize = fontSize;
-            textInfo.fontColor = fontColor;
-            textInfo.distanceMark = distanceMark;
-            textInfo.outlineDistanceMark = outLineDistanceMark;
-            textInfo.outLineColor = outlineColor;
-            textInfo.shadowDistance = shadowDistance;
-            textInfo.shadowAlpha = shadowAlpha;
-            textInfo.shadowColor = shadowColor;
-            textInfo.shadowAngle = shadowAngle;
-
-            env->ReleaseStringUTFChars(j_ttf, ttf_path);
-            env->ReleaseStringUTFChars(j_text, text);
-
-            env->DeleteLocalRef(clip_clazz);
-        }
-    }
-    env->DeleteLocalRef(textLayerClazz);
-}
-
 
 extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_testfreetype_TextEngineJni_setPreViewLayer(JNIEnv *env, jobject thiz, jlong handle,
-                                                            jobject text_layer) {
-    if (handle <= 0) {
-        return -1;
-    }
-    TextInfo textInfo;
-    getTextInfo(env, text_layer, textInfo);
-
-    auto *editor = reinterpret_cast<text_engine *>(handle);
-    editor->InitPreviewLayer(textInfo.ttf_file.c_str(), textInfo.text.c_str(), textInfo.fontSize);
-
-    return 0;
-}extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_removeTextLayer(JNIEnv *env, jobject thiz, jlong handle,
                                                             jint layer_id) {
@@ -674,6 +656,7 @@ Java_com_example_testfreetype_TextEngineJni_removeTextLayer(JNIEnv *env, jobject
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_addSimpleSubText(JNIEnv *env, jobject thiz,
                                                              jlong handle, jint layer_id,
+                                                             jint subText_id,
                                                              jstring j_ttf, jstring j_text,
                                                              jint font_size, jint fon_color) {
     const char *text = env->GetStringUTFChars(j_text, nullptr);
@@ -684,11 +667,13 @@ Java_com_example_testfreetype_TextEngineJni_addSimpleSubText(JNIEnv *env, jobjec
     }
 
     auto *editor = reinterpret_cast<text_engine *>(handle);
-    editor->AddSimpleSubtext(layer_id, ttf_path, text, font_size, fon_color);
+    editor->AddSimpleSubtext(layer_id, subText_id, ttf_path, text, font_size, fon_color);
 
     env->ReleaseStringUTFChars(j_ttf, ttf_path);
     env->ReleaseStringUTFChars(j_text, text);
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_textLayerTransform(JNIEnv *env, jobject thiz,
                                                                jlong handler, jint layer_id,
@@ -700,4 +685,35 @@ Java_com_example_testfreetype_TextEngineJni_textLayerTransform(JNIEnv *env, jobj
     auto *editor = reinterpret_cast<text_engine *>(handler);
 
     editor->TextLayerTransform(layer_id, tx, ty, sc, r);
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_setBasicTextAttributes(JNIEnv *env, jobject thiz,
+                                                                   jlong handler, jint layer_id,
+                                                                   jint sub_id, jstring j_ttf,
+                                                                   jstring j_text, jint font_size,
+                                                                   jint font_color) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+    const char *text = env->GetStringUTFChars(j_text, nullptr);
+    const char *ttf_path = env->GetStringUTFChars(j_ttf, nullptr);
+
+
+    editor->SetBasicTextAttributes(layer_id, sub_id, text, ttf_path, font_size, font_color);
+
+
+    env->ReleaseStringUTFChars(j_ttf, ttf_path);
+    env->ReleaseStringUTFChars(j_text, text);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_printAll(JNIEnv *env, jobject thiz,
+                                                     jlong native_handle) {
+    if (native_handle <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(native_handle);
+    editor->printAll();
 }

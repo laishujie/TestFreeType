@@ -40,6 +40,9 @@ public:
     int AddTextLayer(const char *layerJson, const char *fontFolder);
 
 
+    int AddTextLayer(TextLayer *&textLayer);
+
+
     /**
      * 添加文字层
      * @param ttfPath  字体路径
@@ -126,11 +129,15 @@ public:
 
     void TextLayerTransform(int layerId,float tx, float ty, float sc, float r);
 
-    int AddSimpleSubtext(int layerId,const char *ttfPath, const char *text, int fonSize, int fontColor);
+    int AddSimpleSubtext(int layerId,int subTextId,const char *ttfPath, const char *text, int fonSize, int fontColor);
 
-    void InitPreviewLayer(const char *ttfPath, const char *text, int fontSize);
+    void SetBasicTextAttributes(int layerId, int subId, const char *text, const char *ttfPath,
+                                int fonSize, int fontColor);
 
     void RemoveTextLayer(int layerId);
+
+    void printAll();
+
 private:
     ANativeWindow *window_;
     JavaVM *vm_;

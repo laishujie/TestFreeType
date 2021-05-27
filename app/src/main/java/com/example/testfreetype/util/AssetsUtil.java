@@ -3,6 +3,8 @@ package com.example.testfreetype.util;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -45,6 +47,7 @@ public class AssetsUtil {
         String result = null;
         InputStream in = null;
         try {
+
             in = getFileFromAssets(context, fileName);
             int length = in.available();
             byte[] buffer = new byte[length];
@@ -63,6 +66,28 @@ public class AssetsUtil {
     }
 
 
+    public static String getTextFromFile(Context context, File file) {
+        String result = null;
+        InputStream in = null;
+        try {
+
+            in = new FileInputStream(file);
+            int length = in.available();
+            byte[] buffer = new byte[length];
+            in.read(buffer);
+            result = new String(buffer, Charset.forName(ENCODING));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
     /**
      * parse json object from asset file to list
      */
@@ -72,10 +97,23 @@ public class AssetsUtil {
     }
 
     /**
+     * parse json object from asset file to list
+     */
+    public static <T> List<T> parseJsonToList(Context context, File file, Class<T> clazz) {
+        String json = getTextFromFile(context, file);
+        return GSonUtil.strToList(json, clazz);
+    }
+
+    /**
      * parse json object from asset to object.
      */
     public static <T> T parseJsonToObject(Context context, String jsonName, Class<T> clazz) {
         String json = getTextFromAssets(context, jsonName);
+        return GSonUtil.strToObj(json, clazz);
+    }
+
+    public static <T> T parseJsonToObject(Context context, File jsonName, Class<T> clazz) {
+        String json = getTextFromFile(context, jsonName);
         return GSonUtil.strToObj(json, clazz);
     }
 }

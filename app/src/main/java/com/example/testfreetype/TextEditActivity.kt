@@ -7,12 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.testfreetype.bean.TextLayer
 import com.example.testfreetype.bean.TextLayerManager
-import com.example.testfreetype.bean.deepCopy
 import com.example.testfreetype.databinding.ActivityTextEditBinding
 import com.example.testfreetype.util.*
 import com.example.testfreetype.widget.TemplateFragment
 import com.example.testfreetype.widget.TextStyleFragment
 import java.io.File
+import javax.xml.transform.sax.TemplatesHandler
 
 
 class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
@@ -43,7 +43,10 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         if (fragment == null) {
             fragment = TemplateFragment()
             fragment?.selectCallBack = { path ->
-                editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
+                val createByJson = TextLayerManager.createByJson(this, File(path))
+                TextEngineHelper.getTextEngine().addTextLayer(createByJson)
+                null
+                // editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
             }
             fragment?.selectOk = {
                 editSurfaceManager.addThePreviewLayerByJson2Map()
@@ -95,10 +98,31 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         }
 
         override fun changeText(text: String) {
-            /*preViewTextInfo.apply {
-                char = text
-                editSurfaceManager.drawPreViewLayer(this)
-            }*/
+            tmpTextLayer?.apply {
+                getFirst()?.char = text
+                editSurfaceManager.setBasicTextAttributes(this)
+            }
+        }
+
+        override fun changeFont(fontPath: String) {
+            tmpTextLayer?.apply {
+                getFirst()?.ttfPath = fontPath
+                editSurfaceManager.setBasicTextAttributes(this)
+            }
+        }
+
+        override fun changeFontSize(pixie: Int) {
+            tmpTextLayer?.apply {
+                getFirst()?.size = pixie
+                editSurfaceManager.setBasicTextAttributes(this)
+            }
+        }
+
+        override fun changeFontColor(color: Int) {
+            tmpTextLayer?.apply {
+                getFirst()?.fontColor = color
+                editSurfaceManager.setBasicTextAttributes(this)
+            }
         }
 
         override fun changeHorizontal(horizontal: Boolean) {
@@ -122,26 +146,6 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             }*/
         }
 
-        override fun changeFont(fontPath: String) {
-            /*preViewTextInfo.apply {
-                this.ttfPath = fontPath
-                editSurfaceManager.drawPreViewLayer(this)
-            }*/
-        }
-
-        override fun changeFontSize(pixie: Int) {
-            /*preViewTextInfo.apply {
-                this.size = if (pixie == 0) 1 else pixie
-                editSurfaceManager.drawPreViewLayer(this)
-            }*/
-        }
-
-        override fun changeFontColor(color: Int) {
-            /* preViewTextInfo.apply {
-                 this.fontColor = color
-                 editSurfaceManager.drawPreViewLayer(this)
-             }*/
-        }
 
         override fun changeDistance(distanceMark: Float) {
             /* preViewTextInfo.apply {
@@ -206,7 +210,9 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
         //AndroidBug5497Workaround.assistActivity(this)
         TextEngineHelper.init()
+
         InitTextStyleFragment()
+
         viewBinding.surfaceView.surfaceTextureListener = editSurfaceManager
 
         val typeface = Typeface.createFromFile(
@@ -228,6 +234,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             FragmentHelp.showOrHideFragment(this, templateFragment)
         }
 
+
         //注册层次移动回调
         TextEngineHelper.getTextEngine()
             .registerTextEngineStatus(object : TextEngineJni.TextEngineStatus {
@@ -239,7 +246,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                     if (isAdd) {
                         tmpTextLayer?.apply {
                             this.layerId = layerId
-                            this.textInfo?.id = subTextId
+                            getFirst()?.id = subTextId
                             runOnUiThread {
                                 endTime = System.currentTimeMillis()
                                 Log.e("11111", "cost :   ${endTime - time} ms")
@@ -250,7 +257,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                                 )
 
                                 textStyleBottomSheetFragment.setLayer(layerId, subTextId)
-                                viewBinding.textRectManager.addRect(this.deepCopy())
+                                viewBinding.textRectManager.addRect(this)
                             }
                         }
                     } else {
@@ -277,16 +284,21 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
 
         viewBinding.btnMatrix.setOnClickListener {
-            //viewBinding.textRectManager.updateMatrix()
-            viewBinding.textRectManager.getMatrixInfo().apply {
-                Log.e("11111", "TextEngineHelper.getTextEngine ${this}")
 
-                //TextEngineHelper.getTextEngine().textMatrix(this)
-            }
+            viewBinding.textRectManager.printAll()
+            TextEngineHelper.getTextEngine()
+                .printAll(TextEngineHelper.getTextEngine().TEXT_ENGINE_ID)
         }
 
-        viewBinding.textRectManager.iIUpdatePosition = { id,tx, ty, s, r ->
-            TextEngineHelper.getTextEngine().textLayerTransform(id,tx, ty, s, r)
+
+
+        viewBinding.textRectManager.ITransformCallback = { id, tx, ty, s, r ->
+            TextEngineHelper.getTextEngine().textLayerTransform(id, tx, ty, s, r)
+        }
+
+        //选中回调
+        viewBinding.textRectManager.ISelectLayerCallBack = {
+            tmpTextLayer = it
         }
     }
 
@@ -294,15 +306,13 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
     var endTime = 0L
 
     private fun addSimpleText() {
-
         time = System.currentTimeMillis()
-
         tmpTextLayer = null
         tmpTextLayer = TextLayerManager.createTextLayer(this)
         tmpTextLayer?.apply {
-            textInfo?.let {
+            textList.forEach {
                 TextEngineHelper.getTextEngine()
-                    .addSimpleSubText(layerId,it.ttfPath, it.char, it.size, it.fontColor)
+                    .addSimpleSubText(layerId, it.id, it.ttfPath, it.char, it.size, it.fontColor)
             }
         }
     }

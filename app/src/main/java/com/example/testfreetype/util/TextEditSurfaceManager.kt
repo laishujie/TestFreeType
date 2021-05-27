@@ -1,12 +1,10 @@
 package com.example.testfreetype.util
 
-import android.content.Context
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
 import com.example.testfreetype.bean.TextInfo
 import com.example.testfreetype.bean.TextLayer
-import java.io.File
 
 class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
@@ -27,6 +25,13 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
 
     }
 
+    fun setBasicTextAttributes(textLayer: TextLayer) {
+        val layerId = textLayer.layerId
+        textLayer.getFirst()?.apply {
+            TextEngineHelper.getTextEngine()
+                .setBasicTextAttributes(layerId, id, ttfPath, char, size, fontColor)
+        }
+    }
 
     fun drawPreViewLayer(textInfo: TextInfo) {
         TextEngineHelper.getTextEngine().textEngineDrawPreView(textInfo)

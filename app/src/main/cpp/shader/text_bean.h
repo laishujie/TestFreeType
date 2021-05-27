@@ -62,7 +62,6 @@ public:
     TextArea area;
     int indexVertex;
 
-
     bool isCreateVertexAndSet() {
         bool isCreate = isSameText();
         if (isCreate) {
@@ -114,12 +113,13 @@ class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false), textArea(),
                   isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f), applyMatrix(false),
-                  isFristCreate(true) {}
+                  isFristCreate(true), isDraw(true) {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
                                          isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f),
                                          textureId(fboInfo.frameBuffer), text_deque(), textArea(),
-                                         applyMatrix(false), isFristCreate(true) {}
+                                         applyMatrix(false), isFristCreate(false),
+                                         isDraw(true) {}
 
     //层id
     int id;
@@ -141,6 +141,7 @@ public:
     bool applyMatrix;
     //是否第一次被创建
     bool isFristCreate;
+    bool isDraw;
 
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);
@@ -150,6 +151,7 @@ public:
             delete clip;
             clip = nullptr;
         }
+
         text_deque.clear();
     }
 };

@@ -120,6 +120,7 @@ public:
                      float shadowAlpha,
                      int shadowColor, int shadowAngle);
 
+    int AddTextLayer(TextLayer *&textLayer);
     void Display();
 
     int AddThePreviewLayer2Map();
@@ -140,11 +141,25 @@ public:
 
     void TextLayerTransform(int layerId, float tx, float ty, float sc, float r);
 
-    void InitPreviewLayer(const char *ttfPath, const char *text, int fontSize);
+    /**
+     * 设置基础文字属性
+     * @param layerId
+     * @param subId
+     * @param text
+     * @param ttfPath
+     * @param fonSize
+     * @param fontColor
+     */
+    void SetBasicTextAttributes(int layerId,int subId,const char *text,const char *ttfPath,int fonSize,int fontColor);
 
-    int AddSimpleSubtext(int layerId,const char *ttfPath, const char *text, int fonSize, int fontColor);
+    int findTextInfo(int layerId,int subId,TextLayer *&textLayer,TextInfo *&pTextInfo);
+    int FindTextLayer(int layerId,TextLayer *&textLayer);
+
+    int AddSimpleSubtext(int layerId,int subTextId,const char *ttfPath, const char *text, int fonSize, int fontColor);
 
     int RemoveLayer(int layerId);
+
+    void printAll();
 };
 
 

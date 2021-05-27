@@ -21,6 +21,10 @@ public class TextEngineJni {
         textLayerTransform(TEXT_ENGINE_ID, layerId, tx, ty, s, r);
     }
 
+    public void setBasicTextAttributes(int layerId, int subId, String ttf, String text, int fontSize, int fontColor) {
+        setBasicTextAttributes(TEXT_ENGINE_ID, layerId, subId, ttf, text, fontSize, fontColor);
+    }
+
 
     public interface TextEngineStatus {
         void onTextLayerAreaChange(int layerId, float left, float top, float right, float bottom);
@@ -76,10 +80,6 @@ public class TextEngineJni {
         textEngineDrawPreViewByJson(TEXT_ENGINE_ID, json, fontFolder);
     }
 
-    public void setPreViewLayer(TextLayer textLayer) {
-        setPreViewLayer(TEXT_ENGINE_ID, textLayer);
-    }
-
     public int addTextLayer(TextLayer textLayer) {
         return addTextLayer(TEXT_ENGINE_ID, textLayer);
     }
@@ -88,8 +88,8 @@ public class TextEngineJni {
         removeTextLayer(TEXT_ENGINE_ID, layerId);
     }
 
-    public void addSimpleSubText(int layerId, String ttfPath, String text, int fontSize, int fonColor) {
-        addSimpleSubText(TEXT_ENGINE_ID, layerId, ttfPath, text, fontSize, fonColor);
+    public void addSimpleSubText(int layerId, int subTextId, String ttfPath, String text, int fontSize, int fonColor) {
+        addSimpleSubText(TEXT_ENGINE_ID, layerId, subTextId, ttfPath, text, fontSize, fonColor);
     }
 
     public int addThePreviewLayer2Map() {
@@ -99,6 +99,8 @@ public class TextEngineJni {
     public int addThePreviewLayerByJson2Map() {
         return addThePreviewLayerByJson2Map(TEXT_ENGINE_ID);
     }
+
+
 
     public void cleanPreview() {
         cleanPreview(TEXT_ENGINE_ID);
@@ -168,6 +170,7 @@ public class TextEngineJni {
 
     private native void testSdfShaderInit(long nativeHandle, String sdfPath, int sWidth, int sHeight, Object bitmap);
 
+
     private native void testSdfShaderOnDraw(long nativeHandle,
                                             int stokeColor,
                                             int shadowColor,
@@ -188,6 +191,9 @@ public class TextEngineJni {
     private native void glInitTextShader(long nativeHandle, int surfaceWidth, int sufaceHeight);
 
     private native void glRenderText(long nativeHandle, String ttfPath, String text);
+
+
+    public native void printAll(long nativeHandle);
 
 
     //-------------编辑页面--------------------/
@@ -213,10 +219,8 @@ public class TextEngineJni {
     private native int addTextLayer(long handle, TextLayer textLayer);
 
     //添加一个普通文字层
-    private native void addSimpleSubText(long handle, int layerId, String ttfPath, String text, int fontSize, int fonColor);
+    private native void addSimpleSubText(long handle, int layerId, int subTextId, String ttfPath, String text, int fontSize, int fonColor);
 
-
-    private native int setPreViewLayer(long handle, TextLayer textLayer);
 
     private native int addThePreviewLayer2Map(long handle);
 
@@ -225,6 +229,8 @@ public class TextEngineJni {
     private native void cleanPreview(long handle);
 
     private native void textLayerTransform(long handler, int layerId, float tx, float ty, float sc, float r);
+
+    private native void setBasicTextAttributes(long handler, int layerId, int subId, String ttf, String text, int fontSize, int fontColor);
 
     private native void removeTextLayer(long handle, int layerId);
 

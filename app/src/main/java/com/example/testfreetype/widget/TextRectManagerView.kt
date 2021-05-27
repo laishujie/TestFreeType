@@ -25,22 +25,24 @@ class TextRectManagerView @JvmOverloads constructor(
     //已经确定的层边框
     private var textRectAll = SparseArray<TextRect>()
 
+    fun printAll() {
+        textRectAll.forEach { key, value ->
+            value.getLayer()?.apply {
+                textList.forEach {
+                    Log.e(
+                        "11111",
+                        "layerId $key subId ${it.id} char ${it.char}"
+                    )
+                }
+            }
+        }
+    }
+
     private var currMatrixInfo = MatrixInfo(0f, 0f, 1f, 0f)
 
-    var iIUpdatePosition: ((Int, Float, Float, Float, Float) -> Unit?)? = null
+    var ITransformCallback: ((Int, Float, Float, Float, Float) -> Unit?)? = null
 
-
-    /*fun createTextLayer(): TextLayer {
-        val textInfo = TextInfo(
-            0,
-            "输入文字",
-            PathHelp.getFontsPath(context) + File.separator + "DroidSansFallback.ttf"
-        )
-        val textLayer = TextLayer(textInfo)
-        val textRect = TextRect(textLayer, context)
-        textRect.init(viewWidth, viewHeight)
-        return textLayer
-    }*/
+    var ISelectLayerCallBack: ((TextLayer?) -> Unit)? = null
 
 
     enum class TouchMode {
@@ -90,32 +92,14 @@ class TextRectManagerView @JvmOverloads constructor(
             currMatrixInfo.ty = ty
             currMatrixInfo.scale = rScale
         }
-        Log.e("11111", "curcurrMatrixInfo $currMatrixInfo")
         return currMatrixInfo
     }
-
-
-    //临时预览层
-    /*private val previewTextRect by lazy {
-        val textRect = TextRect(TextLayer(tmpTextInfo), this.context)
-        textRect.init(width, height)
-        textRect
-    }*/
 
     private val paint by lazy {
         val mPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         mPaint.style = Paint.Style.FILL
         mPaint
     }
-
-    //当前预览的默认内置textInfo
-    /*private val tmpTextInfo by lazy {
-        TextInfo(
-            0,
-            "输入文字",
-            PathHelp.getFontsPath(getContext()) + File.separator + "DroidSansFallback.ttf"
-        )
-    }*/
 
     fun addRect(textLayer: TextLayer) {
         val textRect = TextRect(textLayer, context)
@@ -125,12 +109,12 @@ class TextRectManagerView @JvmOverloads constructor(
 
 
     fun removeRect(layerId: Int) {
-        textRectAll.remove(layerId)
+       textRectAll.remove(layerId)
         notifity(layerId)
     }
 
     fun notifity(layerId: Int) {
-        mCurrTextRect = textRectAll[layerId]
+        mCurrTextRect = textRectAll.get(layerId)
         invalidate()
     }
 
@@ -163,7 +147,7 @@ class TextRectManagerView @JvmOverloads constructor(
         getMatrixInfo().apply {
             mCurrTextRect?.let {
                 val rect = it.getRect()
-                iIUpdatePosition?.invoke(
+                ITransformCallback?.invoke(
                     it.getLayerId()!!,
                     rect.centerX(),
                     rect.centerY(),
@@ -209,9 +193,10 @@ class TextRectManagerView @JvmOverloads constructor(
         mDownX = event.x
         mDownY = event.y
         mCurrTextRect = null
-        textRectAll.forEach { key, value ->
+        textRectAll.forEach { _, value ->
             if (value.contain(event.x, event.y)) {
                 mCurrTextRect = value
+                ISelectLayerCallBack?.invoke(mCurrTextRect?.getLayer())
             }
         }
 
@@ -254,7 +239,7 @@ class TextRectManagerView @JvmOverloads constructor(
                 }
             }
             TouchMode.ICON -> {
-                mCurrButtonMark?.onMove(mCurrTextRect, mMoveMatrix, event, this)
+                mCurrButtonMark?.onMove(mCurrTextRect, mDownMatrix, event, this)
                 updateMatrix()
             }
             else -> {
@@ -313,6 +298,10 @@ class TextRect(private var layer: TextLayer?, context: Context) {
         return layer?.layerId
     }
 
+    fun getLayer(): TextLayer? {
+        return layer
+    }
+
     private val linePaint by lazy {
         val mPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         mPaint.color = -0x1
@@ -332,7 +321,7 @@ class TextRect(private var layer: TextLayer?, context: Context) {
         layer?.apply {
             if (rect.width() != 0f) {
                 canvas.save()
-                canvas.concat(matrix)
+                canvas.setMatrix(matrix)
                 setPaddingRect(this)
                 linePaint.color = Color.WHITE
 
@@ -524,6 +513,7 @@ open class ButtonMark(context: Context, @DrawableRes iconRes: Int) :
     ) {
         rectF?.apply {
             val rect = getRect()
+            Log.e("111111","rect.left"+rect.left)
             val newMoveX = event.x.toInt()
             val newMoveY = event.y.toInt()
 
