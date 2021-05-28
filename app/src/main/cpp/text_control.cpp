@@ -14,12 +14,9 @@ enum RenderMessage {
     kEGLWindowDestroy,
     kDRAW,
     kPreviewClean,
-    kCallBack,
+    kAddTextLayer,
+    kRemoveTextLayer
 };
-
-#define ADD_CALLBACK 1
-#define REMOVE_CALLBACK 1
-#define TEXT_AEAR_CALLBACK 1
 
 text_control::text_control() : Handler(),
                                window_(nullptr),
@@ -62,7 +59,6 @@ text_control::~text_control() {
         delete message_queue_;
         message_queue_ = nullptr;
     }
-
 
     if (javaCallHelper != nullptr) {
         delete javaCallHelper;
@@ -140,12 +136,12 @@ void text_control::HandleMessage(Message *msg) {
 
                     shaderManager_->DrawTextLayer(pLayer);
 
-                    if (pLayer->isFristCreate) {
+                    /*if (pLayer->isFristCreate) {
                         //TODO 先文字一层看看效果
                         javaCallHelper->onTextLevelChange(true, pLayer->id,
                                                           pLayer->text_deque[0]->id);
                         pLayer->isFristCreate = false;
-                    }
+                    }*/
                     if (javaCallHelper != nullptr && pLayer->isChangeTextArea) {
                         javaCallHelper->onTextAreaChanged(pLayer->id, pLayer->textArea.left,
                                                           pLayer->textArea.top,
@@ -177,22 +173,20 @@ void text_control::HandleMessage(Message *msg) {
             LOGCATI(" leave kDRAW %s", __func__)
         }
             break;
-        case kCallBack: {
-            LOGCATI("enter kCallBack %s", __func__)
-            if (msg->arg1 == ADD_CALLBACK) {
-                if (javaCallHelper != nullptr) {
-                    javaCallHelper->onTextLevelChange(true, LayerSelfIdIncreasing,
-                                                      SubtextSelfIdIncreasing);
-                }
-            }
-
-            LOGCATI("leave kCallBack %s", __func__)
-
-        }
         case kPreviewClean: {
             delete previewLayer;
             previewLayer = nullptr;
-            Display();
+            PostDisplay();
+        }
+            break;
+        case kAddTextLayer: {
+            auto &textLayer = reinterpret_cast<TextLayer *&>(obj);
+            AddTextLayer(textLayer);
+        }
+            break;
+        case kRemoveTextLayer: {
+            int layerId = msg->arg1;
+            RemoveLayer(layerId);
         }
             break;
         default:
@@ -368,6 +362,7 @@ int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontF
     delete config_buffer;
 
     if (nullptr == pJson) {
+        cJSON_Delete(pJson);
         LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
         return -3;
     }
@@ -414,9 +409,10 @@ int text_control::UpdatePreViewByJson(const char *cLayerJson, const char *cFontF
     return 0;
 }
 
-void text_control::Display() {
+void text_control::PostDisplay() {
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kDRAW;
+    message->obj = nullptr;
     PostMessage(message);
 }
 
@@ -468,8 +464,8 @@ int text_control::AddTextLayerByJson(const char *cLayerJson, const char *cFontFo
         return -2;
     }
 
-    cJSON *pJson = cJSON_Parse(config_buffer);
     delete config_buffer;
+    cJSON *pJson = cJSON_Parse(config_buffer);
 
     if (nullptr == pJson) {
         LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
@@ -666,7 +662,7 @@ void text_control::TextLayerTransform(int layerId, float tx, float ty, float sc,
         pLayer->ty = ty;
         pLayer->sc = sc;
         pLayer->r = r;
-        Display();
+        PostDisplay();
     }
 }
 
@@ -693,10 +689,9 @@ text_control::AddSimpleSubtext(int layerId, int subTextId, const char *ttfPath, 
     std::pair<int, TextLayer *> stl = {layerId, textLayer};
     layerMaps.insert(stl);
 
-    Display();
+    PostDisplay();
     return 0;
 }
-
 
 
 int text_control::RemoveLayer(int layerId) {
@@ -708,11 +703,11 @@ int text_control::RemoveLayer(int layerId) {
         iterator->second = nullptr;
         layerMaps.erase(iterator);
 
-        Display();
+        PostDisplay();
 
-        if (javaCallHelper != nullptr) {
-            javaCallHelper->onTextLevelChange(false, layerId, 0, 1);
-        }
+        /* if (javaCallHelper != nullptr) {
+             javaCallHelper->onTextLevelChange(false, layerId, 0, 1);
+         }*/
     } else {
         return -1;
     }
@@ -734,7 +729,7 @@ text_control::SetBasicTextAttributes(int layerId, int subId, const char *text, c
         pInfo->fontSize = fonSize;
         pInfo->fontColor = fontColor;
 
-        Display();
+        PostDisplay();
     }
 }
 
@@ -777,10 +772,109 @@ void text_control::printAll() {
     }
 }
 
+void split(const std::string &s, std::vector<std::string> &tokens, const std::string &delimiters = " ") {
+    std::string::size_type lastPos = s.find_first_not_of(delimiters, 0);
+    std::string::size_type pos = s.find_first_of(delimiters, lastPos);
+    while (lastPos != std::string::npos || pos != std::string::npos) {
+        tokens.push_back(s.substr(lastPos, pos - lastPos));
+        lastPos = s.find_first_not_of(delimiters, pos);
+        pos = s.find_first_of(delimiters, lastPos);
+    }
+}
+
+int text_control::FillFrame(std::string &templateFolder, TextInfo *&info) {
+    if (info->isTextImage && !info->file.empty()) {
+        std::vector<std::string> str;
+        split(info->file, str, ",");
+
+        for (auto &filePath:str) {
+            char *config_buffer = nullptr;
+
+            int ret = ReadFile(templateFolder.append("/") + filePath + ".json", &config_buffer);
+            if (ret != 0 || config_buffer == nullptr) {
+                LOGCATE("读取背景序列帧图片失败 error: %d", ret)
+                return -2;
+            }
+            cJSON *pJson = cJSON_Parse(config_buffer);
+
+            if (nullptr == pJson) {
+                cJSON_Delete(pJson);
+                LOGCATE("parse fail: %s", cJSON_GetErrorPtr())
+                continue;
+            }
+
+            cJSON *frames = cJSON_GetObjectItem(pJson, "frames");
+            cJSON *meta = cJSON_GetObjectItem(pJson, "meta");
+            cJSON *image_id_json = cJSON_GetObjectItem(meta, "image");
+            TextImage textImage;
+            textImage.frameImg = image_id_json->string;
+
+            if (nullptr != frames) {
+                int frames_size = cJSON_GetArraySize(frames);
+
+                for (int i = 0; i < frames_size; i++) {
+
+                    cJSON *filter_child = cJSON_GetArrayItem(frames, i);
+
+                    cJSON *text_child = cJSON_GetObjectItem(filter_child, "frame");
+                    cJSON *x_id_json = cJSON_GetObjectItem(text_child, "x");
+                    cJSON *y_id_json = cJSON_GetObjectItem(text_child, "y");
+                    cJSON *w_id_json = cJSON_GetObjectItem(text_child, "w");
+                    cJSON *h_id_json = cJSON_GetObjectItem(text_child, "h");
+
+                    textImage.frameCoordinates.push_back(
+                            {x_id_json->valueint, y_id_json->valueint, w_id_json->valueint,
+                             h_id_json->valueint});
+
+                    info->textImages.push_back(textImage);
+                }
+            }
+
+            cJSON_Delete(pJson);
+        }
+    }
+    return 0;
+}
+
 int text_control::AddTextLayer(TextLayer *&textLayer) {
     std::pair<int, TextLayer *> stl = {textLayer->id, textLayer};
+
+    for (auto &textInfo:textLayer->text_deque) {
+        FillFrame(textLayer->templateFolder, textInfo);
+    }
+
     layerMaps.insert(stl);
+
     return 0;
+}
+
+void text_control::setStrokeAttributes(int layerId, int subTextId, float lineDistance,
+                                       float outLineDistance, int outLineColor) {
+    TextInfo *pInfo = nullptr;
+    TextLayer *pLayer = nullptr;
+
+    int i = findTextInfo(layerId, subTextId, pLayer, pInfo);
+    if (i == 0) {
+        pLayer->isDraw = true;
+        pInfo->distanceMark = lineDistance;
+        pInfo->outLineColor = outLineColor;
+        pInfo->outlineDistanceMark = outLineDistance;
+        PostDisplay();
+    }
+}
+
+void text_control::PostAddTextLayer(TextLayer *&textLayer) {
+    auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kAddTextLayer;
+    message->obj = textLayer;
+    PostMessage(message);
+}
+
+void text_control::PostRemoveLayer(int layerId) {
+    auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kRemoveTextLayer;
+    message->arg1 = layerId;
+    PostMessage(message);
 }
 
 

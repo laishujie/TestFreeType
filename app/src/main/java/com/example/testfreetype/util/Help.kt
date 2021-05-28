@@ -13,7 +13,7 @@ import java.io.File
 
 object PathHelp {
     fun getFontsPath(context: Context): String {
-        val fontDir = File(StorageHelper.getInternalFilesDir(context), "fonts")
+        val fontDir = File(StorageHelper.getExternalFilesDir(context), "fonts")
         fontDir.mkdir()
         return fontDir.absolutePath
     }

@@ -44,7 +44,7 @@ void TextShader::Init() {
             "fragColor = vec4(glyph_color, 1.0) * sampled;"*/
             "float dist  = col.r;\n"
             "float width = fwidth(dist);\n"
-            "float outline_center = 0.5;"
+            "float outline_center = _DistanceMark;"
             "float glyph_center = _OutlineDistanceMark;"
             "float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
             "vec3 outline_color = vec3(_OutlineColor.r,_OutlineColor.g,_OutlineColor.b);"

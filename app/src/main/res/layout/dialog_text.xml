@@ -177,7 +177,6 @@
             android:text="阈值"
             android:textColor="#e7e7e7"
             android:textSize="12sp"
-            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
@@ -192,7 +191,6 @@
             android:progress="50"
             android:progressDrawable="@drawable/seekbar_bg"
             android:thumb="@drawable/selector_thumb_bar"
-            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/textView5"
             app:layout_constraintEnd_toEndOf="@+id/view_bg"
             app:layout_constraintStart_toEndOf="@+id/textView5"

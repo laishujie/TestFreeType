@@ -24,6 +24,8 @@ private:
 
 public:
     int DrawTextLayer(TextLayer *textLayer);
+    int DrawTextInfo(TextLayer *&textLayer,TextInfo *&textInfo);
+    int DrawTextImage(TextLayer *&textLayer,TextInfo *&textInfo);
 
     void InitShader(int width, int height);
 

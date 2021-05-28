@@ -516,6 +516,8 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
 
     jclass textLayerClazz = env->GetObjectClass(text_layer);
     jfieldID textList_fileId = env->GetFieldID(textLayerClazz, "textList", "Ljava/util/ArrayList;");
+    jfieldID templateFolder_file_id = env->GetFieldID(textLayerClazz, "templateFolder",
+                                                      "Ljava/lang/String;");
 
     jint textLayerId = env->GetIntField(text_layer,
                                         env->GetFieldID(textLayerClazz, "layerId", "I"));
@@ -529,6 +531,10 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
     //找到textList对象
     jobject textListObj = env->GetObjectField(text_layer, textList_fileId);
 
+    auto template_jst = (jstring) env->GetObjectField(text_layer, templateFolder_file_id);
+    const char *templateFolder = env->GetStringUTFChars(template_jst, nullptr);
+    textLayer->templateFolder = templateFolder;
+
     if (textListObj != nullptr) {
         int i;
         jclass cls_arraylist = env->GetObjectClass(textListObj);
@@ -536,6 +542,7 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
         jmethodID arraylist_get = env->GetMethodID(cls_arraylist, "get", "(I)Ljava/lang/Object;");
         jmethodID arraylist_size = env->GetMethodID(cls_arraylist, "size", "()I");
         jint len = env->CallIntMethod(textListObj, arraylist_size);
+
 
         for (i = 0; i < len; i++) {
             jobject obj_textInfo = env->CallObjectMethod(textListObj, arraylist_get, i);
@@ -568,6 +575,13 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
             jfieldID offsetY_file_id = env->GetFieldID(clip_clazz, "offsetY", "F");
             jint offsetY = env->GetFloatField(obj_textInfo, offsetY_file_id);
 
+            jfieldID isTextImage_file_id = env->GetFieldID(clip_clazz, "isTextImage", "Z");
+            jboolean isTextImage = env->GetBooleanField(obj_textInfo, isTextImage_file_id);
+
+
+            jfieldID img_file_id = env->GetFieldID(clip_clazz, "file", "Ljava/lang/String;");
+            auto imgJstring = (jstring) env->GetObjectField(obj_textInfo, img_file_id);
+            const char *imgPath = env->GetStringUTFChars(imgJstring, nullptr);
 
             info->id = id;
             info->text = text;
@@ -577,12 +591,17 @@ Java_com_example_testfreetype_TextEngineJni_addTextLayer(JNIEnv *env, jobject th
             info->offset_x = offsetX;
             info->offset_y = offsetY;
             info->isFromTemplate = true;
+            info->isTextImage = isTextImage;
+            info->file = imgPath;
             textLayer->text_deque.push_back(info);
 
             env->DeleteLocalRef(obj_textInfo);
             env->ReleaseStringUTFChars(pJobject, text);
+            env->ReleaseStringUTFChars(imgJstring, imgPath);
             env->ReleaseStringUTFChars(tJobject, ttfPath);
         }
+        env->ReleaseStringUTFChars(template_jst, templateFolder);
+
         editor->AddTextLayer(textLayer);
     } else {
         delete textLayer;
@@ -716,4 +735,17 @@ Java_com_example_testfreetype_TextEngineJni_printAll(JNIEnv *env, jobject thiz,
     }
     auto *editor = reinterpret_cast<text_engine *>(native_handle);
     editor->printAll();
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_setStrokeAttributes(JNIEnv *env, jobject thiz,
+                                                                jlong handler, jint layer_id,
+                                                                jint sub_id, jfloat line_distance,
+                                                                jfloat out_line_distance,
+                                                                jint out_line_color) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+    editor->setStrokeAttributes(layer_id, sub_id, line_distance, out_line_distance, out_line_color);
+
 }

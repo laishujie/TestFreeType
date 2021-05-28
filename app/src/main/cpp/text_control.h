@@ -35,9 +35,18 @@ private:
     std::map<int, TextLayer *> layerMaps;
     //Id 自增
     int LayerSelfIdIncreasing;
-    int SubtextSelfIdIncreasing;
 
     int RestoreTmpLayer(bool isFromTemplate);
+
+    static int FillFrame(std::string &templateFolder, TextInfo *&info);
+
+    /**
+  * 读取文件
+  * @param path
+  * @param buffer
+  * @return
+  */
+    static int ReadFile(const std::string &path, char **buffer);
 
 
 public:
@@ -121,19 +130,22 @@ public:
                      int shadowColor, int shadowAngle);
 
     int AddTextLayer(TextLayer *&textLayer);
-    void Display();
+
+    /**
+     * 发送重绘事件
+     */
+    void PostDisplay();
+
+    /**
+     * 发送添加文字层事件
+     * @param textLayer
+     */
+    void PostAddTextLayer(TextLayer *&textLayer);
 
     int AddThePreviewLayer2Map();
 
     int AddThePreviewLayer2MapByJson();
 
-    /**
-   * 读取文件
-   * @param path
-   * @param buffer
-   * @return
-   */
-    static int ReadFile(const std::string &path, char **buffer);
 
     int UpdatePreViewByJson(const char *layoutJson, const char *fontFolder);
 
@@ -150,16 +162,26 @@ public:
      * @param fonSize
      * @param fontColor
      */
-    void SetBasicTextAttributes(int layerId,int subId,const char *text,const char *ttfPath,int fonSize,int fontColor);
+    void SetBasicTextAttributes(int layerId, int subId, const char *text, const char *ttfPath,
+                                int fonSize, int fontColor);
 
-    int findTextInfo(int layerId,int subId,TextLayer *&textLayer,TextInfo *&pTextInfo);
-    int FindTextLayer(int layerId,TextLayer *&textLayer);
+    int findTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo);
 
-    int AddSimpleSubtext(int layerId,int subTextId,const char *ttfPath, const char *text, int fonSize, int fontColor);
+    int FindTextLayer(int layerId, TextLayer *&textLayer);
+
+    int
+    AddSimpleSubtext(int layerId, int subTextId, const char *ttfPath, const char *text, int fonSize,
+                     int fontColor);
 
     int RemoveLayer(int layerId);
 
+    void PostRemoveLayer(int layerId);
+
     void printAll();
+
+
+    void setStrokeAttributes(int layerId, int subTextId, float lineDistance,
+                             float outLineDistance, int outLineColor);
 };
 
 

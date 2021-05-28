@@ -149,6 +149,7 @@ ShaderManager::InsetTextAndCalculate(TextInfo *&textInfo) const {
 int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     LOGCATI("enter ShaderManager %s", __func__)
     if (textLayer == nullptr) return -1;
+
     //层id为空时新建纹理
     if (textLayer->textureId == 0) {
         FboInfo fboInfo = fbo_util::CreateFbo(outShader_->getSurfaceWidth(),
@@ -162,79 +163,16 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         //前景色合成要用到
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
-
         //区域重置
         textLayer->textArea.reset();
-
         //绘制文字层下的文字组
-        for (auto textInfo:textLayer->text_deque) {
-            const char *textChart = textInfo->text.c_str();
-            const char *ttf_file = textInfo->ttf_file.c_str();
-
-            LOGCATI("Draw info ttf %s textInfo->text %s textInfo->fontSize %d", ttf_file,
-                    textChart, textInfo->fontSize)
-
-            if (textInfo->text.empty()) {
-                glClearColor(0.0, 0.0, 0.0, 0.0);
-                glClear(GL_COLOR_BUFFER_BIT);
-                continue;
-            }
-
-            textInfo->surfaceWidth = outShader_->getSurfaceWidth();
-            textInfo->surfaceHeight = outShader_->getSurfaceHeight();
-
-            //需要重新绘制阴影部分
-            if (textInfo->shadowDistance != 0.) {
-                LOGCATI("阴影绘制，重新生成点顶点数据")
-                //幅度值
-                float angle = float(textInfo->shadowAngle) * 0.01745329252f;// pi / 180
-                float x = textInfo->shadowDistance * cos(angle);
-                float y = textInfo->shadowDistance * sin(angle);
-
-                float temp_x = textInfo->offset_x;
-                float temp_y = textInfo->offset_y;
-
-                textInfo->offset_x = x;
-                textInfo->offset_y = y;
-
-                //需要重新生成阴影偏移点
-                ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
-                textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
-
-                textShader_->DrawShadowText(textInfo, fontManager_->atlas->id);
-
-                textInfo->offset_x = temp_x;
-                textInfo->offset_y = temp_y;
-            }
-
-            //需要重新填充顶点数据，调整了阴影的话需要
-            if (textInfo->isCreateVertexAndSet() || textInfo->shadowDistance != 0.) {
-                LOGCATI("重新生成顶点，并赋值边框")
-                ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
-                textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
-
-                //计算最大文字边框
-                if (textLayer->textArea.getWidth() == 0.f) {
-                    textLayer->textArea = textInfo->area;
-                } else {
-                    textLayer->textArea.left = std::min(textLayer->textArea.left,
-                                                        textInfo->area.left);
-                    textLayer->textArea.right = std::max(textLayer->textArea.right,
-                                                         textInfo->area.right);
-                    textLayer->textArea.top = std::min(textLayer->textArea.top, textInfo->area.top);
-                    textLayer->textArea.bottom = std::max(textLayer->textArea.bottom,
-                                                          textInfo->area.bottom);
-                }
-                textLayer->isChangeTextArea = true;
+        for (auto &textInfo:textLayer->text_deque) {
+            if (textInfo->isTextImage) {
+                DrawTextImage(textLayer, textInfo);
             } else {
-                textLayer->isChangeTextArea = false;
-                LOGCATI("不需要重新生成顶点")
+                DrawTextInfo(textLayer, textInfo);
             }
-
-            //绘制普通不带阴影的值
-            textShader_->DrawStrokeNormalText(textInfo, fontManager_->atlas->id);
         }
-
 
         fbo_util::UnBindFbo();
 
@@ -265,6 +203,83 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
     }*/
 
     LOGCATI("leave ShaderManager %s", __func__)
+    return 0;
+}
+
+int ShaderManager::DrawTextInfo(TextLayer *&textLayer, TextInfo *&textInfo) {
+    const char *textChart = textInfo->text.c_str();
+    const char *ttf_file = textInfo->ttf_file.c_str();
+
+    LOGCATI("Draw info ttf %s textInfo->text %s textInfo->fontSize %d", ttf_file,
+            textChart, textInfo->fontSize)
+
+    if (textInfo->text.empty()) {
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        return 0;
+    }
+
+    textInfo->surfaceWidth = outShader_->getSurfaceWidth();
+    textInfo->surfaceHeight = outShader_->getSurfaceHeight();
+
+    //需要重新绘制阴影部分
+    if (textInfo->shadowDistance != 0.) {
+        LOGCATI("阴影绘制，重新生成点顶点数据")
+        //幅度值
+        float angle = float(textInfo->shadowAngle) * 0.01745329252f;// pi / 180
+        float x = textInfo->shadowDistance * cos(angle);
+        float y = textInfo->shadowDistance * sin(angle);
+
+        float temp_x = textInfo->offset_x;
+        float temp_y = textInfo->offset_y;
+
+        textInfo->offset_x = x;
+        textInfo->offset_y = y;
+
+        //需要重新生成阴影偏移点
+        ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
+        textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
+
+        textShader_->DrawShadowText(textInfo, fontManager_->atlas->id);
+
+        textInfo->offset_x = temp_x;
+        textInfo->offset_y = temp_y;
+    }
+
+    //需要重新填充顶点数据，调整了阴影的话需要
+    if (textInfo->isCreateVertexAndSet() || textInfo->shadowDistance != 0.) {
+        LOGCATI("重新生成顶点，并赋值边框")
+        ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
+        textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
+
+        //计算最大文字边框
+        if (textLayer->textArea.getWidth() == 0.f) {
+            textLayer->textArea = textInfo->area;
+        } else {
+            textLayer->textArea.left = std::min(textLayer->textArea.left,
+                                                textInfo->area.left);
+            textLayer->textArea.right = std::max(textLayer->textArea.right,
+                                                 textInfo->area.right);
+            textLayer->textArea.top = std::min(textLayer->textArea.top, textInfo->area.top);
+            textLayer->textArea.bottom = std::max(textLayer->textArea.bottom,
+                                                  textInfo->area.bottom);
+        }
+        textLayer->isChangeTextArea = true;
+    } else {
+        textLayer->isChangeTextArea = false;
+        LOGCATI("不需要重新生成顶点")
+    }
+
+    //绘制普通不带阴影的值
+    textShader_->DrawStrokeNormalText(textInfo, fontManager_->atlas->id);
+    return 0;
+}
+
+int ShaderManager::DrawTextImage(TextLayer *&textLayer, TextInfo *&textInfo) {
+
+
+
+
     return 0;
 }
 

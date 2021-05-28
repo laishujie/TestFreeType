@@ -8,6 +8,7 @@
 #include <GLES3/gl3.h>
 #include <string>
 #include <deque>
+#include <vector>
 
 struct PointF {
     float x;
@@ -29,6 +30,24 @@ public:
         bottom = 0.f;
     }
 };
+
+
+typedef struct FrameCoordinates {
+    int x, y, w, h;
+} FrameCoordinates;
+
+
+class TextImage {
+public:
+    TextImage() : frameImg(), textureId(0), frameCoordinates() {
+
+    }
+
+    std::string frameImg;
+    GLuint textureId;
+    std::deque<FrameCoordinates> frameCoordinates;
+};
+
 
 class TextInfo {
 private:
@@ -61,6 +80,9 @@ public:
     float textHeight;
     TextArea area;
     int indexVertex;
+    bool isTextImage;
+    std::string file;
+    std::deque<TextImage> textImages;
 
     bool isCreateVertexAndSet() {
         bool isCreate = isSameText();
@@ -84,7 +106,7 @@ public:
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
                  shadowColor(0), shadowAngle(0), isFromTemplate(false), textWidth(0.f),
                  textHeight(0.f), lastFontSize(0), lastTextSize(0), indexVertex(0),
-                 last_ttf_file() {
+                 last_ttf_file(), isTextImage(false), textImages() {
     }
 
     ~TextInfo() {
@@ -113,13 +135,13 @@ class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false), textArea(),
                   isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f), applyMatrix(false),
-                  isFristCreate(true), isDraw(true) {}
+                  isFristCreate(true), isDraw(true),templateFolder() {}
 
     TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
                                          isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f),
                                          textureId(fboInfo.frameBuffer), text_deque(), textArea(),
                                          applyMatrix(false), isFristCreate(false),
-                                         isDraw(true) {}
+                                         isDraw(true),templateFolder() {}
 
     //层id
     int id;
@@ -142,6 +164,7 @@ public:
     //是否第一次被创建
     bool isFristCreate;
     bool isDraw;
+    std::string templateFolder;
 
     ~TextLayer() {
         glDeleteFramebuffers(1, &frameBuffer);

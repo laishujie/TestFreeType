@@ -281,7 +281,7 @@
       1,
       {
         "No Style Options",
-        "Display Text",
+        "PostDisplay Text",
         "Engraved Text",
         "Illuminated Caps",
         "Tilling Caps",

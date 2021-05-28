@@ -12,7 +12,6 @@ import com.example.testfreetype.util.*
 import com.example.testfreetype.widget.TemplateFragment
 import com.example.testfreetype.widget.TextStyleFragment
 import java.io.File
-import javax.xml.transform.sax.TemplatesHandler
 
 
 class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
@@ -45,6 +44,10 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             fragment?.selectCallBack = { path ->
                 val createByJson = TextLayerManager.createByJson(this, File(path))
                 TextEngineHelper.getTextEngine().addTextLayer(createByJson)
+                tmpTextLayer = createByJson
+                tmpTextLayer?.apply {
+                    viewBinding.textRectManager.addRect(this)
+                }
                 null
                 // editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
             }
@@ -94,6 +97,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         override fun exit() {
             tmpTextLayer?.apply {
                 TextEngineHelper.getTextEngine().removeTextLayer(layerId)
+                viewBinding.textRectManager.removeRect(layerId)
             }
         }
 
@@ -125,6 +129,29 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             }
         }
 
+
+        override fun changeDistance(distanceMark: Float) {
+            tmpTextLayer?.apply {
+                getFirst()?.distanceMark = distanceMark
+                editSurfaceManager.setStrokeAttributes(this)
+            }
+        }
+
+        override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
+            tmpTextLayer?.apply {
+                getFirst()?.outLineDistanceMark = outLineDistanceMark
+                editSurfaceManager.setStrokeAttributes(this)
+            }
+        }
+
+        override fun changeOutlineColor(color: Int) {
+            tmpTextLayer?.apply {
+                getFirst()?.outLineColor = color
+                editSurfaceManager.setStrokeAttributes(this)
+            }
+        }
+
+
         override fun changeHorizontal(horizontal: Boolean) {
             /* preViewTextInfo.apply {
                  this.horizontal = horizontal
@@ -146,27 +173,6 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             }*/
         }
 
-
-        override fun changeDistance(distanceMark: Float) {
-            /* preViewTextInfo.apply {
-                 this.distanceMark = distanceMark
-                 editSurfaceManager.drawPreViewLayer(this)
-             }*/
-        }
-
-        override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
-            /*preViewTextInfo.apply {
-                this.outLineDistanceMark = outLineDistanceMark
-                editSurfaceManager.drawPreViewLayer(this)
-            }*/
-        }
-
-        override fun changeOutlineColor(color: Int) {
-            /*preViewTextInfo.apply {
-                this.outLineColor = color
-                editSurfaceManager.drawPreViewLayer(this)
-            }*/
-        }
 
         override fun changeShadowDistance(shadowDistance: Float) {
             /*preViewTextInfo.apply {
@@ -243,26 +249,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                 }
 
                 override fun onTextLevelChange(isAdd: Boolean, layerId: Int, subTextId: Int) {
-                    if (isAdd) {
-                        tmpTextLayer?.apply {
-                            this.layerId = layerId
-                            getFirst()?.id = subTextId
-                            runOnUiThread {
-                                endTime = System.currentTimeMillis()
-                                Log.e("11111", "cost :   ${endTime - time} ms")
 
-                                FragmentHelp.showOrHideFragment(
-                                    this@TextEditActivity,
-                                    textStyleBottomSheetFragment
-                                )
-
-                                textStyleBottomSheetFragment.setLayer(layerId, subTextId)
-                                viewBinding.textRectManager.addRect(this)
-                            }
-                        }
-                    } else {
-                        viewBinding.textRectManager.removeRect(layerId)
-                    }
                 }
 
                 override fun onTextLayerAreaChange(
@@ -284,7 +271,6 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
 
         viewBinding.btnMatrix.setOnClickListener {
-
             viewBinding.textRectManager.printAll()
             TextEngineHelper.getTextEngine()
                 .printAll(TextEngineHelper.getTextEngine().TEXT_ENGINE_ID)
@@ -313,8 +299,14 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
             textList.forEach {
                 TextEngineHelper.getTextEngine()
                     .addSimpleSubText(layerId, it.id, it.ttfPath, it.char, it.size, it.fontColor)
+                viewBinding.textRectManager.addRect(this)
             }
         }
+
+        FragmentHelp.showOrHideFragment(
+            this@TextEditActivity,
+            textStyleBottomSheetFragment
+        )
     }
 
 

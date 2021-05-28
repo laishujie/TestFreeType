@@ -138,6 +138,9 @@ public:
 
     void printAll();
 
+    void setStrokeAttributes(int layerId, int subTextId, float lineDistance, float outLineDistance,
+                             int outLineColor);
+
 private:
     ANativeWindow *window_;
     JavaVM *vm_;

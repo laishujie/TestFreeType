@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.testfreetype.R;
 import com.example.testfreetype.bean.FontItem;
+import com.example.testfreetype.util.PathHelp;
 import com.example.testfreetype.util.StorageHelper;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public class TextFontAdapter extends RecyclerView.Adapter<TextFontAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FontItem fontItem = mFontList.get(position);
-        Typeface typeface = Typeface.createFromFile(new File(StorageHelper.getInternalFilesDir(this.mContext), fontItem.getFontPath()));
+        Typeface typeface = Typeface.createFromFile(PathHelp.INSTANCE.getFontsPath(mContext)+File.separator+fontItem.getFontPath());
         holder.fontShow.setTypeface(typeface);
 //        if (fontItem.isChinese) {
 //

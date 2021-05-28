@@ -33,6 +33,14 @@ class TextEditSurfaceManager : TextureView.SurfaceTextureListener {
         }
     }
 
+    fun setStrokeAttributes(textLayer: TextLayer) {
+        val layerId = textLayer.layerId
+        textLayer.getFirst()?.apply {
+            TextEngineHelper.getTextEngine()
+                .setStrokeAttributes(layerId, id, distanceMark, outLineDistanceMark, outLineColor)
+        }
+    }
+
     fun drawPreViewLayer(textInfo: TextInfo) {
         TextEngineHelper.getTextEngine().textEngineDrawPreView(textInfo)
     }

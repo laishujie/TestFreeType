@@ -114,7 +114,7 @@ text_engine::DrawPreView(const char *ttfPath, const char *text, bool isHorizonta
                                        shadowDistance,
                                        shadowAlpha, shadowColor, shadowAngle);
     pthread_mutex_unlock(&queue_mutex_);
-    textControl->Display();
+    textControl->PostDisplay();
     LOGCATI("leave %s", __func__)
 }
 
@@ -189,7 +189,7 @@ int text_engine::UpdateTextInfo(int layerId, const char *ttfPath, const char *te
 }
 
 void text_engine::Display() {
-    textControl->Display();
+    textControl->PostDisplay();
 }
 
 int text_engine::AddThePreviewLayer2Map() {
@@ -202,7 +202,7 @@ int text_engine::AddThePreviewLayer2Map() {
 void text_engine::DrawPreViewByJson(const char *layerJson, const char *fontFolder) {
     pthread_mutex_lock(&queue_mutex_);
     textControl->UpdatePreViewByJson(layerJson, fontFolder);
-    textControl->Display();
+    textControl->PostDisplay();
     pthread_mutex_unlock(&queue_mutex_);
 }
 
@@ -238,7 +238,7 @@ text_engine::AddSimpleSubtext(int layerId, int subTextId, const char *ttfPath, c
 
 void text_engine::RemoveTextLayer(int layerId) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->RemoveLayer(layerId);
+    textControl->PostRemoveLayer(layerId);
     pthread_mutex_unlock(&queue_mutex_);
 }
 
@@ -256,9 +256,17 @@ void text_engine::printAll() {
 
 int text_engine::AddTextLayer(TextLayer *&textLayer) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->AddTextLayer(textLayer);
+    textControl->PostAddTextLayer(textLayer);
     Display();
     pthread_mutex_unlock(&queue_mutex_);
     return 0;
+}
+
+void text_engine::setStrokeAttributes(int layerId, int subTextId, float lineDistance,
+                                      float outLineDistance, int outLineColor) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->setStrokeAttributes(layerId,subTextId,lineDistance,outLineDistance,outLineColor);
+    Display();
+    pthread_mutex_unlock(&queue_mutex_);
 }
 

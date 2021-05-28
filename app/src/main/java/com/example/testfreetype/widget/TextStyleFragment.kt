@@ -13,10 +13,7 @@ import com.example.testfreetype.R
 import com.example.testfreetype.adapter.TextFontAdapter
 import com.example.testfreetype.bean.FontItem
 import com.example.testfreetype.databinding.DialogTextBinding
-import com.example.testfreetype.util.AssetsUtil
-import com.example.testfreetype.util.FragmentHelp
-import com.example.testfreetype.util.StorageHelper
-import com.example.testfreetype.util.TextEngineHelper
+import com.example.testfreetype.util.*
 import java.io.File
 
 class TextStyleFragment : Fragment(R.layout.dialog_text) {
@@ -41,7 +38,7 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
             TextFontAdapter.OnFontSelectListener { position ->
                 var fontPath = mFontList[position].fontPath
                 fontPath =
-                    StorageHelper.getInternalFilesDir(this.context).absolutePath + File.separator + fontPath
+                    PathHelp.getFontsPath(requireContext()) + File.separator + fontPath
 
                 styleCallBack?.changeFont(fontPath)
             })
@@ -123,7 +120,27 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
                 }
             })
 
+        viewBinding.distanceSeekBar.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+                seekBar?.apply {
+                    val outLine =
+                        0.5f - (progress.toFloat() / max) * 0.5f
+                    styleCallBack?.changeDistance(outLine)
+                }
+            }
 
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
         viewBinding.outDistanceSeekBar
             .setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(

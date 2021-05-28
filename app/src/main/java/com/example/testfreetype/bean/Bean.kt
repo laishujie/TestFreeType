@@ -28,8 +28,10 @@ data class TextInfo(
     var shadowAlpha: Float = 0.5f,
     var size: Int = 72,
     var horizontal: Boolean = true,
+    var file: String = "",//图片路径
     var offsetX: Float = 0f,
-    var offsetY: Float = 0f
+    var offsetY: Float = 0f,
+    var isTextImage: Boolean = false
 )
 
 
@@ -61,7 +63,7 @@ data class TextLayer(
     //层id
     var layerId: Int = -1,
     var isTemplate: Boolean = false,
-    var tempConfigPath: String? = null,
+    var templateFolder: String? = null,
     var fontFolder: String? = null,
     var rect: RectF = RectF()
 ) {
@@ -129,16 +131,33 @@ object TextLayerManager {
         val textLayer = TextLayer()
         textLayer.layerId = layerIds
         val fontPath = PathHelp.getFontsPath(context) + File.separator
+        textLayer.templateFolder = json.parent
         parseJsonToList.ts.forEach {
-            val textInfo = TextInfo(
-                it.cid.toInt(),
-                it.wenan[0],
-                fontPath + it.font,
-                Color.parseColor("#" + it.color),
-                size = it.size.toInt(),
-                offsetX = it.offsetX.toFloat(),
-                offsetY = it.offsetY.toFloat()
-            )
+
+            val text = if (it.wenan == null || it.wenan!!.isEmpty()) "" else it.wenan!![0]
+
+            val textInfo = if (it.classX == "文字") {
+                TextInfo(
+                    it.cid.toInt(),
+                    text,
+                    fontPath + it.font,
+                    Color.parseColor("#" + it.color),
+                    size = it.size.toInt(),
+                    offsetX = it.offsetX.toFloat(),
+                    offsetY = it.offsetY.toFloat(),
+                    isTextImage = false
+                )
+            } else {
+                TextInfo(
+                    id = it.cid.toInt(),
+                    char = text,
+                    ttfPath = "",
+                    offsetX = it.offsetX.toFloat(),
+                    offsetY = it.offsetY.toFloat(),
+                    file = it.file,
+                    isTextImage = true
+                )
+            }
             textLayer.textList.add(textInfo)
         }
         textLayer.isTemplate = true
@@ -204,6 +223,8 @@ data class BgImg(
 )
 
 data class T(
+    @SerializedName("file")
+    var file: String,
     @SerializedName("align")
     var align: String,
     @SerializedName("animation_id")
@@ -275,7 +296,7 @@ data class T(
     @SerializedName("verticalspacing")
     var verticalspacing: String,
     @SerializedName("wenan")
-    var wenan: List<String>,
+    var wenan: List<String>?,
     @SerializedName("wordspace")
     var wordspace: String
 )

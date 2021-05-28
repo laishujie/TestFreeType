@@ -80,6 +80,10 @@ public class TextEngineJni {
         textEngineDrawPreViewByJson(TEXT_ENGINE_ID, json, fontFolder);
     }
 
+    public void setStrokeAttributes(int layerId, int subId, float lineDistance, float outLineDistance, int outLineColor) {
+        setStrokeAttributes(TEXT_ENGINE_ID, layerId, subId, lineDistance, outLineDistance, outLineColor);
+    }
+
     public int addTextLayer(TextLayer textLayer) {
         return addTextLayer(TEXT_ENGINE_ID, textLayer);
     }
@@ -99,7 +103,6 @@ public class TextEngineJni {
     public int addThePreviewLayerByJson2Map() {
         return addThePreviewLayerByJson2Map(TEXT_ENGINE_ID);
     }
-
 
 
     public void cleanPreview() {
@@ -231,6 +234,8 @@ public class TextEngineJni {
     private native void textLayerTransform(long handler, int layerId, float tx, float ty, float sc, float r);
 
     private native void setBasicTextAttributes(long handler, int layerId, int subId, String ttf, String text, int fontSize, int fontColor);
+
+    private native void setStrokeAttributes(long handler, int layerId, int subId, float lineDistance, float outLineDistance, int outLineColor);
 
     private native void removeTextLayer(long handle, int layerId);
 

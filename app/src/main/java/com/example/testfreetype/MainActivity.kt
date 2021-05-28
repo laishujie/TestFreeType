@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.example.testfreetype.databinding.ActivityMainBinding
 import com.example.testfreetype.util.PathHelp
@@ -61,9 +62,32 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+
+        var hasElased = 0f;
+
+        binding.sbSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                seekBar?.apply {
+                    val s = progress.toFloat() / max
+                    hasElased += s
+                    //Log.e("11111", "frame 1 ${(s / 0.04f).toInt()}")
+                    Log.e("11111", "frame ${(s * 25).toInt() % 25}")
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+        }
+        )
+
         val cameraPath = StorageHelper.getCameraPath(this)
-            Log.e("11111","cameraPath $cameraPath")
+        Log.e("11111", "cameraPath $cameraPath")
         Thread(Runnable {
+
             StorageHelper.copyAssetToPath(this, "sdf_test.png", sdfPath)
             StorageHelper.copyFilesFromAssets(this, "template", PathHelp.getTemplatePath(this))
             StorageHelper.copyFilesFromAssets(this, "fonts", PathHelp.getFontsPath(this))

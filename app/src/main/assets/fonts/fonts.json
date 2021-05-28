@@ -1,18 +1,22 @@
 [
   {
-    "path": "fonts/DroidSansFallback.ttf",
+    "path": "DroidSansFallback.ttf",
     "name": "系统"
   },
   {
-    "path": "fonts/MFYanSong-Regular.ttf",
+    "path": "MFYanSong-Regular.ttf",
     "name": "颜宋"
   },
   {
-    "path": "fonts/KaBuQiNuo.otf",
+    "path": "KaBuQiNuo.otf",
     "name": "卡布奇诺"
   },
   {
-    "path": "fonts/YouLangRuanBi.ttf",
+    "path": "YouLangRuanBi.ttf",
     "name": "软笔"
+  },
+  {
+    "path": "BAUBODN.TTF",
+    "name": "BAUBODN"
   }
 ]
