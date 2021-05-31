@@ -21,7 +21,7 @@ data class TextInfo(
     var shadowColor: Int = Color.GRAY,
     var shadowDistance: Float = 0f,
     var shadowAngle: Int = 0,
-    var distanceMark: Float = 0.5f,
+    var distanceMark: Float = 0.465f,
     var outLineDistanceMark: Float = 0.5f,
     var spacing: Int = 0,
     var lineSpacing: Int = 0,
@@ -62,6 +62,7 @@ data class TextLayer(
     var textList: ArrayList<TextInfo> = ArrayList(),
     //层id
     var layerId: Int = -1,
+    var frameIndex: Int = 75,
     var isTemplate: Boolean = false,
     var templateFolder: String? = null,
     var fontFolder: String? = null,

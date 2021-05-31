@@ -153,7 +153,6 @@ object FragmentHelp {
         if (findFragmentByTag == null) {
             findFragmentByTag = TemplateFragment()
             findFragmentByTag.selectCallBack = selectCallBack
-            findFragmentByTag.selectOk = selectOkBack;
             activity.supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide)
                 .add(contextId, findFragmentByTag, tag)

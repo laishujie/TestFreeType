@@ -25,15 +25,15 @@
         android:id="@+id/tv_test"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test"
-        android:visibility="gone"
-        android:translationY="12.599983px"
-        android:translationX="1.1999588px"
+        android:background="@color/colorWhite"
         android:scaleX="1.2"
         android:scaleY="1.2"
-        android:background="@color/colorWhite"
+        android:text="Test"
         android:textColor="@color/font_red"
         android:textSize="72px"
+        android:translationX="1.1999588px"
+        android:translationY="12.599983px"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/surface_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -87,7 +87,16 @@
         android:id="@+id/btn_matrix"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="测试变换"
+        android:text="打印层次关系"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <SeekBar
+        android:id="@+id/sb_frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:max="200"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

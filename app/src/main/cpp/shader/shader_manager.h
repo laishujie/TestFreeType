@@ -13,6 +13,8 @@
 #include "text_bean.h"
 #include "FreeTypeShader.h"
 #include "matrix_shader.h"
+#include "frame_shader.h"
+
 class ShaderManager {
 
 private:
@@ -21,6 +23,7 @@ private:
     FreeTypeShader *freeTypeShader;
     ftgl::font_manager_t *fontManager_;
     MatrixShader *matrixShader_;
+    ImageFrameShader *imageFrameShader;
 
 public:
     int DrawTextLayer(TextLayer *textLayer);
@@ -34,6 +37,10 @@ public:
     ~ShaderManager();
 
     ftgl::texture_font_t *InsetTextAndCalculate(TextInfo *&textInfo) const;
+
+    void DrawFrame(int frame, TextInfo *&pInfo);
+
+    void InitTextInfo(TextLayer *pLayer, TextInfo *&pInfo);
 };
 
 

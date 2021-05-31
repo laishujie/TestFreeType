@@ -44,7 +44,7 @@ void TextShader::Init() {
             "fragColor = vec4(glyph_color, 1.0) * sampled;"*/
             "float dist  = col.r;\n"
             "float width = fwidth(dist);\n"
-            "float outline_center = _DistanceMark;"
+            "float outline_center = 0.456;"
             "float glyph_center = _OutlineDistanceMark;"
             "float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
             "vec3 outline_color = vec3(_OutlineColor.r,_OutlineColor.g,_OutlineColor.b);"
@@ -140,9 +140,9 @@ int TextShader::FillVertex(TextInfo *&textInfo,
 
     //模板比例
     float templateRatioW = textInfo->isFromTemplate ? float(textInfo->surfaceWidth) / 1920.f : 1.f;
-    float templateRatioH = textInfo->isFromTemplate ? float(textInfo->surfaceHeight) / 1920.f : 1.f;
+   // float templateRatioH = textInfo->isFromTemplate ? float(textInfo->surfaceHeight) / 1920.f : 1.f;
     float readWidth = textInfo->textWidth * templateRatioW;
-    float readHeight = textInfo->textHeight * templateRatioH;
+    float readHeight = textInfo->textHeight * templateRatioW;
 
     textInfo->area.reset();
 
@@ -197,9 +197,9 @@ int TextShader::FillVertex(TextInfo *&textInfo,
 
                 //缩放比例
                 leftTop.x *= templateRatioW;
-                leftTop.y *= templateRatioH;
+                leftTop.y *= templateRatioW;
                 rightBottom.x *= templateRatioW;
-                rightBottom.y *= templateRatioH;
+                rightBottom.y *= templateRatioW;
 
                 //平移到中间
                 float centerX = float(textInfo->surfaceWidth) * 0.5f - readWidth * 0.5f;
@@ -211,7 +211,7 @@ int TextShader::FillVertex(TextInfo *&textInfo,
                 rightBottom.y += centerY;
 
                 float offsetX = textInfo->offset_x * templateRatioW;
-                float offsetY = textInfo->offset_y * templateRatioH;
+                float offsetY = textInfo->offset_y * templateRatioW;
 
                 //模板偏移量
                 leftTop.x += offsetX;

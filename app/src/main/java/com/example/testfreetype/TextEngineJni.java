@@ -25,6 +25,10 @@ public class TextEngineJni {
         setBasicTextAttributes(TEXT_ENGINE_ID, layerId, subId, ttf, text, fontSize, fontColor);
     }
 
+    public void updateTextLayerFrameIndex(int layerId, int frameIndex) {
+        updateTextLayerFrameIndex(TEXT_ENGINE_ID,layerId,frameIndex);
+    }
+
 
     public interface TextEngineStatus {
         void onTextLayerAreaChange(int layerId, float left, float top, float right, float bottom);
@@ -238,6 +242,8 @@ public class TextEngineJni {
     private native void setStrokeAttributes(long handler, int layerId, int subId, float lineDistance, float outLineDistance, int outLineColor);
 
     private native void removeTextLayer(long handle, int layerId);
+
+    private native void updateTextLayerFrameIndex(long handle,int layerId, int frameIndex);
 
     private void onError(int code) {
         Log.e("11111", "code :  " + code);

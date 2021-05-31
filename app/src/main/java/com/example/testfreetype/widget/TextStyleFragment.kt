@@ -129,7 +129,7 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
             ) {
                 seekBar?.apply {
                     val outLine =
-                        0.5f - (progress.toFloat() / max) * 0.5f
+                        0.465f - (progress.toFloat() / max) * 0.465f
                     styleCallBack?.changeDistance(outLine)
                 }
             }

@@ -165,7 +165,7 @@ public:
     void SetBasicTextAttributes(int layerId, int subId, const char *text, const char *ttfPath,
                                 int fonSize, int fontColor);
 
-    int findTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo);
+    int FindTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo);
 
     int FindTextLayer(int layerId, TextLayer *&textLayer);
 
@@ -182,6 +182,9 @@ public:
 
     void setStrokeAttributes(int layerId, int subTextId, float lineDistance,
                              float outLineDistance, int outLineColor);
+
+    void UpdateTextLayerFrame(int layerId,int frameIndex);
+    void PostUpdateTextLayerFrame(int layerId,int frameIndex);
 };
 
 

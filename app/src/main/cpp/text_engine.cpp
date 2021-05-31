@@ -262,11 +262,18 @@ int text_engine::AddTextLayer(TextLayer *&textLayer) {
     return 0;
 }
 
-void text_engine::setStrokeAttributes(int layerId, int subTextId, float lineDistance,
+void text_engine::SetStrokeAttributes(int layerId, int subTextId, float lineDistance,
                                       float outLineDistance, int outLineColor) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->setStrokeAttributes(layerId,subTextId,lineDistance,outLineDistance,outLineColor);
+    textControl->setStrokeAttributes(layerId, subTextId, lineDistance, outLineDistance,
+                                     outLineColor);
     Display();
+    pthread_mutex_unlock(&queue_mutex_);
+}
+
+void text_engine::UpdateTextLayerFrame(int layerId, int frameIndex) {
+    pthread_mutex_lock(&queue_mutex_);
+    textControl->PostUpdateTextLayerFrame(layerId, frameIndex);
     pthread_mutex_unlock(&queue_mutex_);
 }
 

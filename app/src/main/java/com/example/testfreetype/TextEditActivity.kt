@@ -3,6 +3,7 @@ package com.example.testfreetype
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.testfreetype.bean.TextLayer
@@ -51,9 +52,19 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
                 null
                 // editSurfaceManager.drawPreViewLayerByJson(path, fontPath)
             }
-            fragment?.selectOk = {
-                editSurfaceManager.addThePreviewLayerByJson2Map()
+
+            fragment?.exitOk = {
+                tmpTextLayer?.apply {
+                    TextEngineHelper.getTextEngine().removeTextLayer(layerId)
+                    viewBinding.textRectManager.removeRect(layerId)
+                }
+                null
             }
+
+            /* */
+            /*fragment?.selectOk = {
+                editSurfaceManager.addThePreviewLayerByJson2Map()
+            }*/
             FragmentHelp.initFragment(
                 this,
                 fragment!!,
@@ -133,6 +144,7 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         override fun changeDistance(distanceMark: Float) {
             tmpTextLayer?.apply {
                 getFirst()?.distanceMark = distanceMark
+                Log.e("11111", "distanceMark $distanceMark")
                 editSurfaceManager.setStrokeAttributes(this)
             }
         }
@@ -140,6 +152,8 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         override fun changeOutlineDistanceMark(outLineDistanceMark: Float) {
             tmpTextLayer?.apply {
                 getFirst()?.outLineDistanceMark = outLineDistanceMark
+                Log.e("11111", "outLineDistanceMark $outLineDistanceMark")
+
                 editSurfaceManager.setStrokeAttributes(this)
             }
         }
@@ -285,7 +299,26 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
         //选中回调
         viewBinding.textRectManager.ISelectLayerCallBack = {
             tmpTextLayer = it
+            it?.apply {
+                viewBinding.sbFrame.progress = it.frameIndex;
+            }
         }
+
+        viewBinding.sbFrame.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                tmpTextLayer?.apply {
+                    this.frameIndex = progress;
+                    TextEngineHelper.getTextEngine().updateTextLayerFrameIndex(layerId,frameIndex)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+        })
     }
 
     var time = 0L

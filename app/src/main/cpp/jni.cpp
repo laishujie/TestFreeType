@@ -746,6 +746,16 @@ Java_com_example_testfreetype_TextEngineJni_setStrokeAttributes(JNIEnv *env, job
         return;
     }
     auto *editor = reinterpret_cast<text_engine *>(handler);
-    editor->setStrokeAttributes(layer_id, sub_id, line_distance, out_line_distance, out_line_color);
+    editor->SetStrokeAttributes(layer_id, sub_id, line_distance, out_line_distance, out_line_color);
 
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_updateTextLayerFrameIndex(JNIEnv *env, jobject thiz,
+                                                                      jlong handle, jint layer_id,
+                                                                      jint frame_index) {
+    if (handle <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handle);
+    editor->UpdateTextLayerFrame(layer_id, frame_index);
 }

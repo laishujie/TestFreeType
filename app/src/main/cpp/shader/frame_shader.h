@@ -7,21 +7,29 @@
 
 
 #include "shader_base.h"
-
-class FrameShader : public shader_base {
+#include "text_bean.h"
+#include "ImageLoad.h"
+class ImageFrameShader : public shader_base {
     GLuint vertexVbo = 0;
     GLuint uvVbo = 0;
 
-    void Init();
+    static PointF vertexWithPoint(float x, float y, int width, int height);
+public:
+    std::deque<FrameCoordinates> allFrameCoordinates;
 
     void draw();
 
     void draw(GLuint textureId, float second);
 
-    void OnSurfaceChanged(int width, int height);
-
     void onDestroy();
 
+public:
+    void Init();
+
+    void OnSurfaceChanged(int width, int height);
+
+    int DrawFrame(int frame, TextInfo *&pInfo);
+    int InitFrame(int frame, TextInfo *&pInfo);
 };
 
 

@@ -33,18 +33,19 @@ public:
 
 
 typedef struct FrameCoordinates {
-    int x, y, w, h;
+    int x, y, w, h,i;
 } FrameCoordinates;
 
 
 class TextImage {
 public:
-    TextImage() : frameImg(), textureId(0), frameCoordinates() {
+    TextImage() : frameImg(), textureId(0), frameCoordinates(),size({0.f,0.f}) {
 
     }
 
     std::string frameImg;
     GLuint textureId;
+    PointF size;
     std::deque<FrameCoordinates> frameCoordinates;
 };
 
@@ -54,7 +55,6 @@ private:
     int lastFontSize;
     unsigned int lastTextSize;
     std::string last_ttf_file;
-
 public:
     int id;
     std::string ttf_file;
@@ -83,6 +83,7 @@ public:
     bool isTextImage;
     std::string file;
     std::deque<TextImage> textImages;
+    bool isInit;
 
     bool isCreateVertexAndSet() {
         bool isCreate = isSameText();
@@ -102,11 +103,11 @@ public:
 
     TextInfo() : id(0), area(), ttf_file(), text(), outPath(nullptr),
                  surfaceWidth(0), surfaceHeight(0), isHorizontal(true), spacing(0), lineSpacing(0),
-                 fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.5f), outlineDistanceMark(0.5),
+                 fontSize(72), fontColor(0xFFFFFFFF), distanceMark(0.465f), outlineDistanceMark(0.5),
                  outLineColor(0), shadowDistance(0), shadowAlpha(0.5f), offset_x(0.), offset_y(0.),
                  shadowColor(0), shadowAngle(0), isFromTemplate(false), textWidth(0.f),
                  textHeight(0.f), lastFontSize(0), lastTextSize(0), indexVertex(0),
-                 last_ttf_file(), isTextImage(false), textImages() {
+                 last_ttf_file(), isTextImage(false), textImages(),isInit(false) {
     }
 
     ~TextInfo() {
@@ -141,7 +142,7 @@ public:
                                          isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f),
                                          textureId(fboInfo.frameBuffer), text_deque(), textArea(),
                                          applyMatrix(false), isFristCreate(false),
-                                         isDraw(true),templateFolder() {}
+                                         isDraw(true),templateFolder(),frameIndex(75) {}
 
     //层id
     int id;
@@ -164,6 +165,7 @@ public:
     //是否第一次被创建
     bool isFristCreate;
     bool isDraw;
+    int frameIndex;
     std::string templateFolder;
 
     ~TextLayer() {

@@ -20,7 +20,7 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
 
     private val viewBinding by viewBinding(FragmentTemplateBinding::bind)
     var selectCallBack: ((String) -> Unit?)? = null
-    var selectOk: (() -> Unit?)? = null
+    var exitOk: (() -> Unit?)? = null
 
 
     private val imgList: List<ImgItem> by lazy {
@@ -49,7 +49,6 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
         viewBinding.rvList.layoutManager = GridLayoutManager(requireContext(), 4)
         viewBinding.rvList.adapter = imgAdapter
         viewBinding.ivYes.setOnClickListener {
-            selectOk?.invoke()
             requireActivity().supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.fragment_b_show, R.anim.fragment_b_hide).hide(this)
                 .commitAllowingStateLoss()
@@ -58,7 +57,7 @@ class TemplateFragment : Fragment(R.layout.fragment_template) {
         FragmentHelp.addOnBackPressed(this, this) {
             if(FragmentHelp.isFragmentShowing(this)){
                 FragmentHelp.showOrHideFragment(requireActivity().supportFragmentManager, this)
-                TextEngineHelper.getTextEngine().cleanPreview();
+                exitOk?.invoke()
             }
 
             return@addOnBackPressed true

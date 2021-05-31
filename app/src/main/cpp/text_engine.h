@@ -138,9 +138,10 @@ public:
 
     void printAll();
 
-    void setStrokeAttributes(int layerId, int subTextId, float lineDistance, float outLineDistance,
+    void SetStrokeAttributes(int layerId, int subTextId, float lineDistance, float outLineDistance,
                              int outLineColor);
 
+    void UpdateTextLayerFrame(int layerId, int frameIndex);
 private:
     ANativeWindow *window_;
     JavaVM *vm_;

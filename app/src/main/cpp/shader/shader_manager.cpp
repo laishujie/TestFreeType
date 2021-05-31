@@ -13,10 +13,11 @@
 ShaderManager::ShaderManager() : textShader_(nullptr),
                                  fontManager_(
                                          nullptr), freeTypeShader(nullptr), outShader_(nullptr),
-                                 matrixShader_(nullptr) {
+                                 matrixShader_(nullptr), imageFrameShader(nullptr) {
     textShader_ = new TextShader();
     matrixShader_ = new MatrixShader();
     outShader_ = new OutShader();
+    imageFrameShader = new ImageFrameShader();
     //freeTypeShader = new FreeTypeShader();
 }
 
@@ -43,7 +44,10 @@ ShaderManager::~ShaderManager() {
         delete outShader_;
         outShader_ = nullptr;
     }
-
+    if (imageFrameShader != nullptr) {
+        delete imageFrameShader;
+        imageFrameShader = nullptr;
+    }
     LOGCATI("leave: %s", __func__)
 }
 
@@ -57,7 +61,8 @@ void ShaderManager::InitShader(int width, int height) {
     outShader_->OnSurfaceChanged(width, height);
 
     textShader_->Init();
-
+    imageFrameShader->Init();
+    imageFrameShader->OnSurfaceChanged(width, height);
     fontManager_ = ftgl::font_manager_new(width, height, 1);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -89,7 +94,6 @@ void ShaderManager::InitShader(int width, int height) {
     //获取对应得文本
 
     ftgl::texture_font_load_glyphs(pFont, "输入文字");
-
 
     LOGCATI("leave: %s", __func__)
 }
@@ -158,6 +162,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         textLayer->frameBuffer = fboInfo.frameBuffer;
     }
 
+
     if (textLayer->isDraw) {
         fbo_util::BindFbo(textLayer->frameBuffer);
         //前景色合成要用到
@@ -167,6 +172,11 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         textLayer->textArea.reset();
         //绘制文字层下的文字组
         for (auto &textInfo:textLayer->text_deque) {
+            if (!textInfo->isInit) {
+                InitTextInfo(textLayer, textInfo);
+                textInfo->isInit = true;
+            }
+
             if (textInfo->isTextImage) {
                 DrawTextImage(textLayer, textInfo);
             } else {
@@ -266,6 +276,9 @@ int ShaderManager::DrawTextInfo(TextLayer *&textLayer, TextInfo *&textInfo) {
         }
         textLayer->isChangeTextArea = true;
     } else {
+        //TODo 应该时一组文字对应一个vao这里要改
+        ftgl::texture_font_t *pFont = InsetTextAndCalculate(textInfo);
+        textInfo->indexVertex = textShader_->FillVertex(textInfo, pFont);
         textLayer->isChangeTextArea = false;
         LOGCATI("不需要重新生成顶点")
     }
@@ -275,11 +288,23 @@ int ShaderManager::DrawTextInfo(TextLayer *&textLayer, TextInfo *&textInfo) {
     return 0;
 }
 
+
+
 int ShaderManager::DrawTextImage(TextLayer *&textLayer, TextInfo *&textInfo) {
-
-
-
-
+    DrawFrame(textLayer->frameIndex, textInfo);
     return 0;
+}
+
+void ShaderManager::DrawFrame(int frame, TextInfo *&pInfo) {
+    imageFrameShader->DrawFrame(frame, pInfo);
+    //outShader_->draw(pInfo->textImages[1].textureId);
+}
+
+void ShaderManager::InitTextInfo(TextLayer *pLayer, TextInfo *&pInfo) {
+    LOGCATI("enter ShaderManager %s", __func__)
+    if (pInfo->isTextImage) {
+        imageFrameShader->InitFrame(pLayer->frameIndex, pInfo);
+    }
+    LOGCATI("leave ShaderManager %s", __func__)
 }
 

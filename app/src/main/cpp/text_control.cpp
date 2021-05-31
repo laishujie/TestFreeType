@@ -15,6 +15,7 @@ enum RenderMessage {
     kDRAW,
     kPreviewClean,
     kAddTextLayer,
+    kUpdateFrame,
     kRemoveTextLayer
 };
 
@@ -126,7 +127,7 @@ void text_control::HandleMessage(Message *msg) {
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
             //清理数据
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             //绘制层
@@ -136,12 +137,6 @@ void text_control::HandleMessage(Message *msg) {
 
                     shaderManager_->DrawTextLayer(pLayer);
 
-                    /*if (pLayer->isFristCreate) {
-                        //TODO 先文字一层看看效果
-                        javaCallHelper->onTextLevelChange(true, pLayer->id,
-                                                          pLayer->text_deque[0]->id);
-                        pLayer->isFristCreate = false;
-                    }*/
                     if (javaCallHelper != nullptr && pLayer->isChangeTextArea) {
                         javaCallHelper->onTextAreaChanged(pLayer->id, pLayer->textArea.left,
                                                           pLayer->textArea.top,
@@ -188,6 +183,9 @@ void text_control::HandleMessage(Message *msg) {
             int layerId = msg->arg1;
             RemoveLayer(layerId);
         }
+            break;
+        case kUpdateFrame:
+            UpdateTextLayerFrame(msg->arg1, msg->arg2);
             break;
         default:
             break;
@@ -721,7 +719,7 @@ text_control::SetBasicTextAttributes(int layerId, int subId, const char *text, c
     TextInfo *pInfo = nullptr;
     TextLayer *pLayer = nullptr;
 
-    int i = findTextInfo(layerId, subId, pLayer, pInfo);
+    int i = FindTextInfo(layerId, subId, pLayer, pInfo);
     if (i == 0) {
         pLayer->isDraw = true;
         pInfo->text = text;
@@ -747,7 +745,7 @@ int text_control::FindTextLayer(int layerId, TextLayer *&textLayer) {
 
 
 int
-text_control::findTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo) {
+text_control::FindTextInfo(int layerId, int subId, TextLayer *&textLayer, TextInfo *&pTextInfo) {
     int i = FindTextLayer(layerId, textLayer);
     if (i == 0) {
         std::deque<TextInfo *> &deque = textLayer->text_deque;
@@ -772,7 +770,8 @@ void text_control::printAll() {
     }
 }
 
-void split(const std::string &s, std::vector<std::string> &tokens, const std::string &delimiters = " ") {
+void
+split(const std::string &s, std::vector<std::string> &tokens, const std::string &delimiters = " ") {
     std::string::size_type lastPos = s.find_first_not_of(delimiters, 0);
     std::string::size_type pos = s.find_first_of(delimiters, lastPos);
     while (lastPos != std::string::npos || pos != std::string::npos) {
@@ -787,10 +786,10 @@ int text_control::FillFrame(std::string &templateFolder, TextInfo *&info) {
         std::vector<std::string> str;
         split(info->file, str, ",");
 
-        for (auto &filePath:str) {
+        for (int i = 0; i < str.size(); i++) {
             char *config_buffer = nullptr;
 
-            int ret = ReadFile(templateFolder.append("/") + filePath + ".json", &config_buffer);
+            int ret = ReadFile(templateFolder + "/" + str[i] + ".json", &config_buffer);
             if (ret != 0 || config_buffer == nullptr) {
                 LOGCATE("读取背景序列帧图片失败 error: %d", ret)
                 return -2;
@@ -806,15 +805,20 @@ int text_control::FillFrame(std::string &templateFolder, TextInfo *&info) {
             cJSON *frames = cJSON_GetObjectItem(pJson, "frames");
             cJSON *meta = cJSON_GetObjectItem(pJson, "meta");
             cJSON *image_id_json = cJSON_GetObjectItem(meta, "image");
-            TextImage textImage;
-            textImage.frameImg = image_id_json->string;
 
+            cJSON *size = cJSON_GetObjectItem(meta, "size");
+
+            cJSON *size_w = cJSON_GetObjectItem(size, "w");
+            cJSON *size_h = cJSON_GetObjectItem(size, "h");
+            TextImage textImage;
+            textImage.size = {float(size_w->valueint), float(size_h->valueint)};
+            textImage.frameImg = templateFolder + "/" + image_id_json->valuestring;
             if (nullptr != frames) {
                 int frames_size = cJSON_GetArraySize(frames);
 
-                for (int i = 0; i < frames_size; i++) {
+                for (int j = 0; j < frames_size; j++) {
 
-                    cJSON *filter_child = cJSON_GetArrayItem(frames, i);
+                    cJSON *filter_child = cJSON_GetArrayItem(frames, j);
 
                     cJSON *text_child = cJSON_GetObjectItem(filter_child, "frame");
                     cJSON *x_id_json = cJSON_GetObjectItem(text_child, "x");
@@ -824,12 +828,10 @@ int text_control::FillFrame(std::string &templateFolder, TextInfo *&info) {
 
                     textImage.frameCoordinates.push_back(
                             {x_id_json->valueint, y_id_json->valueint, w_id_json->valueint,
-                             h_id_json->valueint});
-
-                    info->textImages.push_back(textImage);
+                             h_id_json->valueint, i});
                 }
+                info->textImages.push_back(textImage);
             }
-
             cJSON_Delete(pJson);
         }
     }
@@ -853,7 +855,7 @@ void text_control::setStrokeAttributes(int layerId, int subTextId, float lineDis
     TextInfo *pInfo = nullptr;
     TextLayer *pLayer = nullptr;
 
-    int i = findTextInfo(layerId, subTextId, pLayer, pInfo);
+    int i = FindTextInfo(layerId, subTextId, pLayer, pInfo);
     if (i == 0) {
         pLayer->isDraw = true;
         pInfo->distanceMark = lineDistance;
@@ -862,6 +864,18 @@ void text_control::setStrokeAttributes(int layerId, int subTextId, float lineDis
         PostDisplay();
     }
 }
+
+void text_control::UpdateTextLayerFrame(int layerId, int frameIndex) {
+    TextLayer *pLayer = nullptr;
+
+    int i = FindTextLayer(layerId, pLayer);
+    if (i == 0) {
+        pLayer->isDraw = true;
+        pLayer->frameIndex = frameIndex;
+        PostDisplay();
+    }
+}
+
 
 void text_control::PostAddTextLayer(TextLayer *&textLayer) {
     auto message = buffer_pool_->GetBuffer<Message>();
@@ -874,6 +888,15 @@ void text_control::PostRemoveLayer(int layerId) {
     auto message = buffer_pool_->GetBuffer<Message>();
     message->what = kRemoveTextLayer;
     message->arg1 = layerId;
+    PostMessage(message);
+}
+
+
+void text_control::PostUpdateTextLayerFrame(int layerId, int frameIndex) {
+    auto message = buffer_pool_->GetBuffer<Message>();
+    message->what = kUpdateFrame;
+    message->arg1 = layerId;
+    message->arg2 = frameIndex;
     PostMessage(message);
 }
 
