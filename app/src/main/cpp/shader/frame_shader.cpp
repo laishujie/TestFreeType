@@ -34,6 +34,7 @@ void ImageFrameShader::Init() {
             "{                                            \n"
             "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
             "vec4 textureMap = texture(textureMap,uv); \n"
+            "textureMap.rgb*=textureMap.a;"
             "fragColor = textureMap;\n"
             "}                                            \n";
 
@@ -63,6 +64,7 @@ void ImageFrameShader::onDestroy() {
 
 void ImageFrameShader::draw(GLuint textureId, float second) {
     glProgram->useProgram();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLint textureIndex = glGetUniformLocation(glProgram->program, "textureMap");
 
@@ -74,6 +76,8 @@ void ImageFrameShader::draw(GLuint textureId, float second) {
 
     glvao->BindVAO();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 
