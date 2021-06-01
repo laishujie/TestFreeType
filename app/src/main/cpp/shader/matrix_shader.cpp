@@ -42,8 +42,6 @@ void MatrixShader::Init() {
 
             "vec2 position = vec2(vPosition.x,vPosition.y);"
 
-            //transform
-            "position+=vec2(tx,ty);"
 
             //平移到原点
             "position-=vec2(cx,cy);"
@@ -58,6 +56,7 @@ void MatrixShader::Init() {
             "position.x = position.x / ratio;"
             "position+=vec2(cx,cy);"
 
+            "position+=vec2(tx,ty);"
 
             " gl_Position =  vec4(position,0.,1.);              \n"
 
@@ -152,7 +151,7 @@ void MatrixShader::draw(GLuint textureId, float textLeft, float textTop, float t
     glUniform1i(textureIndex, 0);
 
 
-    offsetWithMatrixValue(textLeft, textTop, textWidth,textHeight,tx, ty, cx, cy);
+    offsetWithMatrixValue(textLeft, textTop, textWidth, textHeight, tx, ty, cx, cy);
 
 
     GLint widthIndex = glGetUniformLocation(glProgram->program, "width");
@@ -192,31 +191,29 @@ void MatrixShader::offsetWithMatrixValue(float textLeft, float textTop, float te
 
     /* float openglX = (x / float(width)) * 2.f - 1.f;
      float openglY = 1.f - (y / float(height)) * 2.f;*/
-    float readTx = tx - textLeft;
-    float readDy = ty - textTop;
-
-    //float defaultCanterX =
-
-    tx = (readTx / float(surfaceWidth)) * 2.f;
-    ty = -(readDy / float(surfaceHeight)) * 2.f;
-
-    float defaultCanterX = textLeft + textWidth / 2.f;
-    float defaultCanterY = textTop + textHeight / 2.f;
-
-    float surfaceCenterX = float(surfaceWidth)/2.f;
-    float surfaceCenterY = float(surfaceHeight)/2.f;
 
 
-    float readCx = defaultCanterX - surfaceCenterX;
-    float readCy = defaultCanterY - surfaceCenterY;
+    float textLayerCanterX = textLeft + textWidth / 2.f;
+    float textLayerCanterY = textTop + textHeight / 2.f;
+    float surfaceCenterX = float(surfaceWidth) / 2.f;
+    float surfaceCenterY = float(surfaceHeight) / 2.f;
+    int readCx = std::abs((int) textLayerCanterX - (int) surfaceCenterX);
+    int readCy = std::abs((int) textLayerCanterY - (int) surfaceCenterY);
+    float centerX = (float(readCx) / float(surfaceWidth)) * 2.f;
+    float centerY = (float(readCy) / float(surfaceHeight)) * 2.f;
 
-    cx = (readCx / float(surfaceWidth)) * 2.f;
-    cy = -(readCy / float(surfaceHeight)) * 2.f;
-    /*cx = left + (cx / float(surfaceWidth)) * 2.f;
-    cy = top - (cy / float(surfaceHeight)) * 2.f;*/
+    LOGCATE("surfaceCenterX  %f surfaceCenterY %f cx  %f cy  %f readCx %d readCy %d",
+            surfaceCenterX, surfaceCenterY, cx, cy, readCx, readCy)
 
-    LOGCATE("11111 tx %f ty %f", tx, ty)
-    //tx =left+ ((tx / float(surfaceWidth)) * 2.f - 1.f);
-    //tx = top-(1.f - (ty / float(surfaceHeight)) * 2.f);
+    float dx = textLayerCanterX - cx;
+    float dy = textLayerCanterY - cy;
+
+
+    tx =  -(dx / float(surfaceWidth)) * 2.f;
+    ty =  (dy / float(surfaceHeight)) * 2.f;
+
+    //当前圆点到中心点距离
+    cx = centerX;
+    cy = centerY;
 
 }
