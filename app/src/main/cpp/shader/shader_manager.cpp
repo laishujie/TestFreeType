@@ -169,7 +169,7 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         //区域重置
-        textLayer->textArea.reset();
+        //textLayer->textArea.reset();
         //绘制文字层下的文字组
         for (auto &textInfo:textLayer->text_deque) {
             if (!textInfo->isInit) {
@@ -191,7 +191,9 @@ int ShaderManager::DrawTextLayer(TextLayer *textLayer) {
 
 
     if (textLayer->applyMatrix) {
-        matrixShader_->draw(textLayer->textureId, textLayer->tx, textLayer->ty, textLayer->sc,
+        matrixShader_->draw(textLayer->textureId, textLayer->textArea.left, textLayer->textArea.top,textLayer->textArea.getWidth(),textLayer->textArea.getHeight(),
+                            textLayer->cx, textLayer->cy,
+                            textLayer->tx, textLayer->ty, textLayer->sc,
                             textLayer->r);
     } else {
         outShader_->draw(textLayer->textureId);
@@ -287,7 +289,6 @@ int ShaderManager::DrawTextInfo(TextLayer *&textLayer, TextInfo *&textInfo) {
     textShader_->DrawStrokeNormalText(textInfo, fontManager_->atlas->id);
     return 0;
 }
-
 
 
 int ShaderManager::DrawTextImage(TextLayer *&textLayer, TextInfo *&textInfo) {

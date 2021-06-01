@@ -20,9 +20,9 @@ public:
 
     void draw(GLuint textureId);
 
-    void draw(GLuint textureId, float tx, float ty, float sc, float r);
+    void draw(GLuint textureId, float textLeft,float textTop,float textWidth,float textHeight,float cx,float cy,float tx, float ty, float sc, float r);
 
-    void offsetWithMatrixValue(float &tx, float &ty);
+    void offsetWithMatrixValue(float textLeft,float textTop ,float textWidth,float textHeight,float &tx, float &ty,float &cx, float &cy);
 
 };
 

@@ -2,6 +2,7 @@
 // Created by admin on 2021/5/25.
 //
 
+#include <logUtil.h>
 #include "matrix_shader.h"
 
 void MatrixShader::onDestroy() {
@@ -34,23 +35,29 @@ void MatrixShader::Init() {
             "}"
             "uniform float tx;"
             "uniform float ty;"
+            "uniform float cx;"
+            "uniform float cy;"
             "void main()                              \n"
             "{                                        \n"
 
             "vec2 position = vec2(vPosition.x,vPosition.y);"
+
             //transform
+            "position+=vec2(tx,ty);"
+
+            //平移到原点
+            "position-=vec2(cx,cy);"
+
             "float sw = float(width);"
             "float sh = float(height);"
             "position*=sc;"
 
-            "position+=vec2(tx,ty);"
-
-            "position-=vec2(tx,ty);"
             "float ratio = float(width)/float(height);"
             "position.x = position.x * ratio;"
             "position = rotate2d(radians(float(-r))) * position;"
             "position.x = position.x / ratio;"
-            "position+=vec2(tx,ty);"
+            "position+=vec2(cx,cy);"
+
 
             " gl_Position =  vec4(position,0.,1.);              \n"
 
@@ -131,7 +138,9 @@ void MatrixShader::draw(GLuint textureId) {
 
 }
 
-void MatrixShader::draw(GLuint textureId, float tx, float ty, float sc, float r) {
+void MatrixShader::draw(GLuint textureId, float textLeft, float textTop, float textWidth,
+                        float textHeight, float cx, float cy, float tx, float ty, float sc,
+                        float r) {
     glProgram->useProgram();
 
     GLint textureIndex = glGetUniformLocation(glProgram->program, "textureMap");
@@ -142,7 +151,8 @@ void MatrixShader::draw(GLuint textureId, float tx, float ty, float sc, float r)
     //glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
     glUniform1i(textureIndex, 0);
 
-    offsetWithMatrixValue(tx, ty);
+
+    offsetWithMatrixValue(textLeft, textTop, textWidth,textHeight,tx, ty, cx, cy);
 
 
     GLint widthIndex = glGetUniformLocation(glProgram->program, "width");
@@ -154,6 +164,13 @@ void MatrixShader::draw(GLuint textureId, float tx, float ty, float sc, float r)
     glUniform1f(txIndex, tx);
     GLint tyIndex = glGetUniformLocation(glProgram->program, "ty");
     glUniform1f(tyIndex, ty);
+
+
+    GLint cxIndex = glGetUniformLocation(glProgram->program, "cx");
+    glUniform1f(cxIndex, cx);
+    GLint cyIndex = glGetUniformLocation(glProgram->program, "cy");
+    glUniform1f(cyIndex, cy);
+
 
     GLint scIndex = glGetUniformLocation(glProgram->program, "sc");
     //float readSc = float(surfaceWidth)/(float(surfaceWidth)*sc);
@@ -167,10 +184,39 @@ void MatrixShader::draw(GLuint textureId, float tx, float ty, float sc, float r)
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
-void MatrixShader::offsetWithMatrixValue(float &tx, float &ty) {
+void MatrixShader::offsetWithMatrixValue(float textLeft, float textTop, float textWidth,
+                                         float textHeight, float &tx, float &ty, float &cx,
+                                         float &cy) {
     float left = -1.f;
     float top = 1.f;
 
-    tx = left + (tx / float(surfaceWidth)) * 2.f;
-    ty = top - (ty / float(surfaceHeight)) * 2.f;
+    /* float openglX = (x / float(width)) * 2.f - 1.f;
+     float openglY = 1.f - (y / float(height)) * 2.f;*/
+    float readTx = tx - textLeft;
+    float readDy = ty - textTop;
+
+    //float defaultCanterX =
+
+    tx = (readTx / float(surfaceWidth)) * 2.f;
+    ty = -(readDy / float(surfaceHeight)) * 2.f;
+
+    float defaultCanterX = textLeft + textWidth / 2.f;
+    float defaultCanterY = textTop + textHeight / 2.f;
+
+    float surfaceCenterX = float(surfaceWidth)/2.f;
+    float surfaceCenterY = float(surfaceHeight)/2.f;
+
+
+    float readCx = defaultCanterX - surfaceCenterX;
+    float readCy = defaultCanterY - surfaceCenterY;
+
+    cx = (readCx / float(surfaceWidth)) * 2.f;
+    cy = -(readCy / float(surfaceHeight)) * 2.f;
+    /*cx = left + (cx / float(surfaceWidth)) * 2.f;
+    cy = top - (cy / float(surfaceHeight)) * 2.f;*/
+
+    LOGCATE("11111 tx %f ty %f", tx, ty)
+    //tx =left+ ((tx / float(surfaceWidth)) * 2.f - 1.f);
+    //tx = top-(1.f - (ty / float(surfaceHeight)) * 2.f);
+
 }

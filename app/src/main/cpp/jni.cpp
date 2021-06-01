@@ -694,18 +694,6 @@ Java_com_example_testfreetype_TextEngineJni_addSimpleSubText(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testfreetype_TextEngineJni_textLayerTransform(JNIEnv *env, jobject thiz,
-                                                               jlong handler, jint layer_id,
-                                                               jfloat tx, jfloat ty, jfloat sc,
-                                                               jfloat r) {
-    if (handler <= 0) {
-        return;
-    }
-    auto *editor = reinterpret_cast<text_engine *>(handler);
-
-    editor->TextLayerTransform(layer_id, tx, ty, sc, r);
-}extern "C"
-JNIEXPORT void JNICALL
 Java_com_example_testfreetype_TextEngineJni_setBasicTextAttributes(JNIEnv *env, jobject thiz,
                                                                    jlong handler, jint layer_id,
                                                                    jint sub_id, jstring j_ttf,
@@ -758,4 +746,17 @@ Java_com_example_testfreetype_TextEngineJni_updateTextLayerFrameIndex(JNIEnv *en
     }
     auto *editor = reinterpret_cast<text_engine *>(handle);
     editor->UpdateTextLayerFrame(layer_id, frame_index);
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_testfreetype_TextEngineJni_textLayerTransform(JNIEnv *env, jobject thiz,
+                                                               jlong handler, jint layer_id,
+                                                               jfloat tx, jfloat ty,
+                                                               jfloat center_x, jfloat center_y,
+                                                               jfloat sc, jfloat r) {
+    if (handler <= 0) {
+        return;
+    }
+    auto *editor = reinterpret_cast<text_engine *>(handler);
+
+    editor->TextLayerTransform(layer_id, tx, ty, center_x,center_y,sc, r);
 }

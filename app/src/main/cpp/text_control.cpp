@@ -127,7 +127,7 @@ void text_control::HandleMessage(Message *msg) {
         case kDRAW: {
             LOGCATI("enter kDRAW %s", __func__)
             //清理数据
-            glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             //绘制层
@@ -649,7 +649,7 @@ void text_control::CleanPreview() {
     PostMessage(message);
 }
 
-void text_control::TextLayerTransform(int layerId, float tx, float ty, float sc, float r) {
+void text_control::TextLayerTransform(int layerId, float tx, float ty,float canterX, float canterY, float sc, float r) {
 
     const std::map<int, TextLayer *>::iterator &iterator = layerMaps.find(layerId);
 
@@ -660,6 +660,8 @@ void text_control::TextLayerTransform(int layerId, float tx, float ty, float sc,
         pLayer->ty = ty;
         pLayer->sc = sc;
         pLayer->r = r;
+        pLayer->cx = canterX;
+        pLayer->cy = canterY;
         PostDisplay();
     }
 }
@@ -834,6 +836,11 @@ int text_control::FillFrame(std::string &templateFolder, TextInfo *&info) {
             }
             cJSON_Delete(pJson);
         }
+    }else{
+        //文字的情况
+
+
+
     }
     return 0;
 }

@@ -50,7 +50,7 @@
     <SeekBar
         android:id="@+id/sb_seek"
         android:layout_marginTop="20dp"
-        android:max="100"
+        android:max="300"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

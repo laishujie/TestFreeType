@@ -17,8 +17,8 @@ public class TextEngineJni {
         textLayerTransform(TEXT_ENGINE_ID, , matrixInfo.getTx(), matrixInfo.getTy(), matrixInfo.getScale(), matrixInfo.getRangle());
     }*/
 
-    public void textLayerTransform(int layerId, float tx, float ty, float s, float r) {
-        textLayerTransform(TEXT_ENGINE_ID, layerId, tx, ty, s, r);
+    public void textLayerTransform(int layerId, float tx, float ty,float centerX, float centerY, float s, float r) {
+        textLayerTransform(TEXT_ENGINE_ID, layerId, tx, ty,centerX,centerY, s, r);
     }
 
     public void setBasicTextAttributes(int layerId, int subId, String ttf, String text, int fontSize, int fontColor) {
@@ -235,7 +235,7 @@ public class TextEngineJni {
 
     private native void cleanPreview(long handle);
 
-    private native void textLayerTransform(long handler, int layerId, float tx, float ty, float sc, float r);
+    private native void textLayerTransform(long handler, int layerId, float tx, float ty, float centerX, float centerY,float sc, float r);
 
     private native void setBasicTextAttributes(long handler, int layerId, int subId, String ttf, String text, int fontSize, int fontColor);
 

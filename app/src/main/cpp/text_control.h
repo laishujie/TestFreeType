@@ -151,7 +151,7 @@ public:
 
     void CleanPreview();
 
-    void TextLayerTransform(int layerId, float tx, float ty, float sc, float r);
+    void TextLayerTransform(int layerId, float tx, float ty,float canterX, float canterY, float sc, float r);
 
     /**
      * 设置基础文字属性

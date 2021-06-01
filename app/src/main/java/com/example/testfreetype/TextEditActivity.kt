@@ -292,23 +292,28 @@ class TextEditActivity : AppCompatActivity(R.layout.activity_text_edit) {
 
 
 
-        viewBinding.textRectManager.ITransformCallback = { id, tx, ty, s, r ->
-            TextEngineHelper.getTextEngine().textLayerTransform(id, tx, ty, s, r)
+        viewBinding.textRectManager.ITransformCallback = { id, tx, ty, centerX,cneterY,s, r ->
+            TextEngineHelper.getTextEngine().textLayerTransform(id, tx, ty, centerX,cneterY,s, r)
         }
 
         //选中回调
         viewBinding.textRectManager.ISelectLayerCallBack = {
             tmpTextLayer = it
             it?.apply {
-                viewBinding.sbFrame.progress = it.frameIndex;
+                viewBinding.sbFrame.progress = (it.frameIndex *0.04f*100f/5f).toInt()
             }
         }
 
-        viewBinding.sbFrame.setOnSeekBarChangeListener(object :SeekBar.OnSeekBarChangeListener{
+        viewBinding.sbFrame.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val s = progress.toFloat() / viewBinding.sbFrame.max * 5.0f
+
                 tmpTextLayer?.apply {
-                    this.frameIndex = progress;
-                    TextEngineHelper.getTextEngine().updateTextLayerFrameIndex(layerId,frameIndex)
+                    val frame = (s/0.04f).toInt()
+                    viewBinding.tvS.text = "当前秒：$s"
+                    viewBinding.tvFrame.text = "当前帧：$frame"
+                    this.frameIndex = frame
+                    TextEngineHelper.getTextEngine().updateTextLayerFrameIndex(layerId, frameIndex)
                 }
             }
 

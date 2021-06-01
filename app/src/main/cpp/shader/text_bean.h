@@ -22,6 +22,9 @@ public:
     float getWidth() {
         return right - left;
     }
+    float getHeight() {
+        return bottom - top;
+    }
 
     void reset() {
         left = 0.f;
@@ -135,14 +138,8 @@ typedef struct {
 class TextLayer {
 public:
     TextLayer() : id(0), frameBuffer(0), textureId(0), text_deque(), isTemplate(false), textArea(),
-                  isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f), applyMatrix(false),
-                  isFristCreate(true), isDraw(true),templateFolder() {}
-
-    TextLayer(int id, FboInfo fboInfo) : id(id), frameBuffer(fboInfo.textureId),
-                                         isChangeTextArea(false), tx(0.f), ty(0.f), sc(1.f), r(0.f),
-                                         textureId(fboInfo.frameBuffer), text_deque(), textArea(),
-                                         applyMatrix(false), isFristCreate(false),
-                                         isDraw(true),templateFolder(),frameIndex(75) {}
+                  isChangeTextArea(false), tx(0.f), ty(0.f),cx(0.f),cy(0.f), sc(1.f), r(0.f), applyMatrix(false),
+                  isFristCreate(true), isDraw(true),templateFolder(),frameIndex(75) {}
 
     //层id
     int id;
@@ -159,7 +156,7 @@ public:
     //是否改变文本区域
     bool isChangeTextArea;
     //层平移信息
-    float tx, ty, sc, r;
+    float tx, ty, sc, r,cx,cy;
     //是否应用变换信息
     bool applyMatrix;
     //是否第一次被创建

@@ -127,7 +127,7 @@ public:
 
     void CleanPreview();
 
-    void TextLayerTransform(int layerId,float tx, float ty, float sc, float r);
+    void TextLayerTransform(int layerId,float tx, float ty,float canterX, float canterY, float sc, float r);
 
     int AddSimpleSubtext(int layerId,int subTextId,const char *ttfPath, const char *text, int fonSize, int fontColor);
 

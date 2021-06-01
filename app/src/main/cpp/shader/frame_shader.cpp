@@ -171,7 +171,7 @@ int ImageFrameShader::InitFrame(int frame, TextInfo *&textInfo) {
         auto imgW = (float) coordinates.w;
         auto imgH = (float) coordinates.h;
 
-        float templateRatioW = float(surfaceWidth) / 1920.f;
+        float templateRatioW = 1.f;//float(surfaceWidth) / 1920.f;
         //float templateRatioH = float(surfaceHeight) / 1920.f;
 
         float readWidth = imgW * templateRatioW;

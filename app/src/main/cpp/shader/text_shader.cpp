@@ -39,12 +39,9 @@ void TextShader::Init() {
             "void main(){"
             "vec2 uv = vec2(outUvPos.x,outUvPos.y); \n"
             "vec4 col = texture(textureMap,uv); \n"
-            /*"vec3 glyph_color = vec3(0.8,_FontColor.g,_FontColor.b);"
-            "vec4 sampled = vec4(1.0, 1.0, 1.0, col.r);"
-            "fragColor = vec4(glyph_color, 1.0) * sampled;"*/
             "float dist  = col.r;\n"
             "float width = fwidth(dist);\n"
-            "float outline_center = 0.456;"
+            "float outline_center = 0.46;"
             "float glyph_center = _OutlineDistanceMark;"
             "float alpha = smoothstep(glyph_center-width, glyph_center+width, dist);"
             "vec3 outline_color = vec3(_OutlineColor.r,_OutlineColor.g,_OutlineColor.b);"
@@ -139,7 +136,7 @@ int TextShader::FillVertex(TextInfo *&textInfo,
     lineSpace = isHorizontal ? yPointer : xPointer;
 
     //模板比例
-    float templateRatioW = textInfo->isFromTemplate ? float(textInfo->surfaceWidth) / 1920.f : 1.f;
+    float templateRatioW = 1.f;//textInfo->isFromTemplate ? float(textInfo->surfaceWidth) / 1920.f : 1.f;
    // float templateRatioH = textInfo->isFromTemplate ? float(textInfo->surfaceHeight) / 1920.f : 1.f;
     float readWidth = textInfo->textWidth * templateRatioW;
     float readHeight = textInfo->textHeight * templateRatioW;

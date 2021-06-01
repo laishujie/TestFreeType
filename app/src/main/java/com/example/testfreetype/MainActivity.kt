@@ -64,14 +64,21 @@ class MainActivity : AppCompatActivity() {
 
 
         var hasElased = 0f;
-
+        val currFps = 25
+        val allFrame = 100
+        var maxS = allFrame / currFps
+        var maxY = 0.6
+        var maxScale = 0.6
+        //4 秒内从0.1~0.6.
         binding.sbSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 seekBar?.apply {
-                    val s = progress.toFloat() / max
+                    val s = progress.toFloat() / max * 5.0f
                     hasElased += s
                     //Log.e("11111", "frame 1 ${(s / 0.04f).toInt()}")
-                    Log.e("11111", "frame ${(s * 25).toInt() % 25}")
+                    //Log.e("11111", "s  $s frame ${s / 0.04f}")
+
+                    Log.e("11111", "s  $s curr ${s / maxS * maxY}")
                 }
             }
 

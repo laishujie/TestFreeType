@@ -115,6 +115,7 @@ class TextStyleFragment : Fragment(R.layout.dialog_text) {
 
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     seekBar?.apply {
+                        viewBinding.textView3.text="大小：$progress"
                         styleCallBack?.changeFontSize(progress)
                     }
                 }

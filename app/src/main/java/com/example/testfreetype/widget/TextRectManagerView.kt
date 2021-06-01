@@ -40,7 +40,7 @@ class TextRectManagerView @JvmOverloads constructor(
 
     private var currMatrixInfo = MatrixInfo(0f, 0f, 1f, 0f)
 
-    var ITransformCallback: ((Int, Float, Float, Float, Float) -> Unit?)? = null
+    var ITransformCallback: ((Int, Float, Float, Float,Float, Float, Float) -> Unit?)? = null
 
     var ISelectLayerCallBack: ((TextLayer?) -> Unit)? = null
 
@@ -149,6 +149,8 @@ class TextRectManagerView @JvmOverloads constructor(
                 val rect = it.getRect()
                 ITransformCallback?.invoke(
                     it.getLayerId()!!,
+                    rect.left,
+                    rect.top,
                     rect.centerX(),
                     rect.centerY(),
                     scale,
@@ -331,7 +333,7 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                     paddingRect, linePaint
                 )
 
-                linePaint.color = Color.GRAY
+                linePaint.color = Color.YELLOW
                 canvas.drawRect(
                     totalBorderRect, linePaint
                 )
@@ -339,6 +341,7 @@ class TextRect(private var layer: TextLayer?, context: Context) {
                 scaleButton.draw(canvas, matrix, linePaint)
                 canvas.restore()
             }
+
             linePaint.color = Color.RED
 
             canvas.drawRect(
@@ -391,12 +394,15 @@ class TextRect(private var layer: TextLayer?, context: Context) {
             rect.bottom = bottom
         }
         setPaddingRect(layer)
+
         draw()
     }
 
     fun getRect(): RectF {
-        tmpRect.set(totalBorderRect)
-        matrix.mapRect(tmpRect)
+        layer?.apply {
+            tmpRect.set(rect)
+            matrix.mapRect(tmpRect)
+        }
         return tmpRect
     }
 

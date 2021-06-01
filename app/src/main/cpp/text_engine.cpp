@@ -219,9 +219,9 @@ void text_engine::CleanPreview() {
     pthread_mutex_unlock(&queue_mutex_);
 }
 
-void text_engine::TextLayerTransform(int layerId, float tx, float ty, float sc, float r) {
+void text_engine::TextLayerTransform(int layerId, float tx, float ty, float canterX, float canterY,float sc, float r) {
     pthread_mutex_lock(&queue_mutex_);
-    textControl->TextLayerTransform(layerId, tx, ty, sc, r);
+    textControl->TextLayerTransform(layerId, tx, ty,canterX,  canterY, sc, r);
     pthread_mutex_unlock(&queue_mutex_);
 }
 
